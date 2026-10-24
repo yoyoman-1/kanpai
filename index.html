@@ -224,6 +224,7 @@ textarea { resize: vertical; line-height: 1.5; }
 
 /* Liar's dice */
 .cup-box {
+  width: 100%; font: inherit; color: inherit;
   position: relative; display: grid; place-items: center; min-height: 200px; padding: 22px 14px;
   background: radial-gradient(circle at 50% 40%, #1f7a52, #0c3f29);
   border: 6px solid #5a3420; border-radius: 22px; box-shadow: inset 0 0 30px rgba(0,0,0,.5);
@@ -1659,90 +1660,49 @@ registerGame({
     dieArt(ctx, w * 0.56, h * 0.9, w * 0.15, 0.15, 3);
   },
   mount(root) {
-    let n = store.get('liarN', 5), wild = store.get('liarWild', true);
-    let dice = [], rolled = false, open = false, peeking = false, lastShake = 0, motion = null;
+    const N = 5;
+    let dice = [], state = 'idle', peeking = false;   // idle → hidden（已搖、蓋著）→ open（開牌）
     const dieHTML = v => `<span class="die ${v === 1 || v === 4 ? 'red' : ''} ${v === 1 ? 'one' : ''}" role="img" aria-label="${v} 點">${[...Array(9)].map((_, i) => `<i class="${PIPS[v].includes(i) ? 'on' : ''}"></i>`).join('')}</span>`;
     const cupSVG = `<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="90" rx="40" ry="6" fill="rgba(0,0,0,.35)"/><path d="M28 14 H72 L88 88 H12 Z" fill="#a1342b"/><path d="M24 34 H76 M17 72 H83" stroke="#f2c14e" stroke-width="5"/><ellipse cx="50" cy="14" rx="22" ry="5" fill="#6e241d"/></svg>`;
     root.innerHTML = `
       <div class="stack">
-        <div class="cup-box" id="l-cup" tabindex="0" aria-label="骰盅，按住偷看"></div>
-        <button class="btn big" id="l-roll">搖骰</button>
-        <button class="btn red" id="l-open" disabled>開！翻給大家看</button>
-        <div id="l-tally"></div>
-        <div class="seg" role="group" aria-label="骰子數量">${[3, 4, 5, 6].map(k => `<button data-n="${k}" aria-pressed="${k === n}">${k} 顆骰</button>`).join('')}</div>
-        <div class="seg" role="group" aria-label="1 點規則">
-          <button data-w="1" aria-pressed="${wild}">1 點萬用</button>
-          <button data-w="0" aria-pressed="${!wild}">1 不萬用（齋）</button>
-        </div>
-        <button class="btn ghost" id="l-motion">開啟「甩手機搖骰」</button>
+        <button class="cup-box" id="l-cup" type="button"></button>
+        <button class="btn big" id="l-main"></button>
         <details class="editor"><summary>怎麼玩</summary>
           <ol class="rules">
-            <li>每個人用<b>自己的手機</b>打開這個網址，進「吹牛」。</li>
-            <li>大家一起按「搖骰」，<b>按住骰盅</b>偷看自己的骰子，別給人看。</li>
-            <li>輪流喊「幾個幾」，例如「4 個 5」就是全場至少有 4 顆 5 點。</li>
-            <li>下一個人要喊更大：數量變多，或數量一樣但點數更大。</li>
-            <li>覺得上一個人在唬爛，就喊「開！」。大家按「開！」把手機翻給大家看，下面會幫你算好每種點數有幾顆。</li>
+            <li>每個人用<b>自己的手機</b>打開這個網址，進「吹牛」，一起按「搖骰」。</li>
+            <li><b>點一下骰盅</b>偷看自己的骰子，再點一下蓋起來，別給人看。</li>
+            <li>輪流喊「幾個幾」，例如「4 個 5」就是全場至少有 4 顆 5 點。下一個人要喊更大。</li>
+            <li>覺得上一個人在唬爛就喊「開！」，大家按「開！」把手機翻給大家看。</li>
             <li>全場真的有那麼多 → 喊開的人喝；不夠 → 被開的人喝。</li>
-            <li>1 點萬用：1 可以當任何點數。有人喊過「幾個 1」，這局 1 就不萬用（叫「齋」），記得切換。</li>
+            <li>1 點萬用，可以當任何點數；有人喊過「幾個 1」，這局 1 就不萬用。</li>
           </ol>
         </details>
       </div>`;
-    const cup = $('#l-cup', root), openBtn = $('#l-open', root);
+    const cup = $('#l-cup', root), main = $('#l-main', root);
     function render() {
-      if (!rolled) cup.innerHTML = `<div class="cup-cover">${cupSVG}<span>先按「搖骰」</span></div>`;
-      else if (open || peeking) cup.innerHTML = `<div class="dice">${dice.map(dieHTML).join('')}</div>`;
-      else cup.innerHTML = `<div class="cup-cover">${cupSVG}<span>按住偷看</span></div>`;
-      openBtn.disabled = !rolled;
-      openBtn.textContent = open ? '蓋起來' : '開！翻給大家看';
-      const tally = $('#l-tally', root);
-      if (!open) { tally.innerHTML = ''; return; }
-      const c = [0, 0, 0, 0, 0, 0, 0]; dice.forEach(v => c[v]++);
-      tally.innerHTML = `
-        <p class="hint" style="text-align:center;margin-bottom:6px">我的骰子各有幾顆${wild ? '（2～6 點已加上萬用的 1）' : '（1 不萬用）'}</p>
-        <div class="tally">${[1, 2, 3, 4, 5, 6].map(f => `<div>${f} 點<b>${wild && f !== 1 ? c[f] + c[1] : c[f]}</b></div>`).join('')}</div>`;
+      const showDice = state === 'open' || (state === 'hidden' && peeking);
+      cup.innerHTML = showDice
+        ? `<div class="dice">${dice.map(dieHTML).join('')}</div>`
+        : `<div class="cup-cover">${cupSVG}<span>${state === 'idle' ? '先按「搖骰」' : '點一下偷看'}</span></div>`;
+      cup.setAttribute('aria-label', state === 'hidden' ? (peeking ? '骰子，點一下蓋起來' : '骰盅，點一下偷看') : '骰盅');
+      main.className = state === 'hidden' ? 'btn big red' : 'btn big';
+      main.textContent = state === 'idle' ? '搖骰' : state === 'hidden' ? '開！翻給大家看' : '下一把（重新搖骰）';
     }
     function roll() {
-      dice = Array.from({ length: n }, () => 1 + Math.floor(Math.random() * 6));
-      rolled = true; open = false; peeking = false; keepAwake();
+      dice = Array.from({ length: N }, () => 1 + Math.floor(Math.random() * 6));
+      state = 'hidden'; peeking = false; keepAwake();
       cup.classList.remove('shaking'); void cup.offsetWidth; cup.classList.add('shaking');
       for (let i = 0; i < 6; i++) setTimeout(() => beep(180 + Math.random() * 260, 0.04, 'square', 0.05), i * 60);
       buzz([30, 30, 30, 30, 60]);
       render();
     }
-    $('#l-roll', root).onclick = roll;
-    openBtn.onclick = () => { open = !open; if (open) { beep(660, 0.2, 'sawtooth', 0.08); buzz(120); } render(); };
-    const peek = on => { if (!rolled || open) return; peeking = on; render(); };
-    cup.onpointerdown = e => { e.preventDefault(); peek(true); };
-    cup.onpointerup = cup.onpointerleave = cup.onpointercancel = () => peek(false);
-    cup.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); peek(true); } };
-    cup.onkeyup = () => peek(false);
-    root.querySelectorAll('[data-n]').forEach(b => b.onclick = () => {
-      n = +b.dataset.n; store.set('liarN', n);
-      root.querySelectorAll('[data-n]').forEach(x => x.setAttribute('aria-pressed', x === b));
-      rolled = false; open = false; render();
-    });
-    root.querySelectorAll('[data-w]').forEach(b => b.onclick = () => {
-      wild = b.dataset.w === '1'; store.set('liarWild', wild);
-      root.querySelectorAll('[data-w]').forEach(x => x.setAttribute('aria-pressed', x === b));
-      render();
-    });
-    $('#l-motion', root).onclick = async e => {
-      const btn = e.currentTarget;
-      if (motion) { window.removeEventListener('devicemotion', motion); motion = null; btn.textContent = '開啟「甩手機搖骰」'; return; }
-      try {
-        if (typeof DeviceMotionEvent === 'undefined') throw new Error('unsupported');
-        if (typeof DeviceMotionEvent.requestPermission === 'function' && await DeviceMotionEvent.requestPermission() !== 'granted') throw new Error('denied');
-        motion = ev => {
-          const a = ev.accelerationIncludingGravity; if (!a) return;
-          const m = Math.hypot(a.x || 0, a.y || 0, a.z || 0);
-          if (m > 28 && Date.now() - lastShake > 1200) { lastShake = Date.now(); roll(); }
-        };
-        window.addEventListener('devicemotion', motion);
-        btn.textContent = '甩手機搖骰：已開啟（點一下關閉）';
-      } catch (err) { btn.textContent = '這支手機不能用甩的，請按「搖骰」'; }
+    cup.onclick = () => { if (state !== 'hidden') return; peeking = !peeking; beep(peeking ? 520 : 380, 0.04, 'triangle'); render(); };
+    main.onclick = () => {
+      if (state === 'hidden') { state = 'open'; beep(660, 0.2, 'sawtooth', 0.08); buzz(120); render(); }
+      else roll();
     };
     render();
-    return () => { if (motion) window.removeEventListener('devicemotion', motion); };
   }
 });
 
