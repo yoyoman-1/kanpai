@@ -1638,7 +1638,7 @@ function dieArt(ctx, x, y, s, rot, v) {
   ctx.restore();
 }
 registerGame({
-  id: 'liar', name: '吹牛', en: "LIAR'S DICE", color: '#ffd36b', tag: '心理戰 · 人手一機', ribbon: 'NEW', desc: '每人用自己手機當骰盅，喊數唬爛，被開就喝', minPlayers: 2,
+  id: 'liar', name: '吹牛', en: "LIAR'S DICE", color: '#ffd36b', tag: '心理戰 · 人手一機', ribbon: 'NEW', desc: '每人用自己手機當骰盅，喊數唬爛，被開就喝', minPlayers: 1, needText: '每人一支手機，名單填自己就好',
   art(ctx, w, h) {
     const g = ctx.createRadialGradient(w / 2, h * 0.6, w * 0.1, w / 2, h * 0.6, h * 0.8); g.addColorStop(0, '#22915f'); g.addColorStop(1, '#08321f');
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
@@ -1811,9 +1811,9 @@ function welcome() {
       ? players.map((p, i) => `<span class="chip">${esc(p)}<button data-rm="${i}" aria-label="移除 ${esc(p)}">×</button></span>`).join('')
       : '<span class="hint">還沒有玩家，從上面輸入第一個名字</span>';
     $('#w-chips').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { players.splice(+b.dataset.rm, 1); store.set('players-v4', players); draw(); });
-    $('#w-need').innerHTML = `<strong>各遊戲人數</strong><ul>${GAMES.map(g => `<li class="${players.length >= g.minPlayers ? 'ok' : ''}"><span>${esc(g.name)}</span><b>${g.minPlayers} 人以上${players.length >= g.minPlayers ? ' ✓' : ''}</b></li>`).join('')}</ul>`;
-    go.disabled = players.length < 2;
-    go.textContent = players.length < 2 ? `至少要 2 人（還差 ${2 - players.length} 人）` : `開始玩（${players.length} 人）`;
+    $('#w-need').innerHTML = `<strong>各遊戲人數</strong><ul>${GAMES.map(g => `<li class="${players.length >= g.minPlayers ? 'ok' : ''}"><span>${esc(g.name)}</span><b>${g.needText || `${g.minPlayers} 人以上`}${players.length >= g.minPlayers ? ' ✓' : ''}</b></li>`).join('')}</ul>`;
+    go.disabled = players.length < 1;
+    go.textContent = players.length < 1 ? '至少輸入 1 個名字' : `開始玩（${players.length} 人）`;
   }
   $('#w-form').onsubmit = e => {
     e.preventDefault();
@@ -1828,7 +1828,7 @@ function welcome() {
 
 function show(id) {
   if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; }
-  if (id === 'welcome' || players.length < 2) {
+  if (id === 'welcome' || players.length < 1) {
     currentId = 'welcome'; $('#back').hidden = true; $('#players-btn').hidden = true; $('#title').textContent = '乾杯遊戲機';
     window.scrollTo(0, 0); welcome(); return;
   }
@@ -1849,7 +1849,7 @@ function renderPlayers() {
   $('#pcount').textContent = players.length;
   $('#chips').innerHTML = players.map((p, i) => `<span class="chip">${esc(p)}<button data-rm="${i}" aria-label="移除 ${esc(p)}">×</button></span>`).join('');
   $('#chips').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
-    if (players.length <= 2) { $('#sheet-title').textContent = '至少要留 2 位玩家'; return; }
+    if (players.length <= 1) { $('#sheet-title').textContent = '至少要留 1 位玩家'; return; }
     players.splice(+b.dataset.rm, 1); turn = 0; store.set('players-v4', players); renderPlayers();
   });
 }
