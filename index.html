@@ -222,6 +222,31 @@ textarea { resize: vertical; line-height: 1.5; }
 .tool { border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px; padding: 6px 12px; font-size: .9rem; }
 .tool[aria-pressed="true"] { background: var(--amber); color: var(--ink); }
 
+/* Liar's dice */
+.cup-box {
+  position: relative; display: grid; place-items: center; min-height: 200px; padding: 22px 14px;
+  background: radial-gradient(circle at 50% 40%, #1f7a52, #0c3f29);
+  border: 6px solid #5a3420; border-radius: 22px; box-shadow: inset 0 0 30px rgba(0,0,0,.5);
+  touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer;
+}
+.cup-box.shaking { animation: shake .15s linear 4; }
+.dice { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.die {
+  width: clamp(44px, 14vw, 56px); aspect-ratio: 1; padding: 16%; border-radius: 22%;
+  background: #fbf7ee; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  box-shadow: inset -3px -4px 0 rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.35);
+}
+.die i { width: 70%; aspect-ratio: 1; border-radius: 50%; background: #1b1b1b; place-self: center; visibility: hidden; }
+.die i.on { visibility: visible; }
+.die.red i { background: #d62c2c; }
+.die.one i.on { width: 130%; }
+.cup-cover { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #d9f2e6; font-weight: 700; text-align: center; }
+.cup-cover svg { width: 84px; height: 84px; }
+.tally { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; text-align: center; }
+.tally div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 2px; font-size: .8rem; color: var(--muted); }
+.tally b { display: block; font-family: var(--num); font-weight: 400; font-size: 1.4rem; color: var(--foam); }
+.rules { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; line-height: 1.55; }
+
 /* Welcome */
 .need { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
 .need strong { font-size: .95rem; }
@@ -1599,6 +1624,125 @@ registerGame({
     }
     setup();
     return stop;
+  }
+});
+
+/* ---------- 7. 吹牛（人手一機當骰盅） ---------- */
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function dieArt(ctx, x, y, s, rot, v) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; rr(ctx, -s / 2 + s * 0.06, -s / 2 + s * 0.1, s, s, s * 0.18); ctx.fill();
+  ctx.fillStyle = '#fbf7ee'; rr(ctx, -s / 2, -s / 2, s, s, s * 0.18); ctx.fill();
+  ctx.fillStyle = v === 1 || v === 4 ? '#d62c2c' : '#1b1b1b';
+  PIPS[v].forEach(i => { ctx.beginPath(); ctx.arc((i % 3 - 1) * s * 0.28, (Math.floor(i / 3) - 1) * s * 0.28, s * (v === 1 ? 0.15 : 0.08), 0, Math.PI * 2); ctx.fill(); });
+  ctx.restore();
+}
+registerGame({
+  id: 'liar', name: '吹牛', en: "LIAR'S DICE", color: '#ffd36b', tag: '心理戰 · 人手一機', ribbon: 'NEW', desc: '每人用自己手機當骰盅，喊數唬爛，被開就喝', minPlayers: 2,
+  art(ctx, w, h) {
+    const g = ctx.createRadialGradient(w / 2, h * 0.6, w * 0.1, w / 2, h * 0.6, h * 0.8); g.addColorStop(0, '#22915f'); g.addColorStop(1, '#08321f');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#5a3420'; ctx.lineWidth = w * 0.05; ctx.strokeRect(0, 0, w, h);
+    bubbles(ctx, w, h, 21, 16, 'rgba(255,255,255,.06)');
+    ctx.save(); ctx.translate(w * 0.36, h * 0.6); ctx.rotate(-0.35);
+    const cw = w * 0.42, ch = w * 0.46;
+    const cg = ctx.createLinearGradient(-cw / 2, 0, cw / 2, 0); cg.addColorStop(0, '#5e1b16'); cg.addColorStop(0.45, '#b8402f'); cg.addColorStop(1, '#5e1b16');
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(0, ch / 2 + w * 0.02, cw * 0.55, w * 0.05, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = cg; ctx.beginPath(); ctx.moveTo(-cw * 0.32, -ch / 2); ctx.lineTo(cw * 0.32, -ch / 2); ctx.lineTo(cw / 2, ch / 2); ctx.lineTo(-cw / 2, ch / 2); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#f2c14e'; ctx.lineWidth = w * 0.018;
+    [-0.3, 0.32].forEach(t => { const y = ch * t, half = cw * (0.32 + (0.18 * (t + 0.5))); ctx.beginPath(); ctx.moveTo(-half, y); ctx.lineTo(half, y); ctx.stroke(); });
+    ctx.fillStyle = '#7a2a20'; ctx.beginPath(); ctx.ellipse(0, -ch / 2, cw * 0.32, w * 0.035, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    dieArt(ctx, w * 0.72, h * 0.7, w * 0.22, 0.3, 1);
+    dieArt(ctx, w * 0.8, h * 0.47, w * 0.17, -0.4, 6);
+    dieArt(ctx, w * 0.26, h * 0.88, w * 0.17, -0.2, 4);
+    dieArt(ctx, w * 0.56, h * 0.9, w * 0.15, 0.15, 3);
+  },
+  mount(root) {
+    let n = store.get('liarN', 5), wild = store.get('liarWild', true);
+    let dice = [], rolled = false, open = false, peeking = false, lastShake = 0, motion = null;
+    const dieHTML = v => `<span class="die ${v === 1 || v === 4 ? 'red' : ''} ${v === 1 ? 'one' : ''}" role="img" aria-label="${v} 點">${[...Array(9)].map((_, i) => `<i class="${PIPS[v].includes(i) ? 'on' : ''}"></i>`).join('')}</span>`;
+    const cupSVG = `<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="90" rx="40" ry="6" fill="rgba(0,0,0,.35)"/><path d="M28 14 H72 L88 88 H12 Z" fill="#a1342b"/><path d="M24 34 H76 M17 72 H83" stroke="#f2c14e" stroke-width="5"/><ellipse cx="50" cy="14" rx="22" ry="5" fill="#6e241d"/></svg>`;
+    root.innerHTML = `
+      <div class="stack">
+        <div class="cup-box" id="l-cup" tabindex="0" aria-label="骰盅，按住偷看"></div>
+        <button class="btn big" id="l-roll">搖骰</button>
+        <button class="btn red" id="l-open" disabled>開！翻給大家看</button>
+        <div id="l-tally"></div>
+        <div class="seg" role="group" aria-label="骰子數量">${[3, 4, 5, 6].map(k => `<button data-n="${k}" aria-pressed="${k === n}">${k} 顆骰</button>`).join('')}</div>
+        <div class="seg" role="group" aria-label="1 點規則">
+          <button data-w="1" aria-pressed="${wild}">1 點萬用</button>
+          <button data-w="0" aria-pressed="${!wild}">1 不萬用（齋）</button>
+        </div>
+        <button class="btn ghost" id="l-motion">開啟「甩手機搖骰」</button>
+        <details class="editor"><summary>怎麼玩</summary>
+          <ol class="rules">
+            <li>每個人用<b>自己的手機</b>打開這個網址，進「吹牛」。</li>
+            <li>大家一起按「搖骰」，<b>按住骰盅</b>偷看自己的骰子，別給人看。</li>
+            <li>輪流喊「幾個幾」，例如「4 個 5」就是全場至少有 4 顆 5 點。</li>
+            <li>下一個人要喊更大：數量變多，或數量一樣但點數更大。</li>
+            <li>覺得上一個人在唬爛，就喊「開！」。大家按「開！」把手機翻給大家看，下面會幫你算好每種點數有幾顆。</li>
+            <li>全場真的有那麼多 → 喊開的人喝；不夠 → 被開的人喝。</li>
+            <li>1 點萬用：1 可以當任何點數。有人喊過「幾個 1」，這局 1 就不萬用（叫「齋」），記得切換。</li>
+          </ol>
+        </details>
+      </div>`;
+    const cup = $('#l-cup', root), openBtn = $('#l-open', root);
+    function render() {
+      if (!rolled) cup.innerHTML = `<div class="cup-cover">${cupSVG}<span>先按「搖骰」</span></div>`;
+      else if (open || peeking) cup.innerHTML = `<div class="dice">${dice.map(dieHTML).join('')}</div>`;
+      else cup.innerHTML = `<div class="cup-cover">${cupSVG}<span>按住偷看</span></div>`;
+      openBtn.disabled = !rolled;
+      openBtn.textContent = open ? '蓋起來' : '開！翻給大家看';
+      const tally = $('#l-tally', root);
+      if (!open) { tally.innerHTML = ''; return; }
+      const c = [0, 0, 0, 0, 0, 0, 0]; dice.forEach(v => c[v]++);
+      tally.innerHTML = `
+        <p class="hint" style="text-align:center;margin-bottom:6px">我的骰子各有幾顆${wild ? '（2～6 點已加上萬用的 1）' : '（1 不萬用）'}</p>
+        <div class="tally">${[1, 2, 3, 4, 5, 6].map(f => `<div>${f} 點<b>${wild && f !== 1 ? c[f] + c[1] : c[f]}</b></div>`).join('')}</div>`;
+    }
+    function roll() {
+      dice = Array.from({ length: n }, () => 1 + Math.floor(Math.random() * 6));
+      rolled = true; open = false; peeking = false; keepAwake();
+      cup.classList.remove('shaking'); void cup.offsetWidth; cup.classList.add('shaking');
+      for (let i = 0; i < 6; i++) setTimeout(() => beep(180 + Math.random() * 260, 0.04, 'square', 0.05), i * 60);
+      buzz([30, 30, 30, 30, 60]);
+      render();
+    }
+    $('#l-roll', root).onclick = roll;
+    openBtn.onclick = () => { open = !open; if (open) { beep(660, 0.2, 'sawtooth', 0.08); buzz(120); } render(); };
+    const peek = on => { if (!rolled || open) return; peeking = on; render(); };
+    cup.onpointerdown = e => { e.preventDefault(); peek(true); };
+    cup.onpointerup = cup.onpointerleave = cup.onpointercancel = () => peek(false);
+    cup.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); peek(true); } };
+    cup.onkeyup = () => peek(false);
+    root.querySelectorAll('[data-n]').forEach(b => b.onclick = () => {
+      n = +b.dataset.n; store.set('liarN', n);
+      root.querySelectorAll('[data-n]').forEach(x => x.setAttribute('aria-pressed', x === b));
+      rolled = false; open = false; render();
+    });
+    root.querySelectorAll('[data-w]').forEach(b => b.onclick = () => {
+      wild = b.dataset.w === '1'; store.set('liarWild', wild);
+      root.querySelectorAll('[data-w]').forEach(x => x.setAttribute('aria-pressed', x === b));
+      render();
+    });
+    $('#l-motion', root).onclick = async e => {
+      const btn = e.currentTarget;
+      if (motion) { window.removeEventListener('devicemotion', motion); motion = null; btn.textContent = '開啟「甩手機搖骰」'; return; }
+      try {
+        if (typeof DeviceMotionEvent === 'undefined') throw new Error('unsupported');
+        if (typeof DeviceMotionEvent.requestPermission === 'function' && await DeviceMotionEvent.requestPermission() !== 'granted') throw new Error('denied');
+        motion = ev => {
+          const a = ev.accelerationIncludingGravity; if (!a) return;
+          const m = Math.hypot(a.x || 0, a.y || 0, a.z || 0);
+          if (m > 28 && Date.now() - lastShake > 1200) { lastShake = Date.now(); roll(); }
+        };
+        window.addEventListener('devicemotion', motion);
+        btn.textContent = '甩手機搖骰：已開啟（點一下關閉）';
+      } catch (err) { btn.textContent = '這支手機不能用甩的，請按「搖骰」'; }
+    };
+    render();
+    return () => { if (motion) window.removeEventListener('devicemotion', motion); };
   }
 });
 
