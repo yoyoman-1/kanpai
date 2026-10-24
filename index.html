@@ -232,15 +232,7 @@ textarea { resize: vertical; line-height: 1.5; }
 }
 .cup-box.shaking { animation: shake .15s linear 4; }
 .dice { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-.die {
-  width: clamp(44px, 14vw, 56px); aspect-ratio: 1; padding: 16%; border-radius: 22%;
-  background: #fbf7ee; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-  box-shadow: inset -3px -4px 0 rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.35);
-}
-.die i { width: 70%; aspect-ratio: 1; border-radius: 50%; background: #1b1b1b; place-self: center; visibility: hidden; }
-.die i.on { visibility: visible; }
-.die.red i { background: #d62c2c; }
-.die.one i.on { width: 130%; }
+.die { width: clamp(48px, 15vw, 60px); height: auto; aspect-ratio: 1; display: block; filter: drop-shadow(0 4px 4px rgba(0,0,0,.35)); }
 .cup-cover { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #d9f2e6; font-weight: 700; text-align: center; }
 .cup-cover svg { width: 84px; height: 84px; }
 .tally { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; text-align: center; }
@@ -1662,7 +1654,7 @@ registerGame({
   mount(root) {
     const N = 5;
     let dice = [], state = 'idle', peeking = false;   // idle → hidden（已搖、蓋著）→ open（開牌）
-    const dieHTML = v => `<span class="die ${v === 1 || v === 4 ? 'red' : ''} ${v === 1 ? 'one' : ''}" role="img" aria-label="${v} 點">${[...Array(9)].map((_, i) => `<i class="${PIPS[v].includes(i) ? 'on' : ''}"></i>`).join('')}</span>`;
+    const dieHTML = v => `<svg class="die" viewBox="0 0 100 100" role="img" aria-label="${v} 點"><rect x="3" y="3" width="94" height="94" rx="20" fill="#fbf7ee"/><rect x="3" y="3" width="94" height="94" rx="20" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="3"/>${PIPS[v].map(i => `<circle cx="${22 + (i % 3) * 28}" cy="${22 + Math.floor(i / 3) * 28}" r="${v === 1 ? 16 : 9}" fill="${v === 1 || v === 4 ? '#d62c2c' : '#1b1b1b'}"/>`).join('')}</svg>`;
     const cupSVG = `<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="90" rx="40" ry="6" fill="rgba(0,0,0,.35)"/><path d="M28 14 H72 L88 88 H12 Z" fill="#a1342b"/><path d="M24 34 H76 M17 72 H83" stroke="#f2c14e" stroke-width="5"/><ellipse cx="50" cy="14" rx="22" ry="5" fill="#6e241d"/></svg>`;
     root.innerHTML = `
       <div class="stack">
@@ -1698,11 +1690,26 @@ registerGame({
       render();
     }
     cup.onclick = () => { if (state !== 'hidden') return; peeking = !peeking; beep(peeking ? 520 : 380, 0.04, 'triangle'); render(); };
+    // 甩手機搖骰（不顯示按鈕）：iPhone 要在第一次按「搖骰」時取得動作權限；蓋著的時候甩不會重搖，避免作弊
+    let lastShake = 0, motionAsked = false;
+    const onMotion = ev => {
+      const a = ev.accelerationIncludingGravity; if (!a || state === 'hidden') return;
+      if (Math.hypot(a.x || 0, a.y || 0, a.z || 0) > 28 && Date.now() - lastShake > 1200) { lastShake = Date.now(); roll(); }
+    };
+    function enableMotion() {
+      if (motionAsked || typeof DeviceMotionEvent === 'undefined') return;
+      motionAsked = true;
+      const add = () => window.addEventListener('devicemotion', onMotion);
+      if (typeof DeviceMotionEvent.requestPermission === 'function') DeviceMotionEvent.requestPermission().then(r => { if (r === 'granted') add(); }).catch(() => {});
+      else add();
+    }
     main.onclick = () => {
+      enableMotion();
       if (state === 'hidden') { state = 'open'; beep(660, 0.2, 'sawtooth', 0.08); buzz(120); render(); }
       else roll();
     };
     render();
+    return () => window.removeEventListener('devicemotion', onMotion);
   }
 });
 
