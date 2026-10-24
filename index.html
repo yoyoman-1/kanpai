@@ -1,0 +1,1732 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a100b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="乾杯遊戲機">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+<title>乾杯遊戲機</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Huninn&family=Noto+Sans+TC:wght@400;700;900&display=swap">
+<style>
+/* Layout: one-column pub table; games are beer coasters on a dark wood bar, each game opens full-screen under a sticky tap-handle header. */
+:root {
+  --bg: #1a100b;
+  --surface: #2a1a11;
+  --surface-2: #362216;
+  --line: #4d3324;
+  --amber: #f2a33a;
+  --amber-deep: #b86a17;
+  --foam: #fbf0dc;
+  --muted: #c2a68a;
+  --cherry: #e5484d;
+  --mint: #5cc8a0;
+  --ink: #23140b;
+  --paper: #fffdf7;
+  --display: "Huninn", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --num: "Bungee", "Huninn", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg);
+  background-image: radial-gradient(120% 60% at 50% -10%, rgba(242,163,58,.18), transparent 60%);
+  background-attachment: fixed;
+  color: var(--foam);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible, select:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.bar-in { max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+.bar h1 { flex: 1; min-width: 0; margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.35rem; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icon-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; font-size: .95rem; white-space: nowrap; }
+.icon-btn b { color: var(--amber); font-family: var(--num); font-weight: 400; margin-left: 4px; }
+
+main {
+  max-width: 560px; margin: 0 auto;
+  padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.stack { display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row > * { flex: 1 1 auto; }
+
+/* Home */
+.hero h2 { font-family: var(--display); font-weight: 400; font-size: clamp(2.2rem, 10vw, 3.2rem); line-height: 1.1; margin: 4px 0 6px; text-wrap: balance; color: var(--amber); }
+.hero p { margin: 0; color: var(--muted); }
+.library-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 10px; color: var(--muted); font-size: .9rem; }
+.library-head strong { color: var(--foam); font-weight: 700; letter-spacing: .04em; }
+.shelf { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 14px; }
+.cap-item { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.cap {
+  position: relative; display: block; width: 100%; aspect-ratio: 2 / 3; max-width: 100%;
+  border: 0; padding: 0; border-radius: 6px; overflow: hidden; background: var(--surface);
+  box-shadow: 0 8px 20px rgba(0,0,0,.45);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.cap:hover, .cap:focus-visible { transform: translateY(-4px) scale(1.02); box-shadow: 0 0 0 2px var(--c, var(--amber)), 0 14px 28px rgba(0,0,0,.55); }
+.cap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cap-logo {
+  position: absolute; top: 9%; left: 6px; right: 6px; text-align: center;
+  font-family: var(--display); font-size: clamp(1.45rem, 7vw, 2rem); line-height: 1.05; color: #fff;
+  text-shadow: 0 0 2px var(--ink), 2px 2px 0 var(--ink), -2px 2px 0 var(--ink), 2px -2px 0 var(--ink), -2px -2px 0 var(--ink), 0 4px 0 var(--ink), 0 6px 12px rgba(0,0,0,.5);
+  text-wrap: balance;
+}
+.cap-logo em { display: block; font-style: normal; font-family: var(--num); font-size: .4em; letter-spacing: .1em; color: var(--c, var(--amber)); margin-top: 4px; }
+.cap-chip {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  background: rgba(28,32,40,.88); color: #dfe3e8; font-size: .78rem; padding: 2px 10px; border-radius: 4px; white-space: nowrap;
+}
+.cap-ribbon {
+  position: absolute; top: 14px; right: -34px; transform: rotate(45deg);
+  background: var(--mint); color: var(--ink); font-size: .72rem; font-weight: 900; padding: 2px 36px; letter-spacing: .1em;
+}
+.cap-item small { color: var(--muted); font-size: .85rem; line-height: 1.4; }
+.cap.soon { border: 2px dashed var(--line); background: transparent; box-shadow: none; cursor: default; display: grid; place-items: center; }
+.cap.soon:hover { transform: none; }
+.cap.soon span { font-family: var(--display); color: var(--line); font-size: 3rem; line-height: 1; text-align: center; }
+.cap.soon span b { display: block; font-weight: 400; font-size: 1rem; color: var(--muted); margin-top: 8px; }
+
+/* Common game UI */
+.turn { text-align: center; color: var(--muted); font-size: 1.05rem; }
+.turn b { color: var(--foam); font-family: var(--display); font-weight: 400; font-size: 1.6rem; margin: 0 4px; }
+.btn {
+  border: 0; border-radius: 14px; padding: 12px 18px; font-weight: 700;
+  background: var(--amber); color: var(--ink); font-size: 1.05rem;
+  box-shadow: 0 4px 0 var(--amber-deep);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--amber-deep); }
+.btn.big { font-family: var(--display); font-weight: 400; font-size: 1.6rem; padding: 14px; }
+.btn.ghost { background: var(--surface); color: var(--foam); box-shadow: 0 4px 0 var(--line); border: 1px solid var(--line); }
+.btn.red { background: var(--cherry); color: var(--foam); box-shadow: 0 4px 0 #8e2226; }
+.btn.mint { background: var(--mint); color: var(--ink); box-shadow: 0 4px 0 #2d7a5e; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.result {
+  background: var(--foam); color: var(--ink); border-radius: 18px; padding: 18px 20px;
+  text-align: center; font-family: var(--display); font-size: 1.5rem; line-height: 1.35; text-wrap: balance;
+  animation: pop .35s cubic-bezier(.2,1.6,.4,1);
+}
+.result small { display: block; font-family: var(--body); font-size: .9rem; color: #7a5a40; margin-top: 6px; }
+@keyframes pop { from { transform: scale(.85); opacity: .3; } to { transform: scale(1); opacity: 1; } }
+.hint { color: var(--muted); font-size: .88rem; margin: 0; }
+.seg { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; }
+.seg button { flex: 1; border: 0; background: transparent; border-radius: 999px; padding: 8px 6px; color: var(--muted); font-weight: 700; }
+.seg button[aria-pressed="true"] { background: var(--amber); color: var(--ink); }
+details.editor { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 4px 14px; }
+details.editor[open] { padding-bottom: 14px; }
+details.editor summary { cursor: pointer; padding: 10px 0; color: var(--muted); font-weight: 700; }
+details.editor .stack { gap: 10px; }
+textarea, input[type="text"], select {
+  width: 100%; background: var(--bg); color: var(--foam); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; font: inherit; font-size: 16px;
+}
+textarea { resize: vertical; line-height: 1.5; }
+
+/* Wheel */
+.wheel-wrap { position: relative; width: min(100%, 340px); aspect-ratio: 1; max-width: 100%; margin: 0 auto; }
+.wheel-wrap canvas { width: 100%; height: 100%; display: block; border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.pointer { position: absolute; top: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 30px solid var(--foam); z-index: 2; filter: drop-shadow(0 3px 3px rgba(0,0,0,.5)); }
+
+/* Number bomb */
+.range { display: flex; align-items: center; justify-content: center; gap: 14px; font-family: var(--num); font-size: clamp(2.6rem, 14vw, 4rem); line-height: 1; color: var(--amber); font-variant-numeric: tabular-nums; }
+.range i { font-style: normal; color: var(--muted); font-family: var(--display); font-size: .6em; }
+.entry { text-align: center; font-family: var(--num); font-size: 2.4rem; min-height: 1.4em; background: var(--surface); border: 2px solid var(--line); border-radius: 14px; padding: 6px; letter-spacing: .1em; }
+.pad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pad button { font-family: var(--num); font-size: 1.6rem; padding: 12px 0; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); box-shadow: 0 4px 0 var(--line); }
+.pad button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+.pad .go { background: var(--cherry); border-color: var(--cherry); box-shadow: 0 4px 0 #8e2226; font-family: var(--display); }
+.pad .clr { font-family: var(--display); font-size: 1.2rem; color: var(--muted); }
+.msg { text-align: center; color: var(--muted); min-height: 1.6em; }
+.boom { text-align: center; padding: 10px 0; }
+.boom .kaboom { font-family: var(--display); font-size: clamp(5rem, 30vw, 8rem); line-height: 1; color: var(--cherry); display: inline-block; animation: shake .5s ease 2; }
+@keyframes shake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg) scale(1.1); } 75% { transform: rotate(8deg) scale(1.1); } }
+
+/* Truth or dare */
+.td-card { background: var(--foam); color: var(--ink); border-radius: 20px; padding: 22px 20px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; gap: 10px; text-align: center; }
+.td-card .tag { align-self: center; font-size: .8rem; font-weight: 900; letter-spacing: .15em; padding: 3px 12px; border-radius: 999px; background: var(--ink); color: var(--foam); }
+.td-card .tag.dare { background: var(--cherry); }
+.td-card p { margin: 0; font-family: var(--display); font-size: 1.45rem; line-height: 1.4; text-wrap: balance; }
+.td-card.empty p { color: #8b6c52; font-size: 1.1rem; }
+
+/* Undercover */
+.reveal { background: var(--surface); border: 2px dashed var(--line); border-radius: 20px; padding: 28px 18px; text-align: center; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.reveal .word { font-family: var(--display); font-size: clamp(2.6rem, 14vw, 3.6rem); color: var(--amber); line-height: 1.1; }
+.reveal .who { font-family: var(--display); font-size: 1.8rem; }
+.plist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.plist button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 14px; padding: 12px 8px; font-family: var(--display); font-size: 1.2rem; overflow-wrap: anywhere; }
+.plist button.out { opacity: .4; text-decoration: line-through; cursor: default; }
+.plist button.armed { background: var(--cherry); border-color: var(--cherry); }
+.stepper { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+.stepper .ctl { display: flex; align-items: center; gap: 12px; }
+.stepper .ctl button { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface-2); font-size: 1.3rem; }
+.stepper .ctl b { font-family: var(--num); font-weight: 400; font-size: 1.4rem; min-width: 1.5em; text-align: center; color: var(--amber); }
+
+/* Player sheet */
+.sheet-bg { position: fixed; inset: 0; background: rgba(10,6,3,.7); z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  width: 100%; max-width: 560px; background: var(--surface); border-radius: 22px 22px 0 0; border-top: 1px solid var(--line);
+  padding-block: 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  max-height: 85vh; overflow-y: auto;
+}
+.sheet h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.5rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 6px 6px 6px 14px; }
+.chip button { border: 0; background: var(--surface-2); border-radius: 50%; width: 26px; height: 26px; line-height: 1; color: var(--muted); }
+.add-row { display: flex; gap: 8px; }
+.add-row input { flex: 1; min-width: 0; }
+.add-row .btn { flex: none; }
+
+/* Most likely */
+.chip.cat { padding: 6px 14px; color: var(--muted); font-weight: 700; }
+.chip.cat[aria-pressed="true"] { background: var(--amber); color: var(--ink); border-color: var(--amber); }
+.td-card p.count { font-family: var(--num); font-size: 4.2rem; line-height: 1; color: var(--cherry); }
+
+/* Draw & guess */
+.draw-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.timer { font-family: var(--num); font-size: 2.4rem; line-height: 1; color: var(--amber); font-variant-numeric: tabular-nums; min-width: 2.5ch; }
+.timer.hurry { color: var(--cherry); animation: shake .5s ease infinite; }
+.draw-canvas { width: 100%; aspect-ratio: 1; max-width: 100%; display: block; background: var(--paper); border-radius: 12px; touch-action: none; cursor: crosshair; }
+.draw-shot { width: 100%; max-width: 100%; border-radius: 12px; display: block; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sw { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); padding: 0; }
+.sw[aria-pressed="true"] { outline: 3px solid var(--amber); outline-offset: 2px; }
+.tool { border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px; padding: 6px 12px; font-size: .9rem; }
+.tool[aria-pressed="true"] { background: var(--amber); color: var(--ink); }
+
+/* Welcome */
+.need { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
+.need strong { font-size: .95rem; }
+.need ul { list-style: none; margin: 6px 0 0; padding: 0; }
+.need li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); color: var(--muted); }
+.need li:last-child { border-bottom: 0; }
+.need li b { font-weight: 700; white-space: nowrap; }
+.need li.ok { color: var(--foam); }
+.need li.ok b { color: var(--mint); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <button class="icon-btn" id="back" hidden aria-label="回到遊戲選單">← 選單</button>
+    <h1 id="title">乾杯遊戲機</h1>
+    <button class="icon-btn" id="players-btn">玩家<b id="pcount">0</b></button>
+  </div>
+</header>
+<main id="view"></main>
+
+<div class="sheet-bg" id="sheet" hidden>
+  <div class="sheet stack" role="dialog" aria-labelledby="sheet-title">
+    <h3 id="sheet-title">今晚的玩家</h3>
+    <p class="hint">依座位順序輸入（順時針），「左邊、右邊」的懲罰會照這個順序算。</p>
+    <div class="chips" id="chips"></div>
+    <form class="add-row" id="add-form">
+      <input type="text" id="p-input" placeholder="輸入名字" maxlength="10" autocomplete="off">
+      <button class="btn" type="submit">加入</button>
+    </form>
+    <button class="btn ghost" id="sheet-close">好了，開喝</button>
+  </div>
+</div>
+
+<script>
+/* ---------- 共用工具 ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('kanpai:' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('kanpai:' + k, JSON.stringify(v)); } catch (e) {} }
+};
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// 玩家名單：每次打開都會先到歡迎頁確認
+let players = store.get('players-v4', []);
+let turn = 0;
+const current = () => players[turn % players.length];
+const nextTurn = () => { turn = (turn + 1) % players.length; };
+
+// 把 {人} {左} {右} {某人} 換成真名
+function fill(text, who) {
+  const n = players.length, i = Math.max(0, players.indexOf(who));
+  const others = players.filter(p => p !== who);
+  return text
+    .replaceAll('{人}', who)
+    .replaceAll('{左}', players[(i - 1 + n) % n])
+    .replaceAll('{右}', players[(i + 1) % n])
+    .replaceAll('{某人}', others.length ? pick(others) : who);
+}
+
+let audio;
+function beep(freq = 600, dur = 0.06, type = 'square', vol = 0.06) {
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + dur);
+    o.connect(g).connect(audio.destination);
+    o.start(); o.stop(audio.currentTime + dur);
+  } catch (e) {}
+}
+const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+let wakeLock;
+async function keepAwake() { try { if (!wakeLock && navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
+
+/* ---------- 遊戲註冊表：要加新遊戲，照下面格式 registerGame({...}) 即可 ----------
+   id: 唯一代號   name: 名稱   en: 封面英文副標   color: 副標與外框顏色   tag: 封面底部標籤
+   desc: 一句話說明   minPlayers: 最少人數   art(ctx, w, h): 畫封面圖   mount(root): 把遊戲畫進 root，可回傳清理函式 */
+const GAMES = [];
+const registerGame = g => GAMES.push(g);
+
+/* ---------- 封面插圖（canvas 繪製） ---------- */
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function seeded(s) { return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function rays(ctx, cx, cy, len, n, color) {
+  ctx.save(); ctx.translate(cx, cy); ctx.fillStyle = color;
+  const a = Math.PI * 2 / n;
+  for (let i = 0; i < n; i += 2) { ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, len, i * a, (i + 1) * a); ctx.closePath(); ctx.fill(); }
+  ctx.restore();
+}
+function bubbles(ctx, w, h, seed, n, color) {
+  const r = seeded(seed); ctx.fillStyle = color;
+  for (let i = 0; i < n; i++) { ctx.beginPath(); ctx.arc(r() * w, r() * h, w * (0.008 + r() * 0.025), 0, Math.PI * 2); ctx.fill(); }
+}
+
+/* ---------- 1. 懲罰轉盤 ---------- */
+const WHEEL_DEFAULT = [
+  // 直接喝
+  '{人} 喝一口', '{人} 喝兩口', '{人} 喝三口', '{人} 喝半杯', '{人} 乾杯！',
+  '{左} 喝一口', '{右} 喝一口', '{左} 和 {右} 一起喝', '{某人} 喝一口', '天選之人：{某人} 喝兩口',
+  '全場一起乾杯', '全場喝一口，只有 {人} 安全', '上一個轉的人再喝一口', '{人} 喝，{左} 陪喝一半', '{人} 選一個人陪你一起喝',
+  '{人} 和 {某人} 一起乾杯', '{人} 跟 {左} 乾杯', '{人} 跟 {右} 乾杯', '{人} 跟 {某人} 喝交杯', '{人} 和 {右} 喝交杯',
+  '{人} 跟全場每個人碰杯，各喝一小口',
+  // 安全 / 道具
+  '{人} 安全，下一位', '{人} 安全！還能指定一人喝', '{人} 拿到免死金牌：下次可以擋一次', '{人} 可以把下一個懲罰轉給別人', '{人} 再轉一次',
+  '{人} 下次轉到要喝的，加倍', '{人} 喝一杯水，休息一下',
+  // 指定
+  '{人} 指定一人喝', '{人} 指定兩人喝', '{人} 指定一人喝兩口', '{人} 指定兩個人喝交杯', '{人} 的國王時間：指定兩個人做一件事',
+  // 條件
+  '男生全部喝一口', '女生全部喝一口', '戴眼鏡的人喝', '今天穿黑色衣服的喝', '今天穿白色衣服的喝',
+  '有男女朋友的喝', '單身的喝', '手機電量最低的喝', '手機電量最高的喝', '年紀最小的喝',
+  '年紀最大的喝', '今天最晚到的喝', '杯子裡剩最多的喝', '杯子裡剩最少的喝', '最近一週有喝過酒的人喝',
+  // 反應
+  '全場舉手，最後一個舉的喝', '{人} 喊「摸鼻子」，最後一個摸的喝', '{人} 喊「摸頭」，最後一個摸的喝', '全場站起來，最後一個站的喝', '全場指向最會喝的人，票最多的喝',
+  // 小遊戲
+  '{人} 跟 {某人} 猜拳，輸的喝', '{人} 跟 {某人} 猜拳三戰兩勝，輸的喝兩口', '{人} 跟 {左} 比腕力，輸的喝', '{人} 跟 {右} 對視十秒，先笑的喝', '逢七過：從 {人} 開始數，數到 7 的倍數或含 7 要拍手，錯的喝',
+  '{人} 開始文字接龍，接不出來的喝', '{人} 說「我從來沒有……」，做過的人喝', '{人} 十秒內說出五種酒，說不出喝', '{人} 十秒內說出五個縣市，說不出喝', '{人} 說出在場每個人的全名，錯一個喝一口',
+  '{人} 從 1 數到 20 只說奇數，錯了喝', '{人} 一口氣念「吃葡萄不吐葡萄皮」三次，卡住喝', '{人} 單腳站十秒，倒了喝', '{人} 原地轉五圈再走直線，走歪喝', '{人} 閉眼摸臉猜 {某人} 是誰，猜錯喝',
+  // 新規則
+  '{人} 定一條新規則，違規的喝', '新規則：不能說「我」，說到的喝（到下一輪）', '新規則：說話結尾要加「喵」，忘記的喝（到下一輪）', '新規則：只能用左手拿杯子，違規喝（到下一輪）', '{人} 成為問題人物：回答他問題的人喝，直到下一個問題人物出現',
+  '{人} 是酒令官：之後誰說髒話誰喝', '廁所令：要去廁所的人先喝一口（{人} 監督）', '{人} 當服務生，下一輪幫大家倒酒', '{人} 和 {某人} 交換座位', '{人} 和 {左} 交換杯子',
+  // 真心話
+  '{人} 真心話一題', '{人} 回答 {某人} 一個問題，不答喝兩口', '{人} 說一個秘密，不說喝兩口', '{人} 說出初戀的名字，不說喝兩口', '{人} 用三個詞形容前任',
+  '{人} 說出在場誰最可能先醉', '{人} 說出在場最欣賞的人，那個人陪你喝', '{人} 講一件最近的糗事', '{人} 用一句話形容 {某人}', '{人} 念出最後一則 LINE 訊息，不念喝兩口',
+  // 大冒險
+  '{人} 大冒險一個', '{人} 學一種動物叫，學不像喝', '{人} 唱一段歌，忘詞喝', '{人} 講一個笑話，沒人笑就喝', '{人} 用台語說「我已經醉了」',
+  '{人} 模仿在場一個人，大家猜不到就喝', '{人} 學 {某人} 喝酒的樣子', '{人} 誇 {左} 三個優點', '{人} 對 {右} 深情告白十秒', '{人} 做十個深蹲',
+  '{人} 跳一段二十秒的舞', '{人} 用屁股寫自己的名字', '{人} 撒嬌說「人家不想喝嘛」，大家不滿意就喝', '{人} 用英文自我介紹，卡住就喝', '{人} 和 {左} 用台語對話三句',
+  '{人} 選一首歌讓全場合唱副歌', '{人} 給大家看相簿裡一張照片（{某人} 挑）', '{人} 自拍一張醜照傳到群組', '{人} 打給一個朋友說「我愛你」', '{人} 用 {某人} 的口頭禪講一句話'
+];
+registerGame({
+  id: 'wheel', name: '懲罰轉盤', en: 'PUNISH WHEEL', color: '#ffd36b', tag: '派對 · 運氣', desc: '轉到什麼就做什麼', minPlayers: 2,
+  art(ctx, w, h) {
+    const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#ffcf6b'); g.addColorStop(1, '#b8360b');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    const cx = w / 2, cy = h * 0.66, r = w * 0.47;
+    rays(ctx, cx, cy, h, 28, 'rgba(255,255,255,.13)');
+    bubbles(ctx, w, h * 0.45, 7, 14, 'rgba(255,250,235,.35)');
+    const cols = ['#f2a33a', '#e5484d', '#5cc8a0', '#3a2416'], n = 10, seg = Math.PI * 2 / n, off = -Math.PI / 2 - seg / 2;
+    ctx.beginPath(); ctx.arc(cx, cy + w * 0.03, r + w * 0.03, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fill();
+    for (let i = 0; i < n; i++) { ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, off + i * seg, off + (i + 1) * seg); ctx.closePath(); ctx.fillStyle = cols[i % 4]; ctx.fill(); }
+    ctx.lineWidth = w * 0.035; ctx.strokeStyle = '#fbf0dc'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    for (let i = 0; i < 20; i++) { const a = i * Math.PI / 10; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, w * 0.012, 0, Math.PI * 2); ctx.fillStyle = i % 2 ? '#fff6c2' : '#ffb347'; ctx.fill(); }
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2); ctx.fillStyle = '#fbf0dc'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.09, 0, Math.PI * 2); ctx.fillStyle = '#b86a17'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx - w * 0.07, cy - r - w * 0.06); ctx.lineTo(cx + w * 0.07, cy - r - w * 0.06); ctx.lineTo(cx, cy - r + w * 0.07); ctx.closePath();
+    ctx.fillStyle = '#fbf0dc'; ctx.fill(); ctx.lineWidth = w * 0.012; ctx.strokeStyle = '#23140b'; ctx.stroke();
+  },
+  mount(root) {
+    // 題庫可以很大，轉盤每次只從裡面隨機抽 SHOW 格放上去
+    const SHOW = 12;
+    let pool = store.get('wheel-v2', WHEEL_DEFAULT), spun = false;
+    let items = shuffle(pool).slice(0, SHOW);
+    root.innerHTML = `
+      <div class="stack">
+        <div class="turn">輪到 <b id="w-who"></b> 轉</div>
+        <div class="wheel-wrap"><div class="pointer"></div><canvas id="w-canvas"></canvas></div>
+        <button class="btn big" id="w-spin">轉！</button>
+        <p class="hint" style="text-align:center" id="w-count"></p>
+        <div id="w-result"></div>
+        <details class="editor"><summary>編輯轉盤題庫</summary>
+          <div class="stack">
+            <p class="hint">一行一題，題數不限。每次轉都會從題庫隨機抽 ${SHOW} 題放上轉盤。可用 {人} 目前玩家、{左} {右} 左右鄰座、{某人} 隨機一人。</p>
+            <textarea id="w-text" rows="14"></textarea>
+            <div class="row"><button class="btn ghost" id="w-reset">恢復預設</button><button class="btn" id="w-save">儲存</button></div>
+          </div>
+        </details>
+      </div>`;
+    const cv = $('#w-canvas', root), ctx = cv.getContext('2d');
+    const css = getComputedStyle(document.documentElement);
+    const colors = ['--amber', '--cherry', '--mint', '--surface-2'].map(v => css.getPropertyValue(v).trim());
+    const textOn = [css.getPropertyValue('--ink').trim(), css.getPropertyValue('--foam').trim(), css.getPropertyValue('--ink').trim(), css.getPropertyValue('--foam').trim()];
+    let rot = 0, spinning = false, raf;
+    const label = t => { const s = t.replaceAll('{人}', '').replaceAll('{左}', '左邊').replaceAll('{右}', '右邊').replaceAll('{某人}', '某人').trim(); return s.length > 7 ? s.slice(0, 7) + '…' : s; };
+    const colorIdx = i => (items.length % 4 === 1 && i === items.length - 1) ? 1 : i % 4;
+
+    function size() {
+      const px = cv.getBoundingClientRect().width || 320, dpr = window.devicePixelRatio || 1;
+      cv.width = cv.height = Math.round(px * dpr);
+      draw();
+    }
+    function draw() {
+      const w = cv.width, r = w / 2, n = items.length, seg = Math.PI * 2 / n;
+      ctx.clearRect(0, 0, w, w);
+      ctx.save(); ctx.translate(r, r);
+      for (let i = 0; i < n; i++) {
+        const a = rot + i * seg, c = colorIdx(i);
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, a, a + seg); ctx.closePath();
+        ctx.fillStyle = colors[c]; ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = w * 0.004; ctx.stroke();
+        ctx.save(); ctx.rotate(a + seg / 2);
+        ctx.fillStyle = textOn[c]; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        ctx.font = `${Math.round(w * (n > 12 ? 0.04 : 0.05))}px Huninn, "Noto Sans TC", sans-serif`;
+        ctx.fillText(label(items[i]), r - w * 0.05, 0);
+        ctx.restore();
+      }
+      ctx.beginPath(); ctx.arc(0, 0, r * 0.13, 0, Math.PI * 2);
+      ctx.fillStyle = css.getPropertyValue('--foam').trim(); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 0, r * 0.07, 0, Math.PI * 2);
+      ctx.fillStyle = css.getPropertyValue('--amber-deep').trim(); ctx.fill();
+      ctx.restore();
+    }
+    const who = () => { $('#w-who', root).textContent = current(); };
+    const under = () => { const seg = Math.PI * 2 / items.length; let a = (-Math.PI / 2 - rot) % (Math.PI * 2); if (a < 0) a += Math.PI * 2; return Math.floor(a / seg); };
+
+    function spin() {
+      if (spinning) return;
+      spinning = true; keepAwake();
+      if (spun) items = shuffle(pool).slice(0, SHOW);
+      spun = true;
+      $('#w-spin', root).disabled = true; $('#w-result', root).innerHTML = '';
+      const n = items.length, seg = Math.PI * 2 / n, win = Math.floor(Math.random() * n);
+      const target = -Math.PI / 2 - (win + 0.5) * seg + (Math.random() - 0.5) * seg * 0.6;
+      let delta = (target - rot) % (Math.PI * 2); if (delta < 0) delta += Math.PI * 2;
+      const start = rot, end = rot + delta + Math.PI * 2 * (5 + Math.floor(Math.random() * 3));
+      const t0 = performance.now(), dur = 4200; let last = under();
+      const step = now => {
+        const t = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - t, 3);
+        rot = start + (end - start) * e; draw();
+        const u = under(); if (u !== last) { last = u; beep(900, 0.03, 'triangle', 0.05); }
+        if (t < 1) { raf = requestAnimationFrame(step); return; }
+        rot %= Math.PI * 2; spinning = false; $('#w-spin', root).disabled = false;
+        const by = current();
+        nextTurn();
+        $('#w-result', root).innerHTML = `<div class="result">${esc(fill(items[win], by))}<small>下一位：${esc(current())}</small></div>`;
+        beep(520, 0.15, 'sawtooth', 0.08); setTimeout(() => beep(780, 0.25, 'sawtooth', 0.08), 140); buzz([80, 60, 120]);
+        who();
+      };
+      raf = requestAnimationFrame(step);
+    }
+
+    $('#w-spin', root).onclick = spin;
+    cv.onclick = spin;
+    $('#w-text', root).value = pool.join('\n');
+    count();
+    $('#w-save', root).onclick = () => {
+      const next = $('#w-text', root).value.split('\n').map(s => s.trim()).filter(Boolean);
+      if (next.length < 2) { $('#w-result', root).innerHTML = '<p class="hint">題庫至少要 2 題，請再多寫幾行。</p>'; return; }
+      pool = next; store.set('wheel-v2', pool); items = shuffle(pool).slice(0, SHOW); spun = false; rot = 0; draw(); count();
+      $('#w-text', root).value = pool.join('\n');
+      $('#w-result', root).innerHTML = `<p class="hint">已儲存 ${pool.length} 題，轉盤更新了。</p>`;
+    };
+    function count() { $('#w-count', root).textContent = `題庫共 ${pool.length} 題，每轉一次換一批`; }
+    $('#w-reset', root).onclick = () => { $('#w-text', root).value = WHEEL_DEFAULT.join('\n'); };
+    who(); size();
+    window.addEventListener('resize', size);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', size); };
+  }
+});
+
+/* ---------- 2. 終極密碼 ---------- */
+registerGame({
+  id: 'bomb', name: '終極密碼', en: 'NUMBER BOMB', color: '#ff9a9a', tag: '刺激 · 心理戰', desc: '範圍越縮越小，猜中的人喝', minPlayers: 2,
+  art(ctx, w, h) {
+    const g = ctx.createRadialGradient(w / 2, h * 0.6, w * 0.1, w / 2, h * 0.6, h * 0.75); g.addColorStop(0, '#ff6b5b'); g.addColorStop(1, '#3b0a0a');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    const rnd = seeded(42); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let i = 0; i < 22; i++) {
+      ctx.save(); ctx.translate(rnd() * w, rnd() * h); ctx.rotate((rnd() - 0.5) * 0.8);
+      ctx.font = `${Math.round(w * (0.08 + rnd() * 0.1))}px Bungee, sans-serif`; ctx.fillStyle = `rgba(255,230,210,${0.08 + rnd() * 0.14})`;
+      ctx.fillText(String(1 + Math.floor(rnd() * 99)), 0, 0); ctx.restore();
+    }
+    const cx = w / 2, cy = h * 0.64, r = w * 0.3;
+    ctx.save(); ctx.translate(cx + r * 0.55, cy - r * 0.8); ctx.rotate(0.6); ctx.fillStyle = '#2a2a2a'; ctx.fillRect(-r * 0.2, -r * 0.18, r * 0.4, r * 0.3); ctx.restore();
+    ctx.beginPath(); ctx.moveTo(cx + r * 0.68, cy - r * 0.95); ctx.quadraticCurveTo(cx + r * 1.05, cy - r * 1.6, cx + r * 0.55, cy - r * 1.75);
+    ctx.lineWidth = w * 0.02; ctx.strokeStyle = '#d9b380'; ctx.stroke();
+    const sx = cx + r * 0.55, sy = cy - r * 1.75;
+    ctx.save(); ctx.translate(sx, sy); ctx.fillStyle = '#ffe066';
+    for (let i = 0; i < 10; i++) { ctx.rotate(Math.PI / 5); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(w * 0.015, -w * (i % 2 ? 0.05 : 0.09)); ctx.lineTo(-w * 0.015, -w * (i % 2 ? 0.05 : 0.09)); ctx.fill(); }
+    ctx.beginPath(); ctx.arc(0, 0, w * 0.025, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
+    const bg = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.35, r * 0.1, cx, cy, r); bg.addColorStop(0, '#5a5a5a'); bg.addColorStop(1, '#0d0d0d');
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx - r * 0.4, cy - r * 0.45, r * 0.2, r * 0.11, -0.7, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fill();
+    ctx.font = `${Math.round(r * 0.9)}px Bungee, sans-serif`; ctx.fillStyle = '#ff5a4e'; ctx.fillText('?', cx, cy + r * 0.08);
+  },
+  mount(root) {
+    // lo、hi 是邊界（猜過的數字），密碼一定在兩者之間、不含邊界
+    let max = store.get('bombMax', 100), lo, hi, secret, buf = '', history = [];
+    root.innerHTML = `<div class="stack" id="b-box"></div>`;
+    const box = $('#b-box', root);
+
+    function start() { lo = 1; hi = max; secret = 2 + Math.floor(Math.random() * (max - 2)); buf = ''; history = []; render(); }
+    function render(msg = '') {
+      box.innerHTML = `
+        <div class="seg" role="group" aria-label="範圍">
+          <button data-max="100" aria-pressed="${max === 100}">1 – 100</button>
+          <button data-max="1000" aria-pressed="${max === 1000}">1 – 1000</button>
+        </div>
+        <div class="turn">輪到 <b>${esc(current())}</b> 猜</div>
+        <div class="range"><span>${lo}</span><i>～</i><span>${hi}</span></div>
+        <p class="hint" style="text-align:center;margin-top:-8px">${hi - lo - 1 === 1 ? `只剩 ${lo + 1} 了，${esc(current())} 必中！` : `密碼在兩數之間（不含 ${lo} 和 ${hi}）・還剩 <b style="color:var(--amber)">${hi - lo - 1}</b> 個可能`}</p>
+        <div class="entry" aria-live="polite">${buf || '&nbsp;'}</div>
+        <div class="pad">
+          ${[1,2,3,4,5,6,7,8,9].map(d => `<button data-d="${d}">${d}</button>`).join('')}
+          <button class="clr" data-d="c">清除</button><button data-d="0">0</button><button class="go" data-d="go">猜！</button>
+        </div>
+        <div class="msg">${esc(msg)}</div>
+        ${history.length ? `<div class="chips" style="justify-content:center">${history.map(h => `<span class="chip" style="padding:4px 12px">${esc(h.who)} <b style="font-family:var(--num);font-weight:400;color:${h.up ? 'var(--mint)' : 'var(--cherry)'}">${h.g}${h.up ? '↑' : '↓'}</b></span>`).join('')}</div>` : ''}`;
+      box.querySelectorAll('[data-max]').forEach(b => b.onclick = () => { max = +b.dataset.max; store.set('bombMax', max); start(); });
+      box.querySelectorAll('[data-d]').forEach(b => b.onclick = () => press(b.dataset.d));
+    }
+    function press(d) {
+      keepAwake();
+      if (d === 'c') { buf = ''; beep(300, 0.04); return render(); }
+      if (d === 'go') return guess();
+      if (buf.length >= String(max).length) return;
+      buf = (buf + d).replace(/^0+/, ''); beep(700, 0.03, 'triangle'); render();
+    }
+    function guess() {
+      const g = parseInt(buf, 10); buf = '';
+      if (!(g > lo && g < hi)) { beep(200, 0.15); return render(`請輸入 ${lo + 1} 到 ${hi - 1} 之間的數字`); }
+      if (g === secret) return boom();
+      const who = current();
+      if (g < secret) lo = g; else hi = g;
+      history.push({ who, g, up: g < secret });
+      nextTurn(); buzz(40); beep(500, 0.08, 'triangle');
+      render(`${who} 猜 ${g}，${g < secret ? '太小了' : '太大了'}，安全！`);
+    }
+    function boom() {
+      const loser = current(); nextTurn();
+      buzz([200, 80, 200, 80, 400]);
+      [180, 140, 100].forEach((f, i) => setTimeout(() => beep(f, 0.3, 'sawtooth', 0.12), i * 120));
+      box.innerHTML = `
+        <div class="boom"><span class="kaboom">炸！</span></div>
+        <div class="result">${esc(loser)} 喝！<small>密碼就是 ${secret}</small></div>
+        <button class="btn big" id="b-again">再來一局</button>`;
+      $('#b-again', box).onclick = start;
+    }
+    start();
+  }
+});
+
+/* ---------- 3. 真心話大冒險 ---------- */
+const TD_DEFAULT = {
+  mild: {
+    name: '微醺',
+    truth: ['你手機相簿最後一張照片是什麼？', '最近一次哭是為了什麼？', '在場你覺得誰會最先喝醉？', '你做過最丟臉的事是什麼？', '你的第一個偶像是誰？', '你有沒有偷看過別人的手機？', '你最討厭吃什麼？為什麼？', '你睡覺會抱東西嗎？', '你上一次說謊是什麼時候、說了什麼？', '你小時候的綽號是什麼？'],
+    dare: ['用撒嬌的語氣說「人家還要喝」', '模仿在場一個人，直到有人猜出是誰', '學一種動物叫三聲', '用屁股寫自己的名字', '唱一段廣告歌', '跟 {右} 比腕力，輸的喝', '十秒內說出五種酒', '對 {左} 說三個優點', '擺一個超帥的姿勢讓大家拍照', '用台語講一句繞口令']
+  },
+  normal: {
+    name: '普通',
+    truth: ['你的初吻是幾歲？', '在場你覺得誰最好看？', '你談過幾段戀愛？', '最後悔的一段感情是哪段？', '你有沒有喜歡過朋友的另一半？', '手機裡最不想被看到的 App 是哪個？', '你跟前任還有聯絡嗎？', '你覺得自己最大的缺點是什麼？', '你做過最瘋狂的事是什麼？', '說出你的理想型，越具體越好'],
+    dare: ['跟 {某人} 喝交杯酒', '讓 {右} 幫你取一個今晚的綽號，整晚只能叫這個', '用深情的聲音念出你最後一則 LINE 訊息', '做十個伏地挺身', '對 {某人} 深情告白三十秒', '跳一段二十秒的舞', '閉上眼睛摸臉猜出 {某人} 是誰，猜錯喝', '一口喝完杯中的酒', '讓 {左} 隨機滑你相簿三張給大家看', '用 {某人} 的口頭禪講一段話']
+  },
+  wild: {
+    name: '失控',
+    truth: ['你做過最大膽的告白是什麼？', '說出在場你最想親的人', '你最荒唐的一次喝醉經驗', '你有沒有劈腿過，或被劈腿過？', '你最近一次心動是對誰？', '你曾經為了誰哭到睡不著？', '你最不能接受另一半做什麼？', '在場誰最可能單身最久？', '你傳過最後悔的一則訊息是什麼？', '說一個你從沒告訴過別人的秘密'],
+    dare: ['打給通訊錄第五個人說「我想你」', '讓 {某人} 用你的手機發一則限動', '跟 {右} 對視三十秒不能笑，笑的喝', '把杯中的酒喝完再原地轉三圈', '坐在 {左} 腿上直到下一輪', '讓大家看你最近的搜尋紀錄', '用 {某人} 指定的方式喝一杯', '傳「睡了嗎」給最近聯絡的人', '背 {某人} 繞桌子一圈', '讓 {左} 翻你的相簿十秒']
+  }
+};
+registerGame({
+  id: 'td', name: '真心話大冒險', en: 'TRUTH OR DARE', color: '#8ff0c8', tag: '告白 · 爆料', desc: '分微醺、普通、失控三級', minPlayers: 2,
+  art(ctx, w, h) {
+    ctx.fillStyle = '#9e1f2a'; ctx.fillRect(0, 0, w, h);
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(w * 0.75, 0); ctx.lineTo(w * 0.25, h); ctx.lineTo(0, h); ctx.closePath(); ctx.fillStyle = '#16725a'; ctx.fill();
+    rays(ctx, w / 2, h * 0.62, h, 24, 'rgba(255,255,255,.07)');
+    bubbles(ctx, w, h, 11, 18, 'rgba(255,255,255,.18)');
+    const card = (x, y, rot, ch, color) => {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+      const cw = w * 0.42, chh = cw * 1.4;
+      ctx.fillStyle = 'rgba(0,0,0,.3)'; rr(ctx, -cw / 2 + 5, -chh / 2 + 7, cw, chh, w * 0.04); ctx.fill();
+      ctx.fillStyle = '#fbf0dc'; rr(ctx, -cw / 2, -chh / 2, cw, chh, w * 0.04); ctx.fill();
+      ctx.strokeStyle = color; ctx.lineWidth = w * 0.012; rr(ctx, -cw / 2 + w * 0.025, -chh / 2 + w * 0.025, cw - w * 0.05, chh - w * 0.05, w * 0.025); ctx.stroke();
+      ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = `${Math.round(cw * 0.6)}px Huninn, "Noto Sans TC", sans-serif`; ctx.fillText(ch, 0, 0);
+      ctx.restore();
+    };
+    card(w * 0.32, h * 0.66, -0.2, '真', '#16725a');
+    card(w * 0.68, h * 0.7, 0.16, '冒', '#c3232f');
+  },
+  mount(root) {
+    let bank = store.get('td', TD_DEFAULT), level = store.get('tdLevel', 'mild');
+    if (!bank[level]) level = 'mild';
+    const bags = {};
+    const draw = (lv, type) => {
+      const key = lv + type;
+      if (!bags[key] || !bags[key].length) bags[key] = shuffle(bank[lv][type]);
+      return bags[key].pop();
+    };
+    root.innerHTML = `
+      <div class="stack">
+        <div class="seg" role="group" aria-label="尺度" id="td-level">
+          ${Object.keys(bank).map(k => `<button data-lv="${k}">${esc(bank[k].name)}</button>`).join('')}
+        </div>
+        <div class="turn">輪到 <b id="td-who"></b></div>
+        <div class="td-card empty" id="td-card"><p>選真心話還是大冒險？</p></div>
+        <div class="row">
+          <button class="btn" data-type="truth">真心話</button>
+          <button class="btn red" data-type="dare">大冒險</button>
+        </div>
+        <button class="btn ghost" data-type="random">讓命運決定</button>
+        <p class="hint" style="text-align:center">不想回答或不敢做？喝兩口跳過。</p>
+        <button class="btn mint" id="td-next">下一位 →</button>
+        <details class="editor"><summary>編輯題庫</summary>
+          <div class="stack">
+            <select id="td-pick" aria-label="選擇題庫"></select>
+            <p class="hint">一行一題。可用 {左} {右} {某人} 代入其他玩家。</p>
+            <textarea id="td-text" rows="10"></textarea>
+            <div class="row"><button class="btn ghost" id="td-reset">恢復這組預設</button><button class="btn" id="td-save">儲存</button></div>
+            <p class="hint" id="td-note"></p>
+          </div>
+        </details>
+      </div>`;
+    const syncLevel = () => root.querySelectorAll('[data-lv]').forEach(b => b.setAttribute('aria-pressed', b.dataset.lv === level));
+    const who = () => { $('#td-who', root).textContent = current(); };
+    root.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => { level = b.dataset.lv; store.set('tdLevel', level); syncLevel(); });
+    root.querySelectorAll('[data-type]').forEach(b => b.onclick = () => {
+      let type = b.dataset.type; if (type === 'random') type = Math.random() < 0.5 ? 'truth' : 'dare';
+      const q = draw(level, type);
+      const card = $('#td-card', root);
+      card.className = 'td-card';
+      card.innerHTML = `<span class="tag ${type}">${type === 'truth' ? '真心話' : '大冒險'} · ${esc(bank[level].name)}</span><p>${esc(fill(q, current()))}</p>`;
+      card.style.animation = 'none'; void card.offsetWidth; card.style.animation = 'pop .35s cubic-bezier(.2,1.6,.4,1)';
+      beep(type === 'truth' ? 660 : 440, 0.12, 'triangle'); buzz(50);
+    });
+    $('#td-next', root).onclick = () => {
+      nextTurn(); who();
+      const card = $('#td-card', root); card.className = 'td-card empty'; card.innerHTML = '<p>選真心話還是大冒險？</p>';
+    };
+    const sel = $('#td-pick', root);
+    sel.innerHTML = Object.keys(bank).flatMap(k => [`<option value="${k}|truth">${esc(bank[k].name)}・真心話</option>`, `<option value="${k}|dare">${esc(bank[k].name)}・大冒險</option>`]).join('');
+    const loadText = () => { const [k, t] = sel.value.split('|'); $('#td-text', root).value = bank[k][t].join('\n'); $('#td-note', root).textContent = ''; };
+    sel.onchange = loadText;
+    $('#td-save', root).onclick = () => {
+      const [k, t] = sel.value.split('|');
+      const list = $('#td-text', root).value.split('\n').map(s => s.trim()).filter(Boolean);
+      if (!list.length) { $('#td-note', root).textContent = '題庫不能是空的，至少寫一題。'; return; }
+      bank = { ...bank, [k]: { ...bank[k], [t]: list } }; store.set('td', bank); delete bags[k + t];
+      $('#td-note', root).textContent = `已儲存 ${list.length} 題。`;
+    };
+    $('#td-reset', root).onclick = () => { const [k, t] = sel.value.split('|'); $('#td-text', root).value = TD_DEFAULT[k][t].join('\n'); };
+    syncLevel(); who(); loadText();
+  }
+});
+
+/* ---------- 4. 誰是臥底 ---------- */
+const WORD_PAIRS = [
+  ['牛奶', '豆漿'], ['火鍋', '燒烤'], ['珍珠奶茶', '椰果奶茶'], ['周杰倫', '林俊傑'], ['貓', '老虎'],
+  ['眼鏡', '隱形眼鏡'], ['麥當勞', '肯德基'], ['自拍', '合照'], ['結婚', '訂婚'], ['高鐵', '捷運'],
+  ['炸雞', '鹹酥雞'], ['口紅', '腮紅'], ['情人節', '七夕'], ['蜘蛛人', '蝙蝠俠'], ['雨傘', '雨衣'],
+  ['手機', '平板'], ['鬧鐘', '手錶'], ['便利商店', '超市'], ['游泳', '潛水'], ['籃球', '排球'],
+  ['烏龍茶', '紅茶'], ['泡麵', '拉麵'], ['前任', '曖昧對象'], ['夜市', '市集'], ['演唱會', '音樂祭'],
+  ['洗面乳', '沐浴乳'], ['吉他', '烏克麗麗'], ['薯條', '薯餅'], ['啤酒', '香檳'], ['KTV', '酒吧']
+];
+registerGame({
+  id: 'spy', name: '誰是臥底', en: 'WHO IS THE SPY', color: '#9fb7ff', tag: '推理 · 4人以上', desc: '描述你的詞，揪出拿到不同詞的人', minPlayers: 4,
+  art(ctx, w, h) {
+    const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#0d1424'); g.addColorStop(1, '#22345a');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    bubbles(ctx, w, h * 0.5, 3, 30, 'rgba(255,255,255,.25)');
+    ctx.beginPath(); ctx.moveTo(w * 0.42, 0); ctx.lineTo(w * 0.58, 0); ctx.lineTo(w * 0.8, h); ctx.lineTo(w * 0.2, h); ctx.closePath();
+    const sp = ctx.createLinearGradient(0, 0, 0, h); sp.addColorStop(0, 'rgba(255,236,190,.05)'); sp.addColorStop(1, 'rgba(255,236,190,.28)'); ctx.fillStyle = sp; ctx.fill();
+    const person = (x, s, color) => {
+      const base = h * 1.0, hr = w * 0.075 * s;
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(x, base - w * 0.42 * s, hr, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x - w * 0.15 * s, base); ctx.quadraticCurveTo(x - w * 0.15 * s, base - w * 0.32 * s, x, base - w * 0.32 * s); ctx.quadraticCurveTo(x + w * 0.15 * s, base - w * 0.32 * s, x + w * 0.15 * s, base); ctx.fill();
+    };
+    person(w * 0.1, 0.9, '#2c3e63'); person(w * 0.9, 0.9, '#2c3e63');
+    person(w * 0.3, 1, '#3b5280'); person(w * 0.7, 1, '#3b5280');
+    person(w * 0.5, 1.15, '#e5484d');
+    ctx.fillStyle = '#ffe9b0'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `${Math.round(w * 0.16)}px Bungee, sans-serif`; ctx.fillText('?', w * 0.5, h * 0.52);
+    const mx = w * 0.7, my = h * 0.4, mr = w * 0.13;
+    ctx.lineCap = 'round'; ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = w * 0.04;
+    ctx.beginPath(); ctx.moveTo(mx + mr * 0.7, my + mr * 0.7); ctx.lineTo(mx + mr * 1.6, my + mr * 1.6); ctx.stroke();
+    ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI * 2); ctx.fillStyle = 'rgba(190,220,255,.18)'; ctx.fill();
+    ctx.strokeStyle = '#f2a33a'; ctx.lineWidth = w * 0.025; ctx.stroke();
+    ctx.beginPath(); ctx.arc(mx - mr * 0.35, my - mr * 0.35, mr * 0.2, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill();
+  },
+  mount(root) {
+    let spies = players.length >= 7 ? 2 : 1, roles = [], alive = [], words, dealIdx, armed = null;
+    root.innerHTML = `<div class="stack" id="s-box"></div>`;
+    const box = $('#s-box', root);
+
+    function setup() {
+      const maxSpies = Math.max(1, Math.floor((players.length - 1) / 2));
+      spies = Math.min(spies, maxSpies);
+      box.innerHTML = `
+        <p class="hint">平民拿到同一個詞，臥底拿到很像但不同的詞，而且沒人知道自己是哪一邊。輪流用一句話描述自己的詞，然後投票淘汰最可疑的人。</p>
+        <div class="stepper"><span>臥底人數</span><div class="ctl"><button id="s-minus" aria-label="減少">−</button><b>${spies}</b><button id="s-plus" aria-label="增加">+</button></div></div>
+        <div class="result" style="font-size:1.1rem">被投出的平民喝一杯<small>臥底全被抓 → 臥底喝兩杯；臥底撐到最後 → 所有平民各喝一杯</small></div>
+        <button class="btn big" id="s-start">發詞（${players.length} 人）</button>`;
+      $('#s-minus', box).onclick = () => { spies = Math.max(1, spies - 1); setup(); };
+      $('#s-plus', box).onclick = () => { spies = Math.min(maxSpies, spies + 1); setup(); };
+      $('#s-start', box).onclick = startRound;
+    }
+    function startRound() {
+      const pair = shuffle(pick(WORD_PAIRS));
+      words = { civ: pair[0], spy: pair[1] };
+      const spySet = new Set(shuffle(players.map((_, i) => i)).slice(0, spies));
+      roles = players.map((name, i) => ({ name, spy: spySet.has(i), out: false }));
+      dealIdx = 0; keepAwake(); dealCover();
+    }
+    function dealCover() {
+      const p = roles[dealIdx];
+      box.innerHTML = `
+        <div class="reveal">
+          <span class="hint">把手機交給</span>
+          <span class="who">${esc(p.name)}</span>
+          <span class="hint">其他人不要偷看</span>
+          <button class="btn big" id="s-see">看我的詞</button>
+        </div>
+        <p class="hint" style="text-align:center">${dealIdx + 1} / ${roles.length}</p>`;
+      $('#s-see', box).onclick = dealShow;
+    }
+    function dealShow() {
+      const p = roles[dealIdx];
+      box.innerHTML = `
+        <div class="reveal">
+          <span class="hint">${esc(p.name)} 的詞是</span>
+          <span class="word">${esc(p.spy ? words.spy : words.civ)}</span>
+          <button class="btn" id="s-ok">${dealIdx < roles.length - 1 ? '記住了，蓋起來交給下一位' : '記住了，開始描述'}</button>
+        </div>`;
+      buzz(30);
+      $('#s-ok', box).onclick = () => { dealIdx++; dealIdx < roles.length ? dealCover() : play(); };
+    }
+    function play(msg = '') {
+      const live = roles.filter(r => !r.out);
+      const first = pick(live).name;
+      box.innerHTML = `
+        ${msg ? `<div class="result">${msg}</div>` : ''}
+        <div class="turn">從 <b>${esc(first)}</b> 開始，順時針每人說一句</div>
+        <p class="hint" style="text-align:center">說完後討論、投票，點被投出的人（再點一次確認）</p>
+        <div class="plist">${roles.map((r, i) => `<button data-i="${i}" class="${r.out ? 'out' : ''}" ${r.out ? 'disabled' : ''}>${esc(r.name)}</button>`).join('')}</div>
+        <button class="btn ghost" id="s-quit">直接公布答案</button>`;
+      armed = null;
+      box.querySelectorAll('[data-i]').forEach(b => b.onclick = () => {
+        const i = +b.dataset.i;
+        if (armed !== i) {
+          box.querySelectorAll('.armed').forEach(x => { x.classList.remove('armed'); x.textContent = roles[+x.dataset.i].name; });
+          armed = i; b.classList.add('armed'); b.textContent = `確定投 ${roles[i].name}？`; beep(400, 0.05); return;
+        }
+        eliminate(i);
+      });
+      $('#s-quit', box).onclick = () => end(null);
+    }
+    function eliminate(i) {
+      const r = roles[i]; r.out = true;
+      const spyLeft = roles.filter(x => !x.out && x.spy).length, civLeft = roles.filter(x => !x.out && !x.spy).length;
+      buzz(r.spy ? [100, 50, 100] : 150);
+      if (spyLeft === 0) return end('civ');
+      if (spyLeft >= civLeft) return end('spy');
+      play(r.spy ? `${esc(r.name)} 是臥底！<small>還有 ${spyLeft} 個臥底藏著</small>` : `${esc(r.name)} 是平民，喝一杯！<small>臥底還在，繼續描述</small>`);
+    }
+    function end(winner) {
+      const spyNames = roles.filter(r => r.spy).map(r => r.name).join('、');
+      const civs = roles.filter(r => !r.spy).map(r => r.name).join('、');
+      const head = winner === 'civ' ? '平民獲勝！' : winner === 'spy' ? '臥底獲勝！' : '公布答案';
+      const drink = winner === 'civ' ? `${esc(spyNames)} 喝兩杯` : winner === 'spy' ? `${esc(civs)} 各喝一杯` : '';
+      [523, 659, 784].forEach((f, k) => setTimeout(() => beep(f, 0.18, 'triangle', 0.08), k * 130));
+      box.innerHTML = `
+        <div class="result">${head}${drink ? `<small>${drink}</small>` : ''}</div>
+        <div class="reveal">
+          <span class="hint">平民的詞</span><span class="word">${esc(words.civ)}</span>
+          <span class="hint">臥底的詞（${esc(spyNames)}）</span><span class="word" style="color:var(--cherry)">${esc(words.spy)}</span>
+        </div>
+        <div class="row"><button class="btn ghost" id="s-setup">調整設定</button><button class="btn" id="s-again">再來一局</button></div>`;
+      $('#s-again', box).onclick = startRound;
+      $('#s-setup', box).onclick = setup;
+    }
+    setup();
+  }
+});
+
+/* ---------- 5. 誰最可能 ---------- */
+const WML_RAW = {
+  日常: `
+睡過頭錯過重要的事
+出門忘記帶鑰匙
+手機永遠只剩 10% 電
+一週點五次外送
+在捷運上坐過站
+把冰箱的東西放到過期
+買了健身房會員卻從來沒去
+半夜三點還在滑手機
+衣櫃很滿卻說沒衣服穿
+每天喝一杯手搖飲
+在超商一待就半小時
+鬧鐘設十個還是起不來
+月初就把薪水花光
+被詐騙電話騙到
+在路上跟陌生人聊起來
+迷路還不肯開導航
+一個人去吃火鍋
+一次追完整季影集不睡覺
+買東西只看外觀不看價錢
+在 IKEA 逛一整天
+囤一堆衛生紙
+有超過一萬封未讀信件
+手機桌面亂到找不到 App
+每次都最後一個到
+約好的事最後放鳥
+在家穿同一件睡衣三天
+對著植物講話
+看恐怖片看到不敢睡
+把錢包忘在店裡
+傳訊息傳錯人
+外送到了還在洗澡
+一個人在家唱歌唱超大聲
+排隊兩小時只為了吃一碗拉麵
+拍食物拍到菜都冷了
+下雨天沒帶傘直接淋雨
+一天換三次大頭貼
+在 Google 地圖留超長評論
+襪子穿反一整天沒發現
+忘記朋友的生日
+在公司廁所偷睡午覺
+半夜餓了跑去吃宵夜
+把電影結局爆雷給別人
+搶到演唱會門票
+打電動打到天亮
+買彩券中大獎
+網購結帳前猶豫三天
+把家裡打掃得一塵不染
+家裡亂到找不到遙控器
+每天記帳
+一整年不剪頭髮
+跟店員變成朋友
+被路邊推銷攔下來還真的買
+在電梯裡放屁假裝不是自己
+打錯字還堅持沒錯
+傳一分鐘的語音訊息
+已讀不回超過三天
+上班偷看股票
+搭計程車跟司機聊人生
+健康檢查前一天才開始運動
+過年被親戚問到崩潰
+養超過三隻寵物
+對貓過敏還堅持養貓
+喝咖啡喝到心悸
+每天都在說要減肥
+吃到飽吃到站不起來
+每餐都要拍照打卡
+一下雨就不出門
+在生日當天哭
+收集一堆用不到的贈品
+衝動剪了一個後悔的髮型
+把重要文件弄丟
+在家耍廢一整個週末
+同一部電影看十遍以上
+去便利商店只是為了吹冷氣
+早餐店點一模一樣的東西三年
+耳機永遠只剩一邊
+一出門就想回家
+被鳥屎打中
+被蚊子叮最多包
+一年出國五次
+在高鐵上睡到終點站
+遇到明星還裝冷靜
+跟朋友借錢忘記還
+冷氣開 20 度再蓋棉被
+鞋子比衣服還多
+抽中尾牙頭獎
+在 KTV 霸佔麥克風
+一天喝超過三杯咖啡
+穿拖鞋去正式場合
+看到蟑螂尖叫逃跑`,
+  個性: `
+成為團體裡的媽媽
+半夜打電話來哭訴
+永遠在群組潛水
+把大家的秘密說出去
+記得每個人的生日
+跟服務生吵架
+為了朋友兩肋插刀
+聚會到一半偷偷先走
+結帳時假裝去廁所
+主動幫大家分帳
+整天講幹話
+講笑話自己先笑
+吵架吵贏所有人
+被大家當成心理諮商師
+把很普通的事講得超誇張
+對每個人都很好
+第一個知道八卦
+在群組發長文
+把旅行行程排到每一分鐘
+臨時說要出去玩
+最怕尷尬
+出事了還裝沒事
+在背後默默付出
+被大家欺負還是笑笑的
+變成網紅
+開直播賺錢
+參加選秀節目
+上新聞
+被星探挖掘
+成為有錢人
+創業成功
+創業失敗三次
+當老師
+當上老闆
+出一本書
+在國外定居
+跑完全程馬拉松
+去爬玉山
+突然變成素食者
+突然出家
+改名字
+去刺青
+染一頭彩色頭髮
+去做醫美
+跟陌生人吵網路架
+把全部財產拿去買虛擬貨幣
+被公司開除
+考上公務員
+中年才轉行
+搬去深山裡住
+成為最寵小孩的爸媽
+最晚結婚
+最早結婚
+生三個以上的小孩
+一輩子不結婚
+養一隻很兇的狗
+活到一百歲
+退休後環遊世界
+退休後開一間咖啡廳
+變成社區大樓主委
+在公司被稱為卷王
+準時下班一秒都不多留
+被老闆罵哭
+跟主管變成朋友
+開會開到睡著
+對奧客超有耐心
+每天都說想離職
+一年換三份工作
+在辦公室偷吃零食
+把工作帶回家做
+成為團體裡的攝影師
+幫大家拍照卻沒有自己的照片
+超級迷信星座
+花錢去算命
+相信有鬼
+被外星人綁架
+在末日中活下來
+在殭屍片裡第一個死
+在鬼屋裡叫最大聲
+在密室逃脫裡拖後腿
+在野外求生撐最久
+上綜藝節目被剪成笑點
+拍出爆紅影片
+成為梗圖主角
+在 Threads 跟人吵架
+IG 追蹤人數最多
+每天都發限動
+從不發限動但每則都看
+偷偷經營小帳
+手機還留著前任的照片`,
+  喝酒: `
+第一個喝醉
+喝醉後打給前任
+喝醉就哭
+喝醉就一直笑
+喝醉後開始唱歌
+喝醉後開始講英文
+喝醉後在路邊睡著
+喝醉後開始脫外套
+喝醉了還說自己沒醉
+隔天完全斷片
+喝醉後跟陌生人變朋友
+喝醉後亂傳訊息
+喝醉後吐在別人身上
+喝醉後亂網購
+喝醉後跟計程車司機告白
+喝醉後抱著馬桶睡
+喝醉後開始跳舞
+喝醉後講真心話
+喝醉後開罵老闆
+喝醉後打電話給爸媽
+千杯不醉
+一杯就倒
+偷偷把酒倒掉
+偷偷在酒裡加水
+最常喊「再一杯」
+說「今天不喝」結果喝最多
+帶頭說要續攤
+第一個說要回家
+喝醉後把手機弄丟
+喝醉後忘記怎麼回家
+宿醉到請假
+隔天說「再也不喝了」
+把酒當水喝
+會自己調酒
+在酒吧被搭訕
+在酒吧搭訕別人
+在夜店跳到打烊
+被店家請出去
+喝醉跟警察聊天
+喝醉在便利商店買一堆零食
+喝醉後吃宵夜吃到吐
+喝醉了自拍一百張
+喝醉後亂改社群名稱
+喝醉後發廢文
+隔天醒來刪掉所有限動
+喝醉後對大家說「我愛你們」
+喝醉後抱著朋友哭
+喝醉後跟朋友吵架
+喝醉後隔天裝失憶
+喝醉後把鞋子弄丟
+在婚禮上喝醉
+在尾牙喝醉出糗
+在主管面前喝醉
+在家族聚會偷喝酒
+拿啤酒當早餐
+家裡存了一整櫃的酒
+只喝很貴的酒
+只喝最便宜的啤酒
+酒量被大家高估
+不會喝還硬要喝
+玩喝酒遊戲一直輸
+玩遊戲作弊
+輸了耍賴不喝
+喝完就變話癆
+喝完就安靜不講話
+喝了酒更會跳舞
+喝完酒突然想去海邊
+喝醉後說要去看日出
+喝醉後唱情歌給全場聽
+喝醉後坐錯計程車
+喝醉後走錯家門
+喝醉後搶著幫大家買單
+喝醉後在 KTV 點悲歌
+喝醉了開始講人生大道理
+喝醉後叫外送
+喝醉後在群組狂發貼圖
+喝醉後模仿別人
+一喝就臉紅
+喝酒前要先吃一堆東西墊胃
+喝醉之後最難搞
+喝醉之後最可愛
+照顧喝醉的人到天亮
+每次聚會都是他買單
+揪團最積極
+到了現場才說沒帶錢
+玩喝酒遊戲最認真
+發明新的喝酒遊戲
+酒後吐真言
+今晚最後一個清醒`,
+  戀愛: `
+跟前任復合
+同時跟好幾個人曖昧
+被已讀不回還一直傳
+在交友軟體上配對最多
+跟網友見面
+一見鍾情
+暗戀一個人很多年
+主動告白
+被告白後逃跑
+把曖昧對象變成朋友
+被發好人卡
+發好人卡給別人
+情人節一個人過
+談辦公室戀情
+跟朋友的前任在一起
+愛上自己的好朋友
+為了另一半搬到別的城市
+談遠距離戀愛
+為愛衝動辭職
+閃婚
+閃離
+分手後狂發限動
+分手後馬上有新對象
+分手後封鎖對方
+分手後偷看前任 IG
+偷看另一半手機
+吃醋吃最兇
+最會撒嬌
+最會說甜言蜜語
+被另一半管很嚴
+把另一半管很嚴
+記得所有紀念日
+忘記紀念日被罵
+第一次約會就遲到
+第一次約會就 AA 制
+交往一個月就帶回家見爸媽
+求婚被拒絕
+在大庭廣眾下求婚
+浪漫到讓人起雞皮疙瘩
+完全不懂浪漫
+吵架時先道歉
+吵架冷戰最久
+會為了另一半哭
+被前任糾纏
+前任多到記不清
+到現在都沒談過戀愛
+跟明星談戀愛
+談姊弟戀
+談年紀差十歲以上的戀愛
+喜歡上已經有對象的人
+為了追人學一項新技能
+約會時點最貴的東西
+把約會對象帶來給朋友看
+讓朋友幫忙審核對象
+把感情問題 PO 上網
+在 Dcard 發感情文
+被抓包劈腿
+把曖昧訊息傳到家族群組
+對著鏡子練習告白
+在 KTV 對心儀對象唱情歌
+最常說「我們只是朋友」
+曖昧最久還沒確定關係
+是戀愛腦
+理性到像在談生意
+第一個結婚
+婚禮辦得最盛大
+在婚禮上哭最慘
+幫另一半準備驚喜結果失敗
+收到禮物假裝很喜歡
+送禮物送到對方不想要
+在交友軟體用別人的照片
+照片跟本人差最多
+跟網友見面發現被騙
+交往一週就公開
+談戀愛從不公開
+跟另一半穿情侶裝
+用情侶頭貼
+跟另一半吵架吵上熱搜
+被另一半發現私房錢
+偷藏私房錢
+偷偷存錢準備求婚
+結婚多年還很甜
+婚後胖最多
+最怕另一半
+為了另一半戒酒
+為了另一半戒菸
+半夜傳「睡了嗎」
+收到「睡了嗎」秒回
+出現在前任的婚禮上
+跟前任還是好朋友
+談過最多次戀愛
+對愛情最專一
+最難追
+最好追
+今晚之後會脫單`,
+  辛辣: `
+有一段沒人知道的過去
+手機裡有不能給人看的東西
+被抓到說謊
+說謊臉不紅氣不喘
+偷偷討厭在場某個人
+在背後說人壞話
+搞失蹤一整個月
+為了錢做出瘋狂的事
+在賭場一夜輸光
+在拉斯維加斯閃婚
+被警察攔下來
+半夜跑去夜衝
+跟剛認識的人一起去旅行
+在國外被丟包
+在國外迷路又沒錢
+跑去裸泳
+在公共場合被拍下糗照
+大學被當最多科
+考試作弊
+翹課去約會
+抄同學作業
+被班導叫去辦公室
+在畢業典禮哭
+把老師氣哭
+小時候偷拿爸媽的錢
+跟爸媽吵架離家出走
+對家人說謊
+把秘密帶進棺材
+偷看別人日記
+洗澡被別人撞見
+在路上跌倒假裝沒事
+在約會時放屁
+在重要場合拉鍊沒拉
+被困在電梯裡
+在廁所發現沒有衛生紙
+被誤會成情侶
+被誤認成別人的爸媽
+面試時講錯公司名字
+在大家面前叫錯別人名字
+不小心把私訊公開
+截圖被對方發現
+用小帳追蹤前任
+匿名在網路上罵人
+半夜偷偷哭
+認真考慮過整形
+有過一夜情
+對朋友的另一半心動過
+被朋友的另一半追
+同時交往兩個人
+欠卡債
+偷偷做副業
+存款最多
+存款最少
+花最多錢在手遊上
+為偶像花最多錢
+追星追到出國
+在演唱會哭到崩潰
+用公司的錢吃飯
+上班時間偷偷去面試
+對老闆說謊請病假
+請假去看演唱會
+跟同事搞曖昧
+把同事的秘密說出去
+被拍到上班打瞌睡
+在網路上被肉搜
+被前任寫成一首歌
+為了前任去刺青
+留著前任送的禮物
+跟前任還有聯絡
+今晚做出最讓人後悔的事
+明天在群組道歉
+明天第一個問「我昨天說了什麼？」
+偷偷記下今晚所有人的糗事
+把今晚的影片發出去
+成為今晚的話題人物`,
+  未來: `
+中樂透後馬上辭職
+中樂透後不告訴任何人
+成為億萬富翁
+買一座島住
+去太空旅行
+移民火星
+在電視劇裡客串
+成為 YouTuber
+當 Podcast 主持人
+開一間酒吧
+開一間餐廳
+當網紅開團購
+寫歌成名
+組樂團
+參加奧運
+拿到金馬獎
+成為政治人物
+選上里長
+成為律師
+當上醫生
+當兵被操最慘
+在軍中當最久的菜鳥
+被困在無人島最先崩潰
+在無人島活最久
+遇到鬼還跟它聊天
+穿越回古代
+在古代當皇帝
+在古代當乞丐
+下輩子變成一隻貓
+下輩子變成一隻狗
+有超能力會選隱形
+拿超能力去做壞事
+有時光機會回去找前任
+有時光機會回去買比特幣
+被雷打到
+撿到錢包還回去
+撿到錢自己收起來
+在路上幫助陌生人
+收養流浪貓
+跑去當志工
+去非洲看動物大遷徙
+一個人去環島
+騎腳踏車環島
+去南極看企鵝
+搬去日本住
+學會五種語言
+突然跑去學跳舞
+中年才去學鋼琴
+半夜突然想學煮飯
+變成米其林主廚
+在電視上看到自己
+被寫進新聞標題
+上網路熱搜
+讓全國都認識
+被認錯成明星
+跟明星合照
+在路上被要簽名
+成為大家的老闆
+變成這群人裡最有錢的
+十年後還單身
+十年後還住在家裡
+十年後胖最多
+十年後變最多
+十年後還在玩這個遊戲
+二十年後還是大家的好朋友
+最先當上爺爺奶奶
+老了以後在公園跳廣場舞
+老了以後最可愛
+老了以後最囉嗦
+一百歲還在喝酒`
+};
+const WML = Object.fromEntries(Object.entries(WML_RAW).map(([k, v]) => [k, v.split('\n').map(s => s.trim()).filter(Boolean)]));
+
+registerGame({
+  id: 'wml', name: '誰最可能', en: "WHO'S MOST LIKELY", color: '#f7a8d8', tag: '聊天 · 爆料', ribbon: 'NEW', desc: '出題後大家一起指，被指最多的喝', minPlayers: 3,
+  art(ctx, w, h) {
+    const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#2a1446'); g.addColorStop(1, '#b0285f');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    const hx = w / 2, hy = h * 0.66;
+    rays(ctx, hx, hy, h, 30, 'rgba(255,255,255,.07)');
+    const glow = ctx.createRadialGradient(hx, hy, 0, hx, hy, w * 0.45); glow.addColorStop(0, 'rgba(255,220,240,.45)'); glow.addColorStop(1, 'rgba(255,220,240,0)');
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#1a0d2b';
+    ctx.beginPath(); ctx.arc(hx, hy, w * 0.1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(hx - w * 0.24, h); ctx.quadraticCurveTo(hx - w * 0.22, hy + w * 0.13, hx, hy + w * 0.13); ctx.quadraticCurveTo(hx + w * 0.22, hy + w * 0.13, hx + w * 0.24, h); ctx.fill();
+    ctx.fillStyle = '#7fd1ff'; ctx.beginPath(); ctx.moveTo(hx + w * 0.13, hy - w * 0.1); ctx.quadraticCurveTo(hx + w * 0.17, hy - w * 0.03, hx + w * 0.13, hy - w * 0.01); ctx.quadraticCurveTo(hx + w * 0.09, hy - w * 0.03, hx + w * 0.13, hy - w * 0.1); ctx.fill();
+    const sleeves = ['#5cc8a0', '#f2a33a', '#e5484d', '#7fa8ff', '#fbf0dc', '#c58bff'];
+    [[0.02, 0.48], [0.98, 0.52], [0.06, 0.9], [0.94, 0.92], [0.14, 0.33], [0.86, 0.35]].forEach(([px, py], i) => {
+      const x = px * w, y = py * h, a = Math.atan2(hy - y, hx - x);
+      ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+      ctx.lineWidth = w * 0.008; ctx.strokeStyle = '#3a1d10';
+      ctx.fillStyle = sleeves[i]; rr(ctx, -w * 0.2, -w * 0.055, w * 0.15, w * 0.11, w * 0.02); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#ffd2a8'; rr(ctx, -w * 0.06, -w * 0.05, w * 0.1, w * 0.1, w * 0.035); ctx.fill(); ctx.stroke();
+      rr(ctx, w * 0.02, -w * 0.05, w * 0.12, w * 0.036, w * 0.018); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    });
+  },
+  mount(root) {
+    let custom = store.get('wmlCustom', []);
+    const allCats = () => [...Object.keys(WML), ...(custom.length ? ['自訂'] : [])];
+    let cats = new Set(store.get('wmlCats', allCats()));
+    if (custom.length) cats.add('自訂');
+    let bag = [], q = '', n = 0, timers = [];
+    const poolOf = () => allCats().filter(k => cats.has(k)).flatMap(k => k === '自訂' ? custom : WML[k]);
+    const clear = () => { timers.forEach(clearTimeout); timers = []; };
+    root.innerHTML = `
+      <div class="stack">
+        <div class="chips" id="m-cats" role="group" aria-label="題目分類"></div>
+        <div class="td-card" id="m-card"></div>
+        <p class="hint" style="text-align:center" id="m-count"></p>
+        <div class="stack" id="m-act"></div>
+        <details class="editor"><summary>自訂題目</summary>
+          <div class="stack">
+            <p class="hint">一行一題，不用寫「誰最可能」。儲存後會多一個「自訂」分類。</p>
+            <textarea id="m-text" rows="8"></textarea>
+            <button class="btn" id="m-save">儲存</button>
+            <p class="hint" id="m-note"></p>
+          </div>
+        </details>
+      </div>`;
+    const card = $('#m-card', root), act = $('#m-act', root);
+    function renderCats() {
+      $('#m-cats', root).innerHTML = allCats().map(k => `<button class="chip cat" data-k="${k}" aria-pressed="${cats.has(k)}">${k} ${k === '自訂' ? custom.length : WML[k].length}</button>`).join('');
+      $('#m-cats', root).querySelectorAll('[data-k]').forEach(b => b.onclick = () => {
+        const k = b.dataset.k; cats.has(k) ? cats.delete(k) : cats.add(k);
+        store.set('wmlCats', [...cats]); bag = []; renderCats(); count();
+      });
+    }
+    const count = () => { $('#m-count', root).textContent = `第 ${n} 題・目前題庫 ${poolOf().length} 題`; };
+    function showCard(html) { card.innerHTML = html; card.style.animation = 'none'; void card.offsetWidth; card.style.animation = 'pop .35s cubic-bezier(.2,1.6,.4,1)'; }
+    function newQ() {
+      clear();
+      if (!bag.length) bag = shuffle(poolOf());
+      if (!bag.length) { showCard('<p>請至少選一個分類</p>'); act.innerHTML = ''; return; }
+      q = bag.pop(); n++; count();
+      showCard(`<span class="tag">誰最可能……</span><p>${esc(q)}？</p>`);
+      act.innerHTML = `<button class="btn big" id="m-next">下一題</button>`;
+      $('#m-next', act).onclick = newQ;
+      beep(600, 0.08, 'triangle');
+    }
+    function countdown() {
+      keepAwake(); act.innerHTML = '';
+      ['3', '2', '1', '指！'].forEach((t, i) => timers.push(setTimeout(() => {
+        showCard(`<p class="count">${t}</p>`);
+        beep(i < 3 ? 520 : 880, i < 3 ? 0.1 : 0.3, 'square', 0.08); if (i === 3) buzz(150);
+      }, i * 750)));
+      timers.push(setTimeout(vote, 3 * 750 + 900));
+    }
+    function vote() {
+      showCard(`<span class="tag">誰最可能……</span><p>${esc(q)}？</p>`);
+      const picked = new Set();
+      act.innerHTML = `
+        <p class="hint" style="text-align:center">被指最多的是誰？平手就都點</p>
+        <div class="plist">${players.map((p, i) => `<button data-i="${i}">${esc(p)}</button>`).join('')}</div>
+        <button class="btn red" id="m-drink" disabled>這些人喝！</button>`;
+      act.querySelectorAll('[data-i]').forEach(b => b.onclick = () => {
+        const i = +b.dataset.i; picked.has(i) ? picked.delete(i) : picked.add(i);
+        b.classList.toggle('armed', picked.has(i)); $('#m-drink', act).disabled = !picked.size; beep(400, 0.04);
+      });
+      $('#m-drink', act).onclick = () => {
+        const names = [...picked].map(i => players[i]);
+        act.innerHTML = `
+          <div class="result">${names.map(esc).join('、')} 喝一口！<small>被指的人可以問一個人：「為什麼指我？」</small></div>
+          <button class="btn big" id="m-next">下一題</button>`;
+        $('#m-next', act).onclick = newQ;
+        beep(520, 0.15, 'sawtooth', 0.08); buzz([80, 60, 120]);
+      };
+    }
+    $('#m-text', root).value = custom.join('\n');
+    $('#m-save', root).onclick = () => {
+      custom = $('#m-text', root).value.split('\n').map(s => s.trim().replace(/^誰最可能/, '').replace(/[？?]$/, '')).filter(Boolean);
+      store.set('wmlCustom', custom);
+      if (custom.length) cats.add('自訂'); else cats.delete('自訂');
+      store.set('wmlCats', [...cats]); bag = []; renderCats(); count();
+      $('#m-note', root).textContent = custom.length ? `已儲存 ${custom.length} 題自訂題目。` : '自訂題目已清空。';
+    };
+    renderCats(); newQ();
+    return clear;
+  }
+});
+
+/* ---------- 6. 你畫我猜 ---------- */
+const DRAW_LEVELS = { easy: '簡單', normal: '普通', hard: '困難' };
+const DRAW_WORDS = {
+  easy: '蘋果 香蕉 西瓜 葡萄 草莓 鳳梨 檸檬 櫻桃 紅蘿蔔 玉米 貓 狗 兔子 大象 長頸鹿 企鵝 魚 蛇 烏龜 蝴蝶 雞 豬 牛 猴子 獅子 老虎 熊貓 螃蟹 章魚 鯊魚 太陽 月亮 星星 雲 彩虹 雪人 樹 花 房子 汽車 飛機 船 火車 腳踏車 公車 雨傘 眼鏡 帽子 鞋子 襪子 T恤 手錶 手機 電視 電腦 椅子 桌子 床 杯子 碗 筷子 湯匙 剪刀 鉛筆 書 鑰匙 門 窗戶 時鐘 燈泡 蠟燭 氣球 蛋糕 冰淇淋 漢堡 披薩 薯條 熱狗 甜甜圈 便當 珍珠奶茶 啤酒 紅酒 牙刷 馬桶 浴缸 吉他 鋼琴 足球 籃球 風箏 禮物 愛心 骷髏頭 鬼 外星人 機器人 皇冠 蝸牛 蜜蜂 恐龍'.split(' '),
+  normal: '刷牙 洗澡 睡覺 跳舞 唱歌 游泳 釣魚 跑步 打噴嚏 打哈欠 放屁 自拍 接吻 擁抱 吵架 求婚 結婚 喝醉 打麻將 騎機車 溜狗 煮飯 吃火鍋 烤肉 露營 爬山 看電影 搭捷運 排隊 夜市 便利商店 醫院 學校 游泳池 海邊 遊樂園 摩天輪 雲霄飛車 動物園 機場 電梯 紅綠燈 斑馬線 KTV 夜店 婚禮 生日派對 警察 醫生 護理師 老師 廚師 消防員 太空人 魔術師 小丑 海盜 忍者 公主 巫婆 殭屍 吸血鬼 聖誕老人 超人 外送員 計程車 救護車 垃圾車 高鐵 台北101 滷肉飯 臭豆腐 小籠包 雞排 蚵仔煎 鹹酥雞 刈包 鳳梨酥 颱風 地震 停電 塞車 下雪 打雷 鬧鐘 吹風機 洗衣機 冷氣 電風扇 體重計 口罩 行李箱 自拍棒 耳機 衛生紙 安全帽 紅包 鞭炮 月餅'.split(' '),
+  hard: '對牛彈琴 畫蛇添足 井底之蛙 守株待兔 狐假虎威 一石二鳥 亡羊補牢 雞飛狗跳 如魚得水 馬到成功 虎頭蛇尾 望梅止渴 掩耳盜鈴 刻舟求劍 三心二意 七上八下 入木三分 水深火熱 火上加油 雪中送炭 錦上添花 過河拆橋 大海撈針 騎虎難下 鐵杵磨成針 愚公移山 杯弓蛇影 打草驚蛇 半途而廢 人山人海 天方夜譚 金蟬脫殼 一刀兩斷 手忙腳亂 左右為難 目瞪口呆 口是心非 心花怒放 無中生有 失戀 宿醉 失眠 嫉妒 尷尬 社恐 已讀不回 劈腿 暗戀 單身 加班 週一症候群 中年危機 減肥失敗 月光族 網路斷線 鬼壓床 斷片 前任 曖昧 領薪水 選舉 地球暖化 時差 夢遊 鐵達尼號 侏羅紀公園 哈利波特 航海王 名偵探柯南 七龍珠 鬼滅之刃 蠟筆小新 哆啦A夢 海綿寶寶 神隱少女 冰雪奇緣 玩具總動員 復仇者聯盟 星際大戰 魷魚遊戲 灌籃高手 寶可夢 超級瑪利歐 俄羅斯方塊 憤怒鳥 龍貓 小王子 西遊記 三國演義 白雪公主 小美人魚 灰姑娘 睡美人 小紅帽 龜兔賽跑 三隻小豬 傑克與魔豆 小木偶 醜小鴨'.split(' ')
+};
+registerGame({
+  id: 'draw', name: '你畫我猜', en: 'DRAW & GUESS', color: '#7fd1ff', tag: '手繪 · 搞笑', ribbon: 'NEW', desc: '一人畫、大家猜，時間到沒人猜中畫的人喝', minPlayers: 3,
+  art(ctx, w, h) {
+    ctx.fillStyle = '#fdf6e3'; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(80,120,200,.18)'; ctx.lineWidth = Math.max(1, w * 0.004);
+    for (let x = w / 10; x < w; x += w / 10) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = w / 10; y < h; y += w / 10) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+    const cx = w * 0.46, cy = h * 0.62, r = w * 0.22;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#23140b'; ctx.lineWidth = w * 0.018;
+    ctx.fillStyle = '#ffd36b';
+    ctx.beginPath(); ctx.moveTo(cx - r * 0.85, cy - r * 0.45); ctx.lineTo(cx - r * 0.75, cy - r * 1.25); ctx.lineTo(cx - r * 0.25, cy - r * 0.85); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx + r * 0.85, cy - r * 0.45); ctx.lineTo(cx + r * 0.75, cy - r * 1.25); ctx.lineTo(cx + r * 0.25, cy - r * 0.85); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#23140b';
+    ctx.beginPath(); ctx.arc(cx - r * 0.38, cy - r * 0.12, r * 0.09, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + r * 0.38, cy - r * 0.12, r * 0.09, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f28fb0'; ctx.beginPath(); ctx.moveTo(cx - r * 0.1, cy + r * 0.1); ctx.lineTo(cx + r * 0.1, cy + r * 0.1); ctx.lineTo(cx, cy + r * 0.22); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx - r * 0.12, cy + r * 0.25, r * 0.12, 0, Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx + r * 0.12, cy + r * 0.25, r * 0.12, 0, Math.PI); ctx.stroke();
+    ctx.lineWidth = w * 0.01;
+    [-1, 1].forEach(s => [-0.08, 0.08, 0.22].forEach(dy => { ctx.beginPath(); ctx.moveTo(cx + s * r * 0.5, cy + r * dy + r * 0.05); ctx.lineTo(cx + s * r * 1.25, cy + r * dy * 1.6); ctx.stroke(); }));
+    ctx.strokeStyle = '#e5484d'; ctx.lineWidth = w * 0.014; ctx.beginPath();
+    for (let i = 0; i <= 8; i++) ctx.lineTo(w * 0.06 + i * w * 0.04, h * 0.93 + (i % 2 ? -1 : 1) * w * 0.025);
+    ctx.stroke();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    [[w * 0.84, h * 0.46, '#e5484d', 0.3], [w * 0.13, h * 0.5, '#2f6fde', -0.3], [w * 0.88, h * 0.62, '#2e9e5b', 0.15]].forEach(([x, y, c, a], i) => {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillStyle = c; ctx.font = `${Math.round(w * (i ? 0.1 : 0.14))}px Bungee, sans-serif`; ctx.fillText('?', 0, 0); ctx.restore();
+    });
+    ctx.save(); ctx.translate(w * 0.8, h * 0.86); ctx.rotate(-0.75);
+    ctx.lineWidth = w * 0.008; ctx.strokeStyle = '#23140b';
+    ctx.fillStyle = '#f28fb0'; rr(ctx, -w * 0.3, -w * 0.035, w * 0.07, w * 0.07, w * 0.015); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c9c9c9'; ctx.fillRect(-w * 0.24, -w * 0.035, w * 0.04, w * 0.07); ctx.strokeRect(-w * 0.24, -w * 0.035, w * 0.04, w * 0.07);
+    ctx.fillStyle = '#f7c948'; ctx.fillRect(-w * 0.2, -w * 0.035, w * 0.26, w * 0.07); ctx.strokeRect(-w * 0.2, -w * 0.035, w * 0.26, w * 0.07);
+    ctx.fillStyle = '#e8c79a'; ctx.beginPath(); ctx.moveTo(w * 0.06, -w * 0.035); ctx.lineTo(w * 0.14, 0); ctx.lineTo(w * 0.06, w * 0.035); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#23140b'; ctx.beginPath(); ctx.moveTo(w * 0.115, -w * 0.011); ctx.lineTo(w * 0.14, 0); ctx.lineTo(w * 0.115, w * 0.011); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  },
+  mount(root) {
+    const PAPER = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || '#fffdf7';
+    const COLORS = ['#23140b', '#e5484d', '#2f6fde', '#2e9e5b', '#f2a33a', '#8b5a2b', '#d14fb0'];
+    const SIZES = [['細', 0.008], ['中', 0.016], ['粗', 0.032]];
+    let level = store.get('drawLevel', 'easy'), secs = store.get('drawSecs', 90);
+    let timer = null, onResize = null, word = '', drawer = '', strokes = [];
+    const bags = {};
+    const nextWord = () => { if (!bags[level] || !bags[level].length) bags[level] = shuffle(DRAW_WORDS[level]); return bags[level].pop(); };
+    const stop = () => { clearInterval(timer); timer = null; if (onResize) { window.removeEventListener('resize', onResize); onResize = null; } };
+    root.innerHTML = `<div class="stack" id="d-box"></div>`;
+    const box = $('#d-box', root);
+
+    function setup() {
+      stop();
+      box.innerHTML = `
+        <div class="seg" role="group" aria-label="難度">${Object.entries(DRAW_LEVELS).map(([k, v]) => `<button data-lv="${k}" aria-pressed="${k === level}">${v} ${DRAW_WORDS[k].length}</button>`).join('')}</div>
+        <div class="seg" role="group" aria-label="每回合秒數">${[60, 90, 120].map(s => `<button data-s="${s}" aria-pressed="${s === secs}">${s} 秒</button>`).join('')}</div>
+        <div class="result" style="font-size:1.1rem">有人猜中 → 猜中的人指定一人喝<small>時間到沒人猜中 → 畫的人喝兩口。畫的人不能寫字、不能說話、不能比手畫腳！</small></div>
+        <button class="btn big" id="d-go">開始（${esc(current())} 先畫）</button>`;
+      box.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => { level = b.dataset.lv; store.set('drawLevel', level); setup(); });
+      box.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { secs = +b.dataset.s; store.set('drawSecs', secs); setup(); });
+      $('#d-go', box).onclick = cover;
+    }
+    function cover() {
+      stop(); drawer = current();
+      box.innerHTML = `
+        <div class="reveal">
+          <span class="hint">輪到誰畫</span>
+          <span class="who">${esc(drawer)}</span>
+          <span class="hint">把手機交給 ${esc(drawer)}，其他人不要偷看</span>
+          <button class="btn big" id="d-see">看題目</button>
+        </div>
+        <button class="btn ghost" id="d-setup">調整難度和秒數</button>`;
+      $('#d-see', box).onclick = choose;
+      $('#d-setup', box).onclick = setup;
+    }
+    function choose() {
+      const opts = [...new Set([nextWord(), nextWord(), nextWord()])];
+      box.innerHTML = `
+        <div class="reveal">
+          <span class="hint">${esc(drawer)}，選一個你要畫的（${DRAW_LEVELS[level]}）</span>
+          <div class="stack" style="width:100%">${opts.map(o => `<button class="btn ghost" data-w="${esc(o)}" style="font-family:var(--display);font-weight:400;font-size:1.5rem">${esc(o)}</button>`).join('')}</div>
+          <span class="hint">選好就開始計時</span>
+        </div>`;
+      box.querySelectorAll('[data-w]').forEach(b => b.onclick = () => { word = b.dataset.w; draw(); });
+    }
+    function draw() {
+      strokes = []; keepAwake();
+      let color = COLORS[0], sizeIdx = 1, erasing = false, cur = null, last = -1;
+      const end = Date.now() + secs * 1000;
+      box.innerHTML = `
+        <div class="draw-top">
+          <span class="timer" id="d-time">${secs}</span>
+          <button class="btn ghost" id="d-peek">按住看題目</button>
+        </div>
+        <canvas class="draw-canvas" id="d-cv" aria-label="畫布"></canvas>
+        <div class="tools">
+          ${COLORS.map((c, i) => `<button class="sw" data-c="${i}" style="background:${c}" aria-label="顏色 ${i + 1}" aria-pressed="${i === 0}"></button>`).join('')}
+          <button class="tool" id="d-size">粗細：${SIZES[sizeIdx][0]}</button>
+          <button class="tool" id="d-eraser" aria-pressed="false">橡皮擦</button>
+          <button class="tool" id="d-undo">復原</button>
+          <button class="tool" id="d-clear">清空</button>
+        </div>
+        <div class="row"><button class="btn ghost" id="d-fail">放棄</button><button class="btn mint" id="d-ok">有人猜對了！</button></div>`;
+      const cv = $('#d-cv', box), ctx = cv.getContext('2d'), t = $('#d-time', box), peek = $('#d-peek', box);
+      const W = () => cv.width;
+      function paint(s, from) {
+        const w = W();
+        ctx.strokeStyle = ctx.fillStyle = s.c; ctx.lineWidth = s.s * w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        if (s.p.length === 1) { ctx.beginPath(); ctx.arc(s.p[0][0] * w, s.p[0][1] * w, s.s * w / 2, 0, Math.PI * 2); ctx.fill(); return; }
+        const pts = from ? s.p.slice(-2) : s.p;
+        ctx.beginPath(); ctx.moveTo(pts[0][0] * w, pts[0][1] * w);
+        for (const p of pts.slice(1)) ctx.lineTo(p[0] * w, p[1] * w);
+        ctx.stroke();
+      }
+      function redraw() { ctx.fillStyle = PAPER; ctx.fillRect(0, 0, W(), W()); strokes.forEach(s => paint(s)); }
+      function fit() { const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; cv.width = cv.height = Math.round((r.width || 320) * dpr); redraw(); }
+      const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+      cv.onpointerdown = e => {
+        e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+        cur = { c: erasing ? PAPER : color, s: SIZES[sizeIdx][1] * (erasing ? 2.5 : 1), p: [pt(e)] };
+        strokes.push(cur); paint(cur);
+      };
+      cv.onpointermove = e => { if (!cur) return; cur.p.push(pt(e)); paint(cur, true); };
+      cv.onpointerup = cv.onpointercancel = () => { cur = null; };
+      box.querySelectorAll('[data-c]').forEach(b => b.onclick = () => {
+        color = COLORS[+b.dataset.c]; erasing = false; $('#d-eraser', box).setAttribute('aria-pressed', 'false');
+        box.querySelectorAll('[data-c]').forEach(x => x.setAttribute('aria-pressed', x === b));
+      });
+      $('#d-size', box).onclick = e => { sizeIdx = (sizeIdx + 1) % SIZES.length; e.target.textContent = `粗細：${SIZES[sizeIdx][0]}`; };
+      $('#d-eraser', box).onclick = e => { erasing = !erasing; e.target.setAttribute('aria-pressed', erasing); };
+      $('#d-undo', box).onclick = () => { strokes.pop(); redraw(); };
+      $('#d-clear', box).onclick = () => { strokes = []; redraw(); };
+      const show = on => { peek.textContent = on ? word : '按住看題目'; };
+      peek.onpointerdown = e => { e.preventDefault(); show(true); };
+      peek.onpointerup = peek.onpointerleave = peek.onpointercancel = () => show(false);
+      peek.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') show(true); };
+      peek.onkeyup = () => show(false);
+      $('#d-ok', box).onclick = () => success(cv.toDataURL());
+      $('#d-fail', box).onclick = () => fail(cv.toDataURL(), false);
+      onResize = fit; window.addEventListener('resize', onResize);
+      fit();
+      timer = setInterval(() => {
+        const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+        if (left !== last) { last = left; t.textContent = left; t.classList.toggle('hurry', left <= 10); if (left <= 10 && left > 0) beep(880, 0.05); }
+        if (left <= 0) fail(cv.toDataURL(), true);
+      }, 200);
+    }
+    function success(img) {
+      stop();
+      box.innerHTML = `
+        <p class="hint" style="text-align:center">誰猜對了？</p>
+        <div class="plist">${players.filter(p => p !== drawer).map(p => `<button data-p="${esc(p)}">${esc(p)}</button>`).join('')}</div>`;
+      box.querySelectorAll('[data-p]').forEach(b => b.onclick = () => {
+        [523, 659, 784].forEach((f, k) => setTimeout(() => beep(f, 0.18, 'triangle', 0.08), k * 130)); buzz([80, 60, 120]);
+        result(`${esc(b.dataset.p)} 猜對了！<small>答案是「${esc(word)}」・${esc(b.dataset.p)} 指定一人喝一口</small>`, img);
+      });
+    }
+    function fail(img, timeUp) {
+      stop();
+      [300, 220, 160].forEach((f, k) => setTimeout(() => beep(f, 0.25, 'sawtooth', 0.1), k * 140)); buzz([200, 80, 300]);
+      result(`${timeUp ? '時間到！' : '放棄了！'}${esc(drawer)} 喝兩口<small>答案是「${esc(word)}」</small>`, img);
+    }
+    function result(html, img) {
+      box.innerHTML = `
+        <div class="result">${html}</div>
+        <img class="draw-shot" src="${img}" alt="${esc(drawer)} 畫的「${esc(word)}」">
+        <div class="row"><button class="btn ghost" id="d-setup">調整設定</button><button class="btn" id="d-next">換下一位畫</button></div>`;
+      $('#d-next', box).onclick = () => { nextTurn(); cover(); };
+      $('#d-setup', box).onclick = () => { nextTurn(); setup(); };
+    }
+    setup();
+    return stop;
+  }
+});
+
+/* ---------- 路由與畫面 ---------- */
+const view = $('#view');
+let cleanup = null, currentId = 'home';
+
+function home() {
+  view.innerHTML = `
+    <section class="hero">
+      <h2>今晚誰喝？</h2>
+      <p>${players.length} 位玩家：${players.map(esc).join('、')}。手機放桌子中間輪流玩。</p>
+    </section>
+    <div class="library-head"><span><strong>所有遊戲</strong>（${GAMES.length}）</span><span>點封面開始</span></div>
+    <div class="shelf">
+      ${GAMES.map(g => `
+        <div class="cap-item">
+          <button class="cap" data-g="${g.id}" style="--c:${g.color}" aria-label="${esc(g.name)}">
+            <canvas data-art="${g.id}"></canvas>
+            <span class="cap-logo">${esc(g.name)}<em>${esc(g.en)}</em></span>
+            ${g.ribbon ? `<span class="cap-ribbon">${esc(g.ribbon)}</span>` : ''}
+            <span class="cap-chip">${esc(g.tag)}</span>
+          </button>
+          <small>${esc(g.desc)}${players.length < g.minPlayers ? `（需要 ${g.minPlayers} 人以上）` : ''}</small>
+        </div>`).join('')}
+      <div class="cap-item" aria-hidden="true">
+        <div class="cap soon"><span>＋<b>更多遊戲</b></span></div>
+        <small>之後再加進來</small>
+      </div>
+    </div>`;
+  view.querySelectorAll('[data-g]').forEach(b => b.onclick = () => show(b.dataset.g));
+  paintCovers();
+}
+
+function paintCovers() {
+  view.querySelectorAll('canvas[data-art]').forEach(cv => {
+    const g = GAMES.find(x => x.id === cv.dataset.art);
+    const rect = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    const w = Math.round((rect.width || 200) * dpr), h = Math.round((rect.height || 300) * dpr);
+    cv.width = w; cv.height = h;
+    try { g.art(cv.getContext('2d'), w, h); } catch (e) {}
+  });
+}
+try { document.fonts.ready.then(() => { if (currentId === 'home') paintCovers(); }); } catch (e) {}
+window.addEventListener('resize', () => { if (currentId === 'home') paintCovers(); });
+
+function welcome() {
+  view.innerHTML = `
+    <section class="hero">
+      <h2>今晚誰喝？</h2>
+      <p>先輸入今晚的玩家，照座位順時針一個一個加。「左邊、右邊」的懲罰會照這個順序算。</p>
+    </section>
+    <div class="stack">
+      <form class="add-row" id="w-form">
+        <input type="text" id="w-input" placeholder="輸入名字" maxlength="10" autocomplete="off" aria-label="玩家名字">
+        <button class="btn" type="submit">加入</button>
+      </form>
+      <div class="chips" id="w-chips"></div>
+      <p class="hint" id="w-msg"></p>
+      <div class="need" id="w-need"></div>
+      <button class="btn big" id="w-go"></button>
+    </div>`;
+  const msg = $('#w-msg'), go = $('#w-go');
+  function draw() {
+    $('#w-chips').innerHTML = players.length
+      ? players.map((p, i) => `<span class="chip">${esc(p)}<button data-rm="${i}" aria-label="移除 ${esc(p)}">×</button></span>`).join('')
+      : '<span class="hint">還沒有玩家，從上面輸入第一個名字</span>';
+    $('#w-chips').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { players.splice(+b.dataset.rm, 1); store.set('players-v4', players); draw(); });
+    $('#w-need').innerHTML = `<strong>各遊戲人數</strong><ul>${GAMES.map(g => `<li class="${players.length >= g.minPlayers ? 'ok' : ''}"><span>${esc(g.name)}</span><b>${g.minPlayers} 人以上${players.length >= g.minPlayers ? ' ✓' : ''}</b></li>`).join('')}</ul>`;
+    go.disabled = players.length < 2;
+    go.textContent = players.length < 2 ? `至少要 2 人（還差 ${2 - players.length} 人）` : `開始玩（${players.length} 人）`;
+  }
+  $('#w-form').onsubmit = e => {
+    e.preventDefault();
+    const input = $('#w-input'), name = input.value.trim();
+    if (!name) return;
+    if (players.includes(name)) { msg.textContent = `已經有「${name}」了，換個名字`; return; }
+    players.push(name); store.set('players-v4', players); input.value = ''; msg.textContent = ''; input.focus(); draw();
+  };
+  go.onclick = () => { turn = 0; renderPlayers(); show('home'); };
+  draw();
+}
+
+function show(id) {
+  if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; }
+  if (id === 'welcome' || players.length < 2) {
+    currentId = 'welcome'; $('#back').hidden = true; $('#players-btn').hidden = true; $('#title').textContent = '乾杯遊戲機';
+    window.scrollTo(0, 0); welcome(); return;
+  }
+  $('#players-btn').hidden = false;
+  const g = GAMES.find(x => x.id === id);
+  if (g && players.length < g.minPlayers) { openSheet(`${g.name}需要至少 ${g.minPlayers} 位玩家，先加人吧。`); id = 'home'; }
+  currentId = g && id !== 'home' ? id : 'home';
+  const game = GAMES.find(x => x.id === currentId);
+  $('#back').hidden = !game;
+  $('#title').textContent = game ? game.name : '乾杯遊戲機';
+  window.scrollTo(0, 0);
+  if (game) { view.innerHTML = ''; const root = document.createElement('div'); view.appendChild(root); cleanup = game.mount(root) || null; }
+  else home();
+}
+
+/* ---------- 玩家管理 ---------- */
+function renderPlayers() {
+  $('#pcount').textContent = players.length;
+  $('#chips').innerHTML = players.map((p, i) => `<span class="chip">${esc(p)}<button data-rm="${i}" aria-label="移除 ${esc(p)}">×</button></span>`).join('');
+  $('#chips').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+    if (players.length <= 2) { $('#sheet-title').textContent = '至少要留 2 位玩家'; return; }
+    players.splice(+b.dataset.rm, 1); turn = 0; store.set('players-v4', players); renderPlayers();
+  });
+}
+function openSheet(msg) { $('#sheet-title').textContent = msg || '今晚的玩家'; renderPlayers(); $('#sheet').hidden = false; }
+function closeSheet() { $('#sheet').hidden = true; show(currentId); }
+$('#players-btn').onclick = () => openSheet();
+$('#sheet-close').onclick = closeSheet;
+$('#sheet').onclick = e => { if (e.target.id === 'sheet') closeSheet(); };
+$('#add-form').onsubmit = e => {
+  e.preventDefault();
+  const name = $('#p-input').value.trim();
+  if (!name) return;
+  if (players.includes(name)) { $('#sheet-title').textContent = `已經有「${name}」了，換個名字`; return; }
+  players.push(name); store.set('players-v4', players); $('#p-input').value = ''; $('#sheet-title').textContent = '今晚的玩家'; renderPlayers();
+};
+$('#back').onclick = () => show('home');
+
+/* ---------- 啟動 ---------- */
+window.claude?.hot?.snapshot?.(() => ({ view: currentId }));
+function start(data) { renderPlayers(); show((data && data.view) || 'welcome'); }
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+</body>
+</html>
