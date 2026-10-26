@@ -371,7 +371,10 @@ const legal = () => `
     <a href="questions/">題目大全</a>
     <a href="business/">店家合作</a>
     ${CONFIG.supportUrl ? `<a href="${esc(CONFIG.supportUrl)}" target="_blank" rel="noopener" id="support-btn">請作者喝一杯</a>` : ''}
-    ${CONFIG.feedbackEmail ? `<a href="mailto:${esc(CONFIG.feedbackEmail)}?subject=${encodeURIComponent('乾杯遊戲機意見回饋')}" id="feedback-btn">給作者意見</a>` : ''}
+    ${CONFIG.feedbackEmail || CONFIG.threadsUrl ? `<button type="button" id="feedback-btn" aria-expanded="false" aria-controls="feedback-menu">給作者意見</button>` : ''}
+  </div>
+  <div class="links" id="feedback-menu" hidden>
+    ${CONFIG.feedbackEmail ? `<a href="mailto:${esc(CONFIG.feedbackEmail)}?subject=${encodeURIComponent('乾杯遊戲機意見回饋')}" id="mail-btn">寄信給作者</a>` : ''}
     ${CONFIG.threadsUrl ? `<a href="${esc(CONFIG.threadsUrl)}" target="_blank" rel="noopener" id="threads-btn">脆私訊作者</a>` : ''}
   </div>
   <p class="legal">未滿 18 歲請勿飲酒・喝酒不開車，開車不喝酒<br>飲酒過量，有害健康・量力而為，不想喝可以說不</p>`;
@@ -385,8 +388,11 @@ function bindLegal() {
   };
   const sp = $('#support-btn');
   if (sp) sp.onclick = () => track('support_click');
-  const fb = $('#feedback-btn');
-  if (fb) fb.onclick = () => track('feedback_click');
+  // 「給作者意見」點開後才顯示寄信、脆私訊兩個選項
+  const fb = $('#feedback-btn'), menu = $('#feedback-menu');
+  if (fb) fb.onclick = () => { menu.hidden = !menu.hidden; fb.setAttribute('aria-expanded', !menu.hidden); if (!menu.hidden) track('feedback_click'); };
+  const ml = $('#mail-btn');
+  if (ml) ml.onclick = () => track('mail_click');
   const th = $('#threads-btn');
   if (th) th.onclick = () => track('threads_click');
 }

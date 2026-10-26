@@ -91,7 +91,7 @@ ${ld ? `<script type="application/ld+json">${JSON.stringify(ld)}</script>` : ''}
 </head>
 <body><main>
 ${body}
-<footer>未滿 18 歲請勿飲酒・喝酒不開車，開車不喝酒・飲酒過量，有害健康<br><a href="${SITE}">乾杯遊戲機</a>｜<a href="${SITE}games/">喝酒遊戲玩法</a>｜<a href="${SITE}questions/">題目大全</a>｜<a href="${SITE}business/">店家合作</a>｜<a href="mailto:s0931104646@gmail.com?subject=%E4%B9%BE%E6%9D%AF%E9%81%8A%E6%88%B2%E6%A9%9F%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B">給作者意見</a>｜<a href="https://www.threads.com/@nc_tim" target="_blank" rel="noopener">脆私訊作者</a></footer>
+<footer>未滿 18 歲請勿飲酒・喝酒不開車，開車不喝酒・飲酒過量，有害健康<br><a href="${SITE}">乾杯遊戲機</a>｜<a href="${SITE}games/">喝酒遊戲玩法</a>｜<a href="${SITE}questions/">題目大全</a>｜<a href="${SITE}business/">店家合作</a><br>給作者意見：<a href="mailto:s0931104646@gmail.com?subject=%E4%B9%BE%E6%9D%AF%E9%81%8A%E6%88%B2%E6%A9%9F%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B">寄信</a>・<a href="https://www.threads.com/@nc_tim" target="_blank" rel="noopener">脆私訊</a></footer>
 </main></body></html>
 `;
 
