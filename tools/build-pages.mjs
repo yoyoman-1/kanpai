@@ -9,7 +9,7 @@ const src = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const seg = (start) => { const a = src.indexOf(start); const b = src.indexOf('registerGame(', a); return src.slice(a, b); };
 const data = new Function(`${seg('const WHEEL_DEFAULT')}${seg('const TD_DEFAULT')}${seg('const WORD_PAIRS')}${seg('const WML_RAW')}${seg('const DRAW_LEVELS')}
 ${src.slice(src.indexOf('const ZY_KEYS'), src.indexOf('registerGame(', src.indexOf('const ZY_KEYS')))}
-return { WHEEL_DEFAULT, TD_DEFAULT, WORD_PAIRS, WML, DRAW_WORDS, ZY_SETS };`)();
+return { WHEEL_DEFAULT, TD_DEFAULT, WORD_PAIRS, WML, DRAW_WORDS, DRAW_LEVELS, ZY_SETS };`)();
 
 let seed = 20261026;
 const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -91,11 +91,14 @@ ${ld ? `<script type="application/ld+json">${JSON.stringify(ld)}</script>` : ''}
 </head>
 <body><main>
 ${body}
-<footer>未滿 18 歲請勿飲酒・喝酒不開車，開車不喝酒・飲酒過量，有害健康<br><a href="${SITE}">乾杯遊戲機</a>｜<a href="${SITE}games/">喝酒遊戲玩法</a>｜<a href="${SITE}business/">店家合作</a></footer>
+<footer>未滿 18 歲請勿飲酒・喝酒不開車，開車不喝酒・飲酒過量，有害健康<br><a href="${SITE}">乾杯遊戲機</a>｜<a href="${SITE}games/">喝酒遊戲玩法</a>｜<a href="${SITE}questions/">題目大全</a>｜<a href="${SITE}business/">店家合作</a></footer>
 </main></body></html>
 `;
 
 const write = (path, html) => { mkdirSync(new URL(`../${path}`, import.meta.url), { recursive: true }); writeFileSync(new URL(`../${path}index.html`, import.meta.url), html); };
+
+// 遊戲頁連到對應的題目清單
+const LIST_OF = { td: [['truth-questions', '真心話題目'], ['dare-ideas', '大冒險題目']], wheel: [['punishments', '喝酒懲罰題目']], wml: [['most-likely-questions', '誰最可能題目']], spy: [['spy-words', '誰是臥底詞庫']], draw: [['draw-guess-words', '你畫我猜題目']] };
 
 // 各遊戲頁
 for (const g of GAMES) {
@@ -115,6 +118,7 @@ for (const g of GAMES) {
 <ol>${g.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ol>
 <h2>題目範例</h2>
 <ul class="ex">${ex.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+${LIST_OF[g.id] ? LIST_OF[g.id].map(([slug, name]) => `<p><a href="../../questions/${slug}/">看完整${esc(name)} →</a></p>`).join('') : ''}
 <a class="cta" href="../../?g=${g.id}">打開${esc(g.name)}，今晚就玩 →</a>
 <h2>其他喝酒遊戲</h2>
 <ul class="grid">${others.map(o => `<li><a href="../${o.slug}/"><b>${esc(o.name)}</b><small>${esc(o.intro.slice(0, 34))}…</small></a></li>`).join('')}</ul>`,
@@ -139,6 +143,7 @@ write('games/', page({
 <a class="cta" href="../">打開乾杯遊戲機，馬上開局 →</a>
 <h2>9 款喝酒遊戲</h2>
 <ul class="grid">${GAMES.map(g => `<li><a href="${g.slug}/"><b>${esc(g.name)}</b><small>${esc(g.players)}・${esc(g.count)}<br>${esc(g.intro.slice(0, 40))}…</small></a></li>`).join('')}</ul>
+<p><a href="../questions/">想直接看題目？真心話、大冒險、懲罰題目清單 →</a></p>
 <h2>常見問題</h2>
 ${faq.map(([q, a]) => `<h3 style="font-size:1.05rem;margin:18px 0 4px">${esc(q)}</h3><p style="margin:0;color:var(--muted)">${esc(a)}</p>`).join('')}
 <a class="cta" href="../">開始玩 →</a>`,
@@ -169,8 +174,54 @@ write('business/', page({
 <p style="color:var(--muted);font-size:.9rem">本服務為派對遊戲工具，不販售酒類。店家提供的優惠內容須遵守菸酒管理法，並標示「禁止酒駕」「飲酒過量，有害健康」。</p>`,
 }));
 
+// 題目清單頁：鎖定「真心話題目」「大冒險題目」「懲罰題目」這類直接找題目的搜尋
+const tdLv = t => Object.values(data.TD_DEFAULT).map(v => [v.name, v[t].map(plain)]);
+const LISTS = [
+  { slug: 'truth-questions', game: 'td', name: '真心話題目', kw: '真心話題目', groups: tdLv('truth'),
+    intro: '聚會玩真心話不知道要問什麼？這裡整理了乾杯遊戲機精選的真心話題目，從微醺暖場到限制級都有，照尺度分好類，直接挑來問。' },
+  { slug: 'dare-ideas', game: 'td', name: '大冒險題目', kw: '大冒險題目', groups: tdLv('dare'),
+    intro: '大冒險題目整理：搞笑、整人、社群挑戰、曖昧到限制級，照尺度分類。不敢做的就喝兩口，聚會馬上熱起來。' },
+  { slug: 'punishments', game: 'wheel', name: '喝酒懲罰題目', kw: '懲罰題目', groups: [['懲罰轉盤題目', data.WHEEL_DEFAULT.map(plain)]],
+    intro: '喝酒遊戲輸了要罰什麼？這份懲罰題目清單就是乾杯遊戲機「懲罰轉盤」的完整題庫：直接喝、指定喝、酒桌新規則、真心話、大冒險、社會人士限定都有。' },
+  { slug: 'most-likely-questions', game: 'wml', name: '誰最可能題目', kw: '誰最可能 題目', groups: Object.entries(data.WML).map(([k, v]) => [k, v.map(q => `誰最可能${q}？`)]),
+    intro: '「誰最可能……」題目大全，分成老朋友、生活、個性、喝酒、戀愛、限制級、社會、未來八類。大家數到三一起指，被指最多的人喝。' },
+  { slug: 'spy-words', unit: '組', game: 'spy', name: '誰是臥底詞庫', kw: '誰是臥底 題目', groups: [['平民詞 ／ 臥底詞', data.WORD_PAIRS.map(p => `${p[0]} ／ ${p[1]}`)]],
+    intro: '誰是臥底題目詞庫：每組兩個很像但不一樣的詞，一個給平民、一個給臥底。用乾杯遊戲機玩，手機會自動發詞，不用自己準備。' },
+  { slug: 'draw-guess-words', unit: '個', game: 'draw', name: '你畫我猜題目', kw: '你畫我猜 題目', groups: Object.entries(data.DRAW_WORDS).map(([k, v]) => [data.DRAW_LEVELS[k] || k, v]),
+    intro: '你畫我猜題目大全，分簡單、普通、困難（成語）三種難度。聚會、團康、喝酒都能用，用乾杯遊戲機玩還有手機畫布可以直接畫。' },
+];
+const gameOf = id => GAMES.find(g => g.id === id);
+for (const l of LISTS) {
+  const total = l.groups.reduce((n, [, qs]) => n + qs.length, 0);
+  const g = gameOf(l.game);
+  write(`questions/${l.slug}/`, page({
+    path: `questions/${l.slug}/`,
+    title: `${l.name} ${total} ${l.unit || '題'}｜聚會、喝酒遊戲直接用｜乾杯遊戲機`,
+    desc: `${l.intro.slice(0, 70)}… 共 ${total} ${l.unit || '題'}，也可以用手機隨機抽題。`,
+    ld: { '@context': 'https://schema.org', '@type': 'ItemList', name: l.name, numberOfItems: total, itemListElement: l.groups.flatMap(([, qs]) => qs).slice(0, 50).map((q, i) => ({ '@type': 'ListItem', position: i + 1, name: q })) },
+    body: `<nav class="crumb"><a href="../../">乾杯遊戲機</a> › <a href="../../games/">喝酒遊戲玩法</a> › ${esc(l.name)}</nav>
+<h1>${esc(l.name)} ${total} ${l.unit || '題'}</h1>
+<p class="lead">${esc(l.intro)}</p>
+<a class="cta" href="../../?g=${l.game}">懶得挑？用手機隨機抽題（${esc(g.name)}）→</a>
+${l.groups.map(([name, qs]) => `<h2>${esc(name)}（${qs.length} ${l.unit || '題'}）</h2>\n<ol class="ex">${qs.map(q => `<li>${esc(q)}</li>`).join('')}</ol>`).join('\n')}
+<a class="cta" href="../../?g=${l.game}">打開${esc(g.name)}，今晚就玩 →</a>
+<h2>更多題目</h2>
+<ul class="grid">${LISTS.filter(x => x !== l).map(x => `<li><a href="../${x.slug}/"><b>${esc(x.name)}</b><small>${esc(x.intro.slice(0, 30))}…</small></a></li>`).join('')}</ul>`,
+  }));
+}
+write('questions/', page({
+  path: 'questions/',
+  title: '喝酒遊戲題目大全｜真心話、大冒險、懲罰、誰最可能題目｜乾杯遊戲機',
+  desc: '真心話題目、大冒險題目、喝酒懲罰題目、誰最可能、誰是臥底詞庫、你畫我猜題目一次整理，聚會直接用，也能用手機隨機抽題。',
+  body: `<nav class="crumb"><a href="../">乾杯遊戲機</a> › 題目大全</nav>
+<h1>喝酒遊戲題目大全</h1>
+<p class="lead">聚會要玩真心話、大冒險、誰最可能，卻想不到題目？這裡把乾杯遊戲機的題庫整理成清單，直接挑來用；懶得挑就打開網站，手機幫你隨機抽。</p>
+<ul class="grid">${LISTS.map(x => `<li><a href="${x.slug}/"><b>${esc(x.name)}</b><small>${x.groups.reduce((n, [, q]) => n + q.length, 0)} ${x.unit || '題'}・${esc(x.intro.slice(0, 30))}…</small></a></li>`).join('')}</ul>
+<a class="cta" href="../">打開乾杯遊戲機 →</a>`,
+}));
+
 // sitemap
-const urls = ['', 'games/', ...GAMES.map(g => `games/${g.slug}/`), 'business/'];
+const urls = ['', 'games/', ...GAMES.map(g => `games/${g.slug}/`), 'questions/', ...LISTS.map(l => `questions/${l.slug}/`), 'business/'];
 writeFileSync(new URL('../sitemap.xml', import.meta.url), `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map(u => `  <url><loc>${SITE}${u}</loc></url>`).join('\n')}
