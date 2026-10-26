@@ -7,7 +7,7 @@
 <meta name="description" content="懲罰轉盤、誰是臥底、你畫我猜、吹牛、500+ 題誰最可能…一支手機傳著玩，免下載免註冊，聚會喝酒馬上開局。">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="乾杯遊戲機">
-<meta property="og:title" content="乾杯遊戲機｜7 款手機喝酒遊戲，打開就能玩">
+<meta property="og:title" content="乾杯遊戲機｜8 款手機喝酒遊戲，打開就能玩">
 <meta property="og:description" content="懲罰轉盤、誰是臥底、你畫我猜、吹牛、500+ 題誰最可能…一支手機傳著玩，免下載免註冊，聚會喝酒馬上開局。">
 <meta property="og:url" content="https://yoyoman-1.github.io/kanpai/">
 <meta property="og:image" content="https://yoyoman-1.github.io/kanpai/og.png">
@@ -250,6 +250,16 @@ textarea { resize: vertical; line-height: 1.5; }
 .tally div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 2px; font-size: .8rem; color: var(--muted); }
 .tally b { display: block; font-family: var(--num); font-weight: 400; font-size: 1.4rem; color: var(--foam); }
 .rules { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; line-height: 1.55; }
+
+/* Zhuyin rush */
+.zy-card { background: var(--foam); border-radius: 24px; padding: 28px 12px; display: flex; justify-content: center; gap: 16px; }
+.zy-card span {
+  display: grid; place-items: center; width: clamp(110px, 34vw, 150px); aspect-ratio: 1; max-width: 100%;
+  font-family: var(--display); font-size: clamp(4.6rem, 22vw, 6.6rem); line-height: 1;
+  border: 5px solid var(--c); color: var(--c); border-radius: 22px; background: #fff;
+}
+.zy-card span:nth-child(1) { --c: #d62c2c; }
+.zy-card span:nth-child(2) { --c: #2f5fd0; }
 
 /* Welcome */
 .need { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
@@ -1156,7 +1166,7 @@ TD_DEFAULT.r18 = { name: '限制級', truth: lines(`
 打給最近聯絡的異性說「你在幹嘛」
 `) };
 registerGame({
-  id: 'td', name: '真心話大冒險', en: 'TRUTH OR DARE', color: '#8ff0c8', tag: '告白 · 爆料', desc: '分微醺、普通、失控三級', minPlayers: 2,
+  id: 'td', name: '真心話大冒險', en: 'TRUTH OR DARE', color: '#8ff0c8', tag: '告白 · 爆料', desc: '五種尺度，從微醺到限制級', minPlayers: 2,
   art(ctx, w, h) {
     ctx.fillStyle = '#9e1f2a'; ctx.fillRect(0, 0, w, h);
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(w * 0.75, 0); ctx.lineTo(w * 0.25, h); ctx.lineTo(0, h); ctx.closePath(); ctx.fillStyle = '#16725a'; ctx.fill();
@@ -2158,7 +2168,7 @@ const DRAW_WORDS = {
   hard: '對牛彈琴 畫蛇添足 井底之蛙 守株待兔 狐假虎威 一石二鳥 亡羊補牢 雞飛狗跳 如魚得水 馬到成功 虎頭蛇尾 望梅止渴 掩耳盜鈴 刻舟求劍 三心二意 七上八下 入木三分 水深火熱 火上加油 雪中送炭 錦上添花 過河拆橋 大海撈針 騎虎難下 鐵杵磨成針 愚公移山 杯弓蛇影 打草驚蛇 半途而廢 人山人海 天方夜譚 金蟬脫殼 一刀兩斷 手忙腳亂 左右為難 目瞪口呆 口是心非 心花怒放 無中生有 失戀 宿醉 失眠 嫉妒 尷尬 社恐 已讀不回 劈腿 暗戀 單身 加班 週一症候群 中年危機 減肥失敗 月光族 網路斷線 鬼壓床 斷片 前任 曖昧 領薪水 選舉 地球暖化 時差 夢遊 鐵達尼號 侏羅紀公園 哈利波特 航海王 名偵探柯南 七龍珠 鬼滅之刃 蠟筆小新 哆啦A夢 海綿寶寶 神隱少女 冰雪奇緣 玩具總動員 復仇者聯盟 星際大戰 魷魚遊戲 灌籃高手 寶可夢 超級瑪利歐 俄羅斯方塊 憤怒鳥 龍貓 小王子 西遊記 三國演義 白雪公主 小美人魚 灰姑娘 睡美人 小紅帽 龜兔賽跑 三隻小豬 傑克與魔豆 小木偶 醜小鴨'.split(' ')
 };
 registerGame({
-  id: 'draw', name: '你畫我猜', en: 'DRAW & GUESS', color: '#7fd1ff', tag: '手繪 · 搞笑', ribbon: 'NEW', desc: '一人畫、大家猜，時間到沒人猜中畫的人喝', minPlayers: 3,
+  id: 'draw', name: '你畫我猜', en: 'DRAW & GUESS', color: '#7fd1ff', tag: '手繪 · 搞笑', ribbon: 'NEW', desc: '一人畫、大家猜，猜到就換下一位', minPlayers: 3,
   art(ctx, w, h) {
     ctx.fillStyle = '#fdf6e3'; ctx.fillRect(0, 0, w, h);
     ctx.strokeStyle = 'rgba(80,120,200,.18)'; ctx.lineWidth = Math.max(1, w * 0.004);
@@ -2210,11 +2220,9 @@ registerGame({
       stop();
       box.innerHTML = `
         <div class="seg" role="group" aria-label="難度">${Object.entries(DRAW_LEVELS).map(([k, v]) => `<button data-lv="${k}" aria-pressed="${k === level}">${v} ${DRAW_WORDS[k].length}</button>`).join('')}</div>
-        <div class="seg" role="group" aria-label="每回合秒數">${[60, 90, 120].map(s => `<button data-s="${s}" aria-pressed="${s === secs}">${s} 秒</button>`).join('')}</div>
-        <div class="result" style="font-size:1.1rem">有人猜中 → 猜中的人指定一人喝<small>時間到沒人猜中 → 畫的人喝兩口。畫的人不能寫字、不能說話、不能比手畫腳！</small></div>
+        <div class="result" style="font-size:1.1rem">猜中的人指定一人喝<small>大家都猜不到、畫的人放棄 → 畫的人喝兩口。畫的人不能寫字、不能說話、不能比手畫腳！</small></div>
         <button class="btn big" id="d-go">開始（${esc(current())} 先畫）</button>`;
       box.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => { level = b.dataset.lv; store.set('drawLevel', level); setup(); });
-      box.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { secs = +b.dataset.s; store.set('drawSecs', secs); setup(); });
       $('#d-go', box).onclick = cover;
     }
     function cover() {
@@ -2226,7 +2234,7 @@ registerGame({
           <span class="hint">把手機交給 ${esc(drawer)}，其他人不要偷看</span>
           <button class="btn big" id="d-see">看題目</button>
         </div>
-        <button class="btn ghost" id="d-setup">調整難度和秒數</button>`;
+        <button class="btn ghost" id="d-setup">調整難度</button>`;
       $('#d-see', box).onclick = choose;
       $('#d-setup', box).onclick = setup;
     }
@@ -2242,11 +2250,10 @@ registerGame({
     }
     function draw() {
       strokes = []; keepAwake();
-      let color = COLORS[0], sizeIdx = 1, erasing = false, cur = null, last = -1;
-      const end = Date.now() + secs * 1000;
+      let color = COLORS[0], sizeIdx = 1, erasing = false, cur = null;
       box.innerHTML = `
         <div class="draw-top">
-          <span class="timer" id="d-time">${secs}</span>
+          <span class="hint">${esc(drawer)} 畫，大家猜</span>
           <button class="btn ghost" id="d-peek">按住看題目</button>
         </div>
         <canvas class="draw-canvas" id="d-cv" aria-label="畫布"></canvas>
@@ -2257,8 +2264,8 @@ registerGame({
           <button class="tool" id="d-undo">復原</button>
           <button class="tool" id="d-clear">清空</button>
         </div>
-        <div class="row"><button class="btn ghost" id="d-fail">放棄</button><button class="btn mint" id="d-ok">有人猜對了！</button></div>`;
-      const cv = $('#d-cv', box), ctx = cv.getContext('2d'), t = $('#d-time', box), peek = $('#d-peek', box);
+        <div class="row"><button class="btn ghost" id="d-fail">放棄</button><button class="btn mint" id="d-ok">猜對了！換下一位</button></div>`;
+      const cv = $('#d-cv', box), ctx = cv.getContext('2d'), peek = $('#d-peek', box);
       const W = () => cv.width;
       function paint(s, from) {
         const w = W();
@@ -2296,26 +2303,16 @@ registerGame({
       $('#d-fail', box).onclick = () => fail(cv.toDataURL(), false);
       onResize = fit; window.addEventListener('resize', onResize);
       fit();
-      timer = setInterval(() => {
-        const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
-        if (left !== last) { last = left; t.textContent = left; t.classList.toggle('hurry', left <= 10); if (left <= 10 && left > 0) beep(880, 0.05); }
-        if (left <= 0) fail(cv.toDataURL(), true);
-      }, 200);
     }
     function success(img) {
       stop();
-      box.innerHTML = `
-        <p class="hint" style="text-align:center">誰猜對了？</p>
-        <div class="plist">${players.filter(p => p !== drawer).map(p => `<button data-p="${esc(p)}">${esc(p)}</button>`).join('')}</div>`;
-      box.querySelectorAll('[data-p]').forEach(b => b.onclick = () => {
-        [523, 659, 784].forEach((f, k) => setTimeout(() => beep(f, 0.18, 'triangle', 0.08), k * 130)); buzz([80, 60, 120]);
-        result(`${esc(b.dataset.p)} 猜對了！<small>答案是「${esc(word)}」・${esc(b.dataset.p)} 指定一人喝一口</small>`, img);
-      });
+      [523, 659, 784].forEach((f, k) => setTimeout(() => beep(f, 0.18, 'triangle', 0.08), k * 130)); buzz([80, 60, 120]);
+      result(`猜對了！<small>答案是「${esc(word)}」・猜中的人指定一人喝一口</small>`, img);
     }
     function fail(img, timeUp) {
       stop();
       [300, 220, 160].forEach((f, k) => setTimeout(() => beep(f, 0.25, 'sawtooth', 0.1), k * 140)); buzz([200, 80, 300]);
-      result(`${timeUp ? '時間到！' : '放棄了！'}${esc(drawer)} 喝兩口<small>答案是「${esc(word)}」</small>`, img);
+      result(`放棄了！${esc(drawer)} 喝兩口<small>答案是「${esc(word)}」</small>`, img);
     }
     function result(html, img) {
       box.innerHTML = `
@@ -2420,6 +2417,59 @@ registerGame({
     };
     render();
     return () => window.removeEventListener('devicemotion', onMotion);
+  }
+});
+
+/* ---------- 8. 注音快答 ---------- */
+// 由常用二字詞反推的注音開頭組合（每組至少 4 個常見詞），共 559 組
+const ZY_KEYS = 'ㄅㄅ ㄅㄆ ㄅㄇ ㄅㄈ ㄅㄉ ㄅㄊ ㄅㄋ ㄅㄌ ㄅㄍ ㄅㄎ ㄅㄏ ㄅㄐ ㄅㄑ ㄅㄒ ㄅㄓ ㄅㄔ ㄅㄕ ㄅㄖ ㄅㄗ ㄅㄘ ㄅㄙ ㄅㄧ ㄅㄨ ㄅㄩ ㄆㄅ ㄆㄆ ㄆㄇ ㄆㄈ ㄆㄉ ㄆㄊ ㄆㄋ ㄆㄌ ㄆㄍ ㄆㄎ ㄆㄏ ㄆㄐ ㄆㄑ ㄆㄒ ㄆㄓ ㄆㄔ ㄆㄕ ㄆㄖ ㄆㄗ ㄆㄙ ㄆㄧ ㄆㄨ ㄆㄩ ㄇㄅ ㄇㄆ ㄇㄇ ㄇㄈ ㄇㄉ ㄇㄊ ㄇㄋ ㄇㄌ ㄇㄍ ㄇㄎ ㄇㄏ ㄇㄐ ㄇㄑ ㄇㄒ ㄇㄓ ㄇㄔ ㄇㄕ ㄇㄖ ㄇㄗ ㄇㄘ ㄇㄙ ㄇㄧ ㄇㄨ ㄇㄩ ㄈㄅ ㄈㄆ ㄈㄇ ㄈㄈ ㄈㄉ ㄈㄊ ㄈㄋ ㄈㄌ ㄈㄍ ㄈㄎ ㄈㄏ ㄈㄐ ㄈㄑ ㄈㄒ ㄈㄓ ㄈㄔ ㄈㄕ ㄈㄖ ㄈㄗ ㄈㄘ ㄈㄙ ㄈㄧ ㄈㄨ ㄈㄩ ㄉㄅ ㄉㄆ ㄉㄇ ㄉㄈ ㄉㄉ ㄉㄊ ㄉㄋ ㄉㄌ ㄉㄍ ㄉㄎ ㄉㄏ ㄉㄐ ㄉㄑ ㄉㄒ ㄉㄓ ㄉㄔ ㄉㄕ ㄉㄖ ㄉㄗ ㄉㄘ ㄉㄙ ㄉㄧ ㄉㄨ ㄉㄩ ㄊㄅ ㄊㄆ ㄊㄇ ㄊㄈ ㄊㄉ ㄊㄊ ㄊㄋ ㄊㄌ ㄊㄍ ㄊㄎ ㄊㄏ ㄊㄐ ㄊㄑ ㄊㄒ ㄊㄓ ㄊㄔ ㄊㄕ ㄊㄖ ㄊㄗ ㄊㄘ ㄊㄙ ㄊㄧ ㄊㄨ ㄊㄩ ㄋㄅ ㄋㄆ ㄋㄇ ㄋㄈ ㄋㄉ ㄋㄊ ㄋㄋ ㄋㄌ ㄋㄍ ㄋㄎ ㄋㄏ ㄋㄐ ㄋㄑ ㄋㄒ ㄋㄓ ㄋㄔ ㄋㄕ ㄋㄖ ㄋㄗ ㄋㄘ ㄋㄧ ㄋㄨ ㄋㄩ ㄌㄅ ㄌㄆ ㄌㄇ ㄌㄈ ㄌㄉ ㄌㄊ ㄌㄋ ㄌㄌ ㄌㄍ ㄌㄎ ㄌㄏ ㄌㄐ ㄌㄑ ㄌㄒ ㄌㄓ ㄌㄔ ㄌㄕ ㄌㄖ ㄌㄗ ㄌㄘ ㄌㄙ ㄌㄧ ㄌㄨ ㄌㄩ ㄍㄅ ㄍㄆ ㄍㄇ ㄍㄈ ㄍㄉ ㄍㄊ ㄍㄋ ㄍㄌ ㄍㄍ ㄍㄎ ㄍㄏ ㄍㄐ ㄍㄑ ㄍㄒ ㄍㄓ ㄍㄔ ㄍㄕ ㄍㄖ ㄍㄗ ㄍㄘ ㄍㄙ ㄍㄧ ㄍㄨ ㄍㄩ ㄎㄅ ㄎㄇ ㄎㄈ ㄎㄉ ㄎㄊ ㄎㄋ ㄎㄌ ㄎㄍ ㄎㄎ ㄎㄏ ㄎㄐ ㄎㄑ ㄎㄒ ㄎㄓ ㄎㄔ ㄎㄕ ㄎㄖ ㄎㄗ ㄎㄘ ㄎㄙ ㄎㄧ ㄎㄨ ㄎㄩ ㄏㄅ ㄏㄆ ㄏㄇ ㄏㄈ ㄏㄉ ㄏㄊ ㄏㄋ ㄏㄌ ㄏㄍ ㄏㄎ ㄏㄏ ㄏㄐ ㄏㄑ ㄏㄒ ㄏㄓ ㄏㄔ ㄏㄕ ㄏㄖ ㄏㄗ ㄏㄘ ㄏㄙ ㄏㄧ ㄏㄨ ㄏㄩ ㄐㄅ ㄐㄆ ㄐㄇ ㄐㄈ ㄐㄉ ㄐㄊ ㄐㄋ ㄐㄌ ㄐㄍ ㄐㄎ ㄐㄏ ㄐㄐ ㄐㄑ ㄐㄒ ㄐㄓ ㄐㄔ ㄐㄕ ㄐㄖ ㄐㄗ ㄐㄘ ㄐㄙ ㄐㄧ ㄐㄨ ㄐㄩ ㄑㄅ ㄑㄆ ㄑㄇ ㄑㄈ ㄑㄉ ㄑㄊ ㄑㄋ ㄑㄌ ㄑㄍ ㄑㄎ ㄑㄏ ㄑㄐ ㄑㄑ ㄑㄒ ㄑㄓ ㄑㄔ ㄑㄕ ㄑㄖ ㄑㄗ ㄑㄘ ㄑㄙ ㄑㄧ ㄑㄨ ㄑㄩ ㄒㄅ ㄒㄆ ㄒㄇ ㄒㄈ ㄒㄉ ㄒㄊ ㄒㄋ ㄒㄌ ㄒㄍ ㄒㄎ ㄒㄏ ㄒㄐ ㄒㄑ ㄒㄒ ㄒㄓ ㄒㄔ ㄒㄕ ㄒㄖ ㄒㄗ ㄒㄘ ㄒㄙ ㄒㄧ ㄒㄨ ㄒㄩ ㄓㄅ ㄓㄆ ㄓㄇ ㄓㄈ ㄓㄉ ㄓㄊ ㄓㄋ ㄓㄌ ㄓㄍ ㄓㄎ ㄓㄏ ㄓㄐ ㄓㄑ ㄓㄒ ㄓㄓ ㄓㄔ ㄓㄕ ㄓㄖ ㄓㄗ ㄓㄘ ㄓㄙ ㄓㄧ ㄓㄨ ㄓㄩ ㄔㄅ ㄔㄆ ㄔㄇ ㄔㄈ ㄔㄉ ㄔㄊ ㄔㄋ ㄔㄌ ㄔㄍ ㄔㄎ ㄔㄏ ㄔㄐ ㄔㄑ ㄔㄒ ㄔㄓ ㄔㄔ ㄔㄕ ㄔㄖ ㄔㄗ ㄔㄘ ㄔㄙ ㄔㄧ ㄔㄨ ㄔㄩ ㄕㄅ ㄕㄆ ㄕㄇ ㄕㄈ ㄕㄉ ㄕㄊ ㄕㄋ ㄕㄌ ㄕㄍ ㄕㄎ ㄕㄏ ㄕㄐ ㄕㄑ ㄕㄒ ㄕㄓ ㄕㄔ ㄕㄕ ㄕㄖ ㄕㄗ ㄕㄘ ㄕㄙ ㄕㄧ ㄕㄨ ㄕㄩ ㄖㄇ ㄖㄉ ㄖㄊ ㄖㄌ ㄖㄍ ㄖㄎ ㄖㄏ ㄖㄐ ㄖㄑ ㄖㄒ ㄖㄓ ㄖㄔ ㄖㄕ ㄖㄖ ㄖㄘ ㄖㄧ ㄖㄨ ㄖㄩ ㄗㄅ ㄗㄇ ㄗㄈ ㄗㄉ ㄗㄊ ㄗㄋ ㄗㄌ ㄗㄍ ㄗㄎ ㄗㄏ ㄗㄐ ㄗㄑ ㄗㄒ ㄗㄓ ㄗㄔ ㄗㄕ ㄗㄖ ㄗㄗ ㄗㄘ ㄗㄙ ㄗㄧ ㄗㄨ ㄗㄩ ㄘㄅ ㄘㄆ ㄘㄇ ㄘㄈ ㄘㄉ ㄘㄊ ㄘㄌ ㄘㄍ ㄘㄎ ㄘㄏ ㄘㄐ ㄘㄑ ㄘㄒ ㄘㄓ ㄘㄔ ㄘㄕ ㄘㄖ ㄘㄗ ㄘㄘ ㄘㄙ ㄘㄧ ㄘㄨ ㄘㄩ ㄙㄅ ㄙㄆ ㄙㄇ ㄙㄈ ㄙㄉ ㄙㄋ ㄙㄌ ㄙㄍ ㄙㄎ ㄙㄏ ㄙㄐ ㄙㄑ ㄙㄒ ㄙㄓ ㄙㄔ ㄙㄕ ㄙㄖ ㄙㄗ ㄙㄙ ㄙㄧ ㄙㄨ ㄧㄅ ㄧㄆ ㄧㄇ ㄧㄈ ㄧㄉ ㄧㄊ ㄧㄌ ㄧㄍ ㄧㄎ ㄧㄏ ㄧㄐ ㄧㄑ ㄧㄒ ㄧㄓ ㄧㄔ ㄧㄕ ㄧㄖ ㄧㄗ ㄧㄘ ㄧㄙ ㄧㄧ ㄧㄨ ㄧㄩ ㄨㄅ ㄨㄆ ㄨㄇ ㄨㄈ ㄨㄉ ㄨㄊ ㄨㄋ ㄨㄌ ㄨㄍ ㄨㄎ ㄨㄏ ㄨㄐ ㄨㄑ ㄨㄒ ㄨㄓ ㄨㄔ ㄨㄕ ㄨㄖ ㄨㄗ ㄨㄘ ㄨㄙ ㄨㄧ ㄨㄨ ㄨㄩ ㄩㄅ ㄩㄇ ㄩㄈ ㄩㄉ ㄩㄊ ㄩㄋ ㄩㄌ ㄩㄍ ㄩㄏ ㄩㄐ ㄩㄑ ㄩㄒ ㄩㄓ ㄩㄔ ㄩㄕ ㄩㄖ ㄩㄗ ㄩㄘ ㄩㄙ ㄩㄧ ㄩㄨ ㄩㄩ'.split(' ');
+registerGame({
+  id: 'zhuyin', name: '注音快答', en: 'ZHUYIN RUSH', color: '#8fb8ff', tag: '搶答 · 反應', ribbon: 'NEW', desc: '看到兩個注音就搶答，ㄇㄐ → 面積、墨鏡', minPlayers: 2,
+  art(ctx, w, h) {
+    const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#3a6fe0'); g.addColorStop(1, '#16245e');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    rays(ctx, w / 2, h * 0.66, h, 26, 'rgba(255,255,255,.07)');
+    bubbles(ctx, w, h, 9, 18, 'rgba(255,255,255,.15)');
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const tile = (x, y, s, rot, ch, c) => {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+      ctx.fillStyle = 'rgba(0,0,0,.3)'; rr(ctx, -s / 2 + s * 0.05, -s / 2 + s * 0.08, s, s, s * 0.18); ctx.fill();
+      ctx.fillStyle = '#fff'; rr(ctx, -s / 2, -s / 2, s, s, s * 0.18); ctx.fill();
+      ctx.strokeStyle = c; ctx.lineWidth = s * 0.06; rr(ctx, -s / 2 + s * 0.06, -s / 2 + s * 0.06, s * 0.88, s * 0.88, s * 0.14); ctx.stroke();
+      ctx.fillStyle = c; ctx.font = `${Math.round(s * 0.62)}px Huninn, "Noto Sans TC", sans-serif`; ctx.fillText(ch, 0, s * 0.04);
+      ctx.restore();
+    };
+    tile(w * 0.3, h * 0.6, w * 0.36, -0.15, 'ㄇ', '#d62c2c');
+    tile(w * 0.7, h * 0.64, w * 0.36, 0.12, 'ㄐ', '#2f5fd0');
+    tile(w * 0.2, h * 0.88, w * 0.2, 0.2, 'ㄅ', '#2e9e5b');
+    tile(w * 0.5, h * 0.9, w * 0.2, -0.1, 'ㄆ', '#f2a33a');
+    tile(w * 0.82, h * 0.88, w * 0.2, 0.25, 'ㄈ', '#c158d6');
+    ctx.save(); ctx.translate(w * 0.72, h * 0.4); ctx.rotate(0.08);
+    ctx.fillStyle = '#ffe066'; rr(ctx, -w * 0.2, -w * 0.08, w * 0.4, w * 0.16, w * 0.06); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-w * 0.08, w * 0.07); ctx.lineTo(-w * 0.14, w * 0.15); ctx.lineTo(-w * 0.01, w * 0.07); ctx.fill();
+    ctx.fillStyle = '#23140b'; ctx.font = `${Math.round(w * 0.085)}px Huninn, "Noto Sans TC", sans-serif`; ctx.fillText('面積！', 0, w * 0.005);
+    ctx.restore();
+  },
+  mount(root) {
+    let bag = [], n = 0;
+    root.innerHTML = `
+      <div class="stack">
+        <div class="zy-card" id="z-q" aria-live="polite"></div>
+        <p class="hint" style="text-align:center">看到就搶答，說出這兩個注音開頭的詞</p>
+        <button class="btn big" id="z-next">下一題</button>
+        <p class="hint" style="text-align:center" id="z-n"></p>
+      </div>`;
+    const q = $('#z-q', root);
+    function next() {
+      if (!bag.length) bag = shuffle(ZY_KEYS);
+      const k = bag.pop(); n++;
+      q.innerHTML = [...k].map(c => `<span>${c}</span>`).join('');
+      q.style.animation = 'none'; void q.offsetWidth; q.style.animation = 'pop .35s cubic-bezier(.2,1.6,.4,1)';
+      $('#z-n', root).textContent = `第 ${n} 題・題庫 ${ZY_KEYS.length} 組`;
+      beep(700, 0.08, 'triangle'); buzz(30); keepAwake();
+    }
+    $('#z-next', root).onclick = next;
+    next();
   }
 });
 
