@@ -252,6 +252,18 @@ textarea { resize: vertical; line-height: 1.5; }
 .rules { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; line-height: 1.55; }
 
 /* Zhuyin rush */
+.mine-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.mine-cell { aspect-ratio: 1; border: 0; border-radius: 12px; background: #4f8f45; box-shadow: inset 0 -5px 0 rgba(0,0,0,.3), inset 0 3px 0 rgba(255,255,255,.18); font-family: var(--num); font-size: clamp(1.3rem, 7vw, 2rem); line-height: 1; color: var(--ink); padding: 0; }
+.mine-cell:not(:disabled):active { transform: translateY(2px); box-shadow: inset 0 -2px 0 rgba(0,0,0,.3); }
+.mine-cell:disabled { cursor: default; }
+.mine-cell.open { background: var(--foam); box-shadow: none; }
+.mine-cell.open[data-n="1"] { color: #2f5fd0; }
+.mine-cell.open[data-n="2"] { color: #2e9e5b; }
+.mine-cell.open[data-n="3"] { color: var(--cherry); }
+.mine-cell.open[data-n="4"], .mine-cell.open[data-n="5"], .mine-cell.open[data-n="6"] { color: #8a2fc9; }
+.mine-cell.bomb { background: var(--cherry); box-shadow: none; font-size: clamp(1.5rem, 8vw, 2.2rem); }
+.mine-cell.last { animation: pop .35s cubic-bezier(.2,1.6,.4,1); }
+.mine-cell.bomb.last { animation: shake .5s ease 2; }
 .zy-card { background: var(--foam); border-radius: 24px; padding: 28px 12px; display: flex; justify-content: center; gap: 16px; }
 .zy-card span {
   display: grid; place-items: center; width: clamp(110px, 34vw, 150px); aspect-ratio: 1; max-width: 100%;
@@ -1023,7 +1035,7 @@ TD_DEFAULT.wild.dare.push(...lines(`
 嘴巴咬著筷子念一段繞口令
 `));
 registerGame({
-  id: 'td', name: '真心話大冒險', en: 'TRUTH OR DARE', color: '#8ff0c8', tag: '告白 · 爆料', desc: '五種尺度，從微醺到限制級', minPlayers: 2,
+  id: 'td', name: '真心話大冒險', en: 'TRUTH OR DARE', color: '#8ff0c8', tag: '告白 · 爆料', desc: '真心話、大冒險隨機抽，尺度全部混在一起', minPlayers: 2,
   art(ctx, w, h) {
     ctx.fillStyle = '#9e1f2a'; ctx.fillRect(0, 0, w, h);
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(w * 0.75, 0); ctx.lineTo(w * 0.25, h); ctx.lineTo(0, h); ctx.closePath(); ctx.fillStyle = '#16725a'; ctx.fill();
@@ -1043,19 +1055,16 @@ registerGame({
     card(w * 0.68, h * 0.7, 0.16, '冒', '#c3232f');
   },
   mount(root) {
-    let bank = store.get('td-v4', TD_DEFAULT), level = store.get('tdLevel', 'mild');
-    if (!bank[level]) level = 'mild';
+    // 各尺度的題目全部混在一起抽
+    const merged = t => Object.values(TD_DEFAULT).flatMap(v => v[t]);
+    let bank = store.get('td-v5', { truth: merged('truth'), dare: merged('dare') });
     const bags = {};
-    const draw = (lv, type) => {
-      const key = lv + type;
-      if (!bags[key] || !bags[key].length) bags[key] = shuffle(bank[lv][type]);
-      return bags[key].pop();
+    const draw = type => {
+      if (!bags[type] || !bags[type].length) bags[type] = shuffle(bank[type]);
+      return bags[type].pop();
     };
     root.innerHTML = `
       <div class="stack">
-        <div class="seg" role="group" aria-label="尺度" id="td-level">
-          ${Object.keys(bank).map(k => `<button data-lv="${k}">${esc(bank[k].name)}</button>`).join('')}
-        </div>
         <div class="turn">輪到 <b id="td-who"></b></div>
         <div class="td-card empty" id="td-card"><p>選真心話還是大冒險？</p></div>
         <div class="row">
@@ -1067,23 +1076,21 @@ registerGame({
         <button class="btn mint" id="td-next">下一位 →</button>
         <details class="editor"><summary>編輯題庫</summary>
           <div class="stack">
-            <select id="td-pick" aria-label="選擇題庫"></select>
+            <select id="td-pick" aria-label="選擇題庫"><option value="truth">真心話</option><option value="dare">大冒險</option></select>
             <p class="hint">一行一題。可用 {左} {右} {某人} 代入其他玩家。</p>
             <textarea id="td-text" rows="10"></textarea>
-            <div class="row"><button class="btn ghost" id="td-reset">恢復這組預設</button><button class="btn" id="td-save">儲存</button></div>
+            <div class="row"><button class="btn ghost" id="td-reset">恢復預設</button><button class="btn" id="td-save">儲存</button></div>
             <p class="hint" id="td-note"></p>
           </div>
         </details>
       </div>`;
-    const syncLevel = () => root.querySelectorAll('[data-lv]').forEach(b => b.setAttribute('aria-pressed', b.dataset.lv === level));
     const who = () => { $('#td-who', root).textContent = current(); };
-    root.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => { level = b.dataset.lv; store.set('tdLevel', level); syncLevel(); });
     root.querySelectorAll('[data-type]').forEach(b => b.onclick = () => {
       let type = b.dataset.type; if (type === 'random') type = Math.random() < 0.5 ? 'truth' : 'dare';
-      const q = draw(level, type);
+      const q = draw(type);
       const card = $('#td-card', root);
       card.className = 'td-card';
-      card.innerHTML = `<span class="tag ${type}">${type === 'truth' ? '真心話' : '大冒險'} · ${esc(bank[level].name)}</span><p>${esc(fill(q, current()))}</p>`;
+      card.innerHTML = `<span class="tag ${type}">${type === 'truth' ? '真心話' : '大冒險'}</span><p>${esc(fill(q, current()))}</p>`;
       card.style.animation = 'none'; void card.offsetWidth; card.style.animation = 'pop .35s cubic-bezier(.2,1.6,.4,1)';
       beep(type === 'truth' ? 660 : 440, 0.12, 'triangle'); buzz(50);
     });
@@ -1092,18 +1099,17 @@ registerGame({
       const card = $('#td-card', root); card.className = 'td-card empty'; card.innerHTML = '<p>選真心話還是大冒險？</p>';
     };
     const sel = $('#td-pick', root);
-    sel.innerHTML = Object.keys(bank).flatMap(k => [`<option value="${k}|truth">${esc(bank[k].name)}・真心話</option>`, `<option value="${k}|dare">${esc(bank[k].name)}・大冒險</option>`]).join('');
-    const loadText = () => { const [k, t] = sel.value.split('|'); $('#td-text', root).value = bank[k][t].join('\n'); $('#td-note', root).textContent = ''; };
+    const loadText = () => { $('#td-text', root).value = bank[sel.value].join('\n'); $('#td-note', root).textContent = ''; };
     sel.onchange = loadText;
     $('#td-save', root).onclick = () => {
-      const [k, t] = sel.value.split('|');
+      const t = sel.value;
       const list = $('#td-text', root).value.split('\n').map(s => s.trim()).filter(Boolean);
       if (!list.length) { $('#td-note', root).textContent = '題庫不能是空的，至少寫一題。'; return; }
-      bank = { ...bank, [k]: { ...bank[k], [t]: list } }; store.set('td-v4', bank); delete bags[k + t];
+      bank = { ...bank, [t]: list }; store.set('td-v5', bank); delete bags[t];
       $('#td-note', root).textContent = `已儲存 ${list.length} 題。`;
     };
-    $('#td-reset', root).onclick = () => { const [k, t] = sel.value.split('|'); $('#td-text', root).value = TD_DEFAULT[k][t].join('\n'); };
-    syncLevel(); who(); loadText();
+    $('#td-reset', root).onclick = () => { $('#td-text', root).value = merged(sel.value).join('\n'); };
+    who(); loadText();
   }
 });
 
@@ -1915,6 +1921,108 @@ registerGame({
       next();
     });
     next();
+  }
+});
+
+/* ---------- 踩地雷 ---------- */
+registerGame({
+  id: 'mines', name: '踩地雷', en: 'MINE SWEEPER', color: '#b8e986', tag: '運氣 · 輪流踩', ribbon: 'NEW', desc: '輪流翻格子，踩到地雷的喝', minPlayers: 2,
+  art(ctx, w, h) {
+    const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#3f8f3a'); g.addColorStop(1, '#12301a');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    rays(ctx, w / 2, h * 0.62, h, 24, 'rgba(255,255,255,.06)');
+    const n = 4, s = w * 0.19, gap = w * 0.025, ox = (w - (n * s + (n - 1) * gap)) / 2, oy = h * 0.31;
+    const open = { 0: '1', 1: '1', 4: '1', 5: '2', 8: '', 12: '' }, colors = { 1: '#2f5fd0', 2: '#2e9e5b' };
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let i = 0; i < n * n; i++) {
+      const x = ox + (i % n) * (s + gap), y = oy + Math.floor(i / n) * (s + gap), cx = x + s / 2, cy = y + s / 2;
+      if (i in open) {
+        ctx.fillStyle = '#fbf0dc'; rr(ctx, x, y, s, s, s * 0.18); ctx.fill();
+        ctx.fillStyle = colors[open[i]] || '#23140b'; ctx.font = `${Math.round(s * 0.6)}px Bungee, sans-serif`; ctx.fillText(open[i], cx, cy + s * 0.04);
+      } else if (i === 9) {
+        ctx.fillStyle = '#e5484d'; rr(ctx, x, y, s, s, s * 0.18); ctx.fill();
+        ctx.strokeStyle = '#111'; ctx.lineWidth = s * 0.07; ctx.lineCap = 'round';
+        for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * s * 0.36, cy + Math.sin(a) * s * 0.36); ctx.stroke(); }
+        ctx.beginPath(); ctx.arc(cx, cy, s * 0.24, 0, Math.PI * 2); ctx.fillStyle = '#111'; ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - s * 0.08, cy - s * 0.08, s * 0.06, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fill();
+      } else {
+        ctx.fillStyle = 'rgba(0,0,0,.3)'; rr(ctx, x, y + s * 0.06, s, s, s * 0.18); ctx.fill();
+        ctx.fillStyle = '#6fbf5a'; rr(ctx, x, y, s, s, s * 0.18); ctx.fill();
+        if (i === 14) {
+          ctx.fillStyle = '#23140b'; ctx.fillRect(cx - s * 0.03, cy - s * 0.28, s * 0.06, s * 0.52);
+          ctx.beginPath(); ctx.moveTo(cx + s * 0.03, cy - s * 0.28); ctx.lineTo(cx + s * 0.3, cy - s * 0.15); ctx.lineTo(cx + s * 0.03, cy - s * 0.02); ctx.fillStyle = '#e5484d'; ctx.fill();
+        }
+      }
+    }
+  },
+  mount(root) {
+    const SIZE = 5;
+    let mines = store.get('minesN', 3), cells, left, last = -1;
+    if (![1, 3, 5].includes(mines)) mines = 3;
+    root.innerHTML = `
+      <div class="stack">
+        <div class="seg" role="group" aria-label="地雷數">${[1, 3, 5].map(k => `<button data-mn="${k}" aria-pressed="${k === mines}">${k} 顆雷</button>`).join('')}</div>
+        <div class="turn">輪到 <b id="m-who"></b> 踩</div>
+        <div class="mine-grid" id="m-grid"></div>
+        <div class="msg" id="m-msg" aria-live="polite"></div>
+        <button class="btn big" id="m-again" hidden>再來一局</button>
+      </div>`;
+    const grid = $('#m-grid', root), msg = $('#m-msg', root);
+    // 周圍 8 格有幾顆雷
+    const near = i => {
+      const r = Math.floor(i / SIZE), c = i % SIZE; let n = 0;
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        const y = r + dr, x = c + dc;
+        if ((dr || dc) && y >= 0 && y < SIZE && x >= 0 && x < SIZE && cells[y * SIZE + x].bomb) n++;
+      }
+      return n;
+    };
+    function start() {
+      const bombs = new Set(shuffle([...Array(SIZE * SIZE).keys()]).slice(0, mines));
+      cells = [...Array(SIZE * SIZE)].map((_, i) => ({ bomb: bombs.has(i), open: false }));
+      left = mines; last = -1;
+      $('#m-again', root).hidden = true;
+      msg.textContent = `${mines} 顆地雷藏在 ${SIZE * SIZE} 格裡，翻開的數字是旁邊有幾顆雷`;
+      render();
+    }
+    function render() {
+      $('#m-who', root).textContent = current();
+      grid.innerHTML = cells.map((x, i) => {
+        const cls = i === last ? ' last' : '';
+        if (!x.open) return `<button class="mine-cell" data-i="${i}" aria-label="第 ${i + 1} 格"${left ? '' : ' disabled'}></button>`;
+        if (x.bomb) return `<button class="mine-cell bomb${cls}" disabled aria-label="地雷">💣</button>`;
+        const n = near(i);
+        return `<button class="mine-cell open${cls}" data-n="${n}" disabled aria-label="旁邊 ${n} 顆雷">${n || ''}</button>`;
+      }).join('');
+      grid.querySelectorAll('[data-i]').forEach(b => b.onclick = () => step(+b.dataset.i));
+    }
+    function step(i) {
+      keepAwake();
+      const x = cells[i]; if (x.open || !left) return;
+      x.open = true; last = i;
+      const who = current(); nextTurn();
+      if (x.bomb) {
+        left--;
+        buzz([200, 80, 200, 80, 400]);
+        [180, 140, 100].forEach((f, k) => setTimeout(() => beep(f, 0.3, 'sawtooth', 0.12), k * 120));
+        if (!left) cells.forEach(c => c.open = true);
+        render();
+        msg.innerHTML = `<div class="result">💥 ${esc(who)} 喝！<small>${left ? `還剩 ${left} 顆雷，繼續踩` : '地雷全部踩完了'}</small></div>`;
+        $('#m-again', root).hidden = !!left;
+      } else {
+        const n = near(i);
+        beep(620, 0.06, 'triangle'); buzz(30);
+        render();
+        msg.textContent = `${who} 安全！${n ? `旁邊有 ${n} 顆雷` : '旁邊沒有雷'}`;
+      }
+    }
+    root.querySelectorAll('[data-mn]').forEach(b => b.onclick = () => {
+      mines = +b.dataset.mn; store.set('minesN', mines);
+      root.querySelectorAll('[data-mn]').forEach(x => x.setAttribute('aria-pressed', x === b));
+      start();
+    });
+    $('#m-again', root).onclick = start;
+    start();
   }
 });
 
