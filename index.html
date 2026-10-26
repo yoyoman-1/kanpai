@@ -4,11 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1a100b">
-<meta name="description" content="懲罰轉盤、誰是臥底、你畫我猜、吹牛、800+ 題誰最可能…一支手機傳著玩，免下載免註冊，聚會喝酒馬上開局。">
+<meta name="description" content="9 款手機喝酒遊戲：懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、終極密碼、吹牛、注音快答…一支手機傳著玩，免下載免註冊，聚會馬上開局。">
+<link rel="canonical" href="https://yoyoman-1.github.io/kanpai/">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"乾杯遊戲機","url":"https://yoyoman-1.github.io/kanpai/","applicationCategory":"GameApplication","operatingSystem":"Any","inLanguage":"zh-TW","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"TWD"},"description":"9 款手機喝酒遊戲合集，一支手機傳著玩，免下載免註冊。"}</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="乾杯遊戲機">
-<meta property="og:title" content="乾杯遊戲機｜8 款手機喝酒遊戲，打開就能玩">
-<meta property="og:description" content="懲罰轉盤、誰是臥底、你畫我猜、吹牛、800+ 題誰最可能…一支手機傳著玩，免下載免註冊，聚會喝酒馬上開局。">
+<meta property="og:title" content="乾杯遊戲機｜9 款手機喝酒遊戲，打開就能玩">
+<meta property="og:description" content="懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、吹牛…一支手機傳著玩，免下載免註冊，聚會喝酒馬上開局。">
 <meta property="og:url" content="https://yoyoman-1.github.io/kanpai/">
 <meta property="og:image" content="https://yoyoman-1.github.io/kanpai/og.png">
 <meta property="og:image:width" content="1200">
@@ -24,7 +29,7 @@ body { margin: 0; }
 img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
-<title>乾杯遊戲機</title>
+<title>乾杯遊戲機｜9 款手機喝酒遊戲・懲罰轉盤、踩地雷、真心話大冒險</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -281,6 +286,16 @@ textarea { resize: vertical; line-height: 1.5; }
 .zy-card[data-n="4"] span { width: clamp(64px, 19vw, 100px); font-size: clamp(2.6rem, 12vw, 4rem); border-width: 4px; border-radius: 14px; }
 
 /* Welcome */
+.legal { text-align: center; color: var(--muted); font-size: .78rem; line-height: 1.7; margin: 28px 0 8px; }
+.legal a { color: var(--muted); }
+.links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
+.links a, .links button { border: 1px solid var(--line); background: var(--surface); color: var(--foam); border-radius: 999px; padding: 8px 14px; font-size: .9rem; text-decoration: none; }
+.adult { display: flex; gap: 10px; align-items: flex-start; color: var(--muted); font-size: .9rem; }
+.adult input { width: 22px; height: 22px; accent-color: var(--amber); flex: none; margin: 0; }
+.shop-banner { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 2px solid var(--sc, var(--amber)); border-radius: 16px; padding: 10px 14px; margin-bottom: 14px; }
+.shop-banner img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; flex: none; }
+.shop-banner b { display: block; color: var(--sc, var(--amber)); font-size: 1.05rem; }
+.shop-banner span { color: var(--foam); font-size: .9rem; }
 .need { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
 .need strong { font-size: .95rem; }
 .need ul { list-style: none; margin: 6px 0 0; padding: 0; }
@@ -325,6 +340,47 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('kanpai:' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('kanpai:' + k, JSON.stringify(v)); } catch (e) {} }
 };
+/* ---------- 營運設定：填上就啟用，空白就不顯示 ---------- */
+const CONFIG = {
+  umamiId: '',      // Umami 網站 ID（流量與轉換追蹤）
+  supportUrl: '',   // 贊助連結（Portaly、Buy Me a Coffee、綠界…），空白就不顯示贊助按鈕
+};
+// 轉換事件：沒設定 Umami 時什麼都不做
+const track = (name, data) => { try { window.umami && window.umami.track(name, data); } catch (e) {} };
+if (CONFIG.umamiId) {
+  const sc = document.createElement('script');
+  sc.defer = true; sc.src = 'https://cloud.umami.is/script.js'; sc.dataset.websiteId = CONFIG.umamiId;
+  document.head.appendChild(sc);
+}
+const params = new URLSearchParams(location.search);
+// 從遊戲介紹頁點進來（?g=wheel）時，輸入完名字直接進那個遊戲
+let pendingGame = params.get('g');
+// 店家版（?shop=xxx）：讀 shops/xxx.json，顯示店名、優惠，轉盤混入店家專屬題目
+let SHOP = null;
+const shopSlug = (params.get('shop') || '').toLowerCase();
+const shopReady = /^[a-z0-9-]{1,40}$/.test(shopSlug)
+  ? fetch(`shops/${shopSlug}.json`).then(r => r.ok ? r.json() : null).then(d => { if (d && d.name) { SHOP = d; track('shop_open', { shop: shopSlug }); } }).catch(() => {})
+  : Promise.resolve();
+const shopBanner = () => SHOP ? `<div class="shop-banner" style="--sc:${/^#[0-9a-f]{3,8}$/i.test(SHOP.color || '') ? SHOP.color : 'var(--amber)'}">${/^[a-z0-9-]+\.(png|jpe?g|webp)$/i.test(SHOP.logo || '') ? `<img src="shops/${SHOP.logo}" alt="">` : ''}<div><b>${esc(SHOP.name)} 專屬版</b>${SHOP.promo ? `<span>${esc(SHOP.promo)}</span>` : ''}</div></div>` : '';
+const legal = () => `
+  <div class="links">
+    <button type="button" id="share-btn">分享給朋友</button>
+    <a href="games/">遊戲玩法</a>
+    <a href="business/">店家合作</a>
+    ${CONFIG.supportUrl ? `<a href="${esc(CONFIG.supportUrl)}" target="_blank" rel="noopener" id="support-btn">請作者喝一杯</a>` : ''}
+  </div>
+  <p class="legal">未滿 18 歲請勿飲酒・喝酒不開車，開車不喝酒<br>飲酒過量，有害健康・量力而為，不想喝可以說不</p>`;
+function bindLegal() {
+  const b = $('#share-btn');
+  if (b) b.onclick = async () => {
+    track('share_click');
+    const data = { title: '乾杯遊戲機', text: '今晚誰喝？9 款手機喝酒遊戲，打開就能玩', url: 'https://yoyoman-1.github.io/kanpai/' };
+    try { if (navigator.share) { await navigator.share(data); return; } } catch (e) { return; }
+    try { await navigator.clipboard.writeText(data.url); b.textContent = '已複製連結'; } catch (e) { b.textContent = data.url; }
+  };
+  const sp = $('#support-btn');
+  if (sp) sp.onclick = () => track('support_click');
+}
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -729,8 +785,9 @@ registerGame({
   mount(root) {
     // 題庫可以很大，轉盤每次只從裡面隨機抽 SHOW 格放上去
     const SHOW = 12;
+    const deal = list => SHOP && SHOP.wheel && SHOP.wheel.length ? shuffle([...shuffle(SHOP.wheel).slice(0, 2), ...shuffle(list).slice(0, SHOW - 2)]) : shuffle(list).slice(0, SHOW);
     let pool = store.get('wheel-v4', WHEEL_DEFAULT), spun = false;
-    let items = shuffle(pool).slice(0, SHOW);
+    let items = deal(pool);
     root.innerHTML = `
       <div class="stack">
         <div class="turn">輪到 <b id="w-who"></b> 轉</div>
@@ -786,7 +843,7 @@ registerGame({
     function spin() {
       if (spinning) return;
       spinning = true; keepAwake();
-      if (spun) items = shuffle(pool).slice(0, SHOW);
+      if (spun) items = deal(pool);
       spun = true;
       $('#w-spin', root).disabled = true; $('#w-result', root).innerHTML = '';
       const n = items.length, seg = Math.PI * 2 / n, win = Math.floor(Math.random() * n);
@@ -816,7 +873,7 @@ registerGame({
     $('#w-save', root).onclick = () => {
       const next = $('#w-text', root).value.split('\n').map(s => s.trim()).filter(Boolean);
       if (next.length < 2) { $('#w-result', root).innerHTML = '<p class="hint">題庫至少要 2 題，請再多寫幾行。</p>'; return; }
-      pool = next; store.set('wheel-v4', pool); items = shuffle(pool).slice(0, SHOW); spun = false; rot = 0; draw(); count();
+      pool = next; store.set('wheel-v4', pool); items = deal(pool); spun = false; rot = 0; draw(); count();
       $('#w-text', root).value = pool.join('\n');
       $('#w-result', root).innerHTML = `<p class="hint">已儲存 ${pool.length} 題，轉盤更新了。</p>`;
     };
@@ -2055,6 +2112,7 @@ const gamesByPlays = () => GAMES.map((g, i) => [g, i]).sort((a, b) => (plays[b[0
 function home() {
   const played = GAMES.some(g => plays[g.id]);
   view.innerHTML = `
+    ${shopBanner()}
     <section class="hero">
       <h2>今晚誰喝？</h2>
       <p>${players.length} 位玩家：${players.map(esc).join('、')}。手機放桌子中間輪流玩。</p>
@@ -2075,9 +2133,9 @@ function home() {
         <div class="cap soon"><span>＋<b>更多遊戲</b></span></div>
         <small>之後再加進來</small>
       </div>
-    </div>`;
+    </div>${legal()}`;
   view.querySelectorAll('[data-g]').forEach(b => b.onclick = () => show(b.dataset.g));
-  paintCovers();
+  bindLegal(); paintCovers();
 }
 
 function paintCovers() {
@@ -2094,6 +2152,7 @@ window.addEventListener('resize', () => { if (currentId === 'home') paintCovers(
 
 function welcome() {
   view.innerHTML = `
+    ${shopBanner()}
     <section class="hero">
       <h2>今晚誰喝？</h2>
       <p>先輸入今晚的玩家，照座位順時針一個一個加。「左邊、右邊」的懲罰會照這個順序算。</p>
@@ -2106,8 +2165,9 @@ function welcome() {
       <div class="chips" id="w-chips"></div>
       <p class="hint" id="w-msg"></p>
       <div class="need" id="w-need"></div>
+      <label class="adult"><input type="checkbox" id="w-adult"${store.get('adult', false) ? ' checked' : ''}>我和今晚的玩家都已滿 18 歲，也會適量飲酒、不酒駕</label>
       <button class="btn big" id="w-go"></button>
-    </div>`;
+    </div>${legal()}`;
   const msg = $('#w-msg'), go = $('#w-go');
   function draw() {
     $('#w-chips').innerHTML = players.length
@@ -2115,8 +2175,9 @@ function welcome() {
       : '<span class="hint">還沒有玩家，從上面輸入第一個名字</span>';
     $('#w-chips').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { players.splice(+b.dataset.rm, 1); store.set('players-v4', players); draw(); });
     $('#w-need').innerHTML = `<strong>各遊戲人數</strong><ul>${GAMES.map(g => `<li class="${players.length >= g.minPlayers ? 'ok' : ''}"><span>${esc(g.name)}</span><b>${g.needText || `${g.minPlayers} 人以上`}${players.length >= g.minPlayers ? ' ✓' : ''}</b></li>`).join('')}</ul>`;
-    go.disabled = players.length < 1;
-    go.textContent = players.length < 1 ? '至少輸入 1 個名字' : `開始玩（${players.length} 人）`;
+    const adult = $('#w-adult').checked;
+    go.disabled = players.length < 1 || !adult;
+    go.textContent = players.length < 1 ? '至少輸入 1 個名字' : !adult ? '請先勾選上面的確認' : `開始玩（${players.length} 人）`;
   }
   $('#w-form').onsubmit = e => {
     e.preventDefault();
@@ -2125,8 +2186,9 @@ function welcome() {
     if (players.includes(name)) { msg.textContent = `已經有「${name}」了，換個名字`; return; }
     players.push(name); store.set('players-v4', players); input.value = ''; msg.textContent = ''; input.focus(); draw();
   };
-  go.onclick = () => { turn = 0; renderPlayers(); show('home'); };
-  draw();
+  $('#w-adult').onchange = () => { store.set('adult', $('#w-adult').checked); draw(); };
+  go.onclick = () => { turn = 0; renderPlayers(); track('start', { players: players.length }); const g = pendingGame; pendingGame = null; show(GAMES.some(x => x.id === g) ? g : 'home'); };
+  draw(); bindLegal();
 }
 
 function show(id) {
@@ -2143,7 +2205,7 @@ function show(id) {
   $('#back').hidden = !game;
   $('#title').textContent = game ? game.name : '乾杯遊戲機';
   window.scrollTo(0, 0);
-  if (game) { plays[game.id] = (plays[game.id] || 0) + 1; store.set('plays', plays); }
+  if (game) { plays[game.id] = (plays[game.id] || 0) + 1; store.set('plays', plays); track('game_open', { game: game.id }); }
   if (game) { view.innerHTML = ''; const root = document.createElement('div'); view.appendChild(root); cleanup = game.mount(root) || null; }
   else home();
 }
@@ -2173,7 +2235,14 @@ $('#back').onclick = () => show('home');
 
 /* ---------- 啟動 ---------- */
 window.claude?.hot?.snapshot?.(() => ({ view: currentId }));
-function start(data) { renderPlayers(); show((data && data.view) || 'welcome'); }
+function start(data) {
+  renderPlayers();
+  shopReady.then(() => {
+    const adult = store.get('adult', false);
+    if (pendingGame && players.length && adult && GAMES.some(x => x.id === pendingGame)) { const g = pendingGame; pendingGame = null; show(g); return; }
+    show((data && data.view) || 'welcome');
+  });
+}
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 </script>
 </body>
