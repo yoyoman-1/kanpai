@@ -2753,16 +2753,20 @@ registerGame({
 /* ---------- 路由與畫面 ---------- */
 const view = $('#view');
 let cleanup = null, currentId = 'home';
+// 每支手機各自記錄點進每個遊戲的次數，主選單依次數排序（一樣多就照原本順序）
+const plays = store.get('plays', {});
+const gamesByPlays = () => GAMES.map((g, i) => [g, i]).sort((a, b) => (plays[b[0].id] || 0) - (plays[a[0].id] || 0) || a[1] - b[1]).map(x => x[0]);
 
 function home() {
+  const played = GAMES.some(g => plays[g.id]);
   view.innerHTML = `
     <section class="hero">
       <h2>今晚誰喝？</h2>
       <p>${players.length} 位玩家：${players.map(esc).join('、')}。手機放桌子中間輪流玩。</p>
     </section>
-    <div class="library-head"><span><strong>所有遊戲</strong>（${GAMES.length}）</span><span>點封面開始</span></div>
+    <div class="library-head"><span><strong>所有遊戲</strong>（${GAMES.length}）</span><span>${played ? '常玩的排前面' : '點封面開始'}</span></div>
     <div class="shelf">
-      ${GAMES.map(g => `
+      ${gamesByPlays().map(g => `
         <div class="cap-item">
           <button class="cap" data-g="${g.id}" style="--c:${g.color}" aria-label="${esc(g.name)}">
             <canvas data-art="${g.id}"></canvas>
@@ -2844,6 +2848,7 @@ function show(id) {
   $('#back').hidden = !game;
   $('#title').textContent = game ? game.name : '乾杯遊戲機';
   window.scrollTo(0, 0);
+  if (game) { plays[game.id] = (plays[game.id] || 0) + 1; store.set('plays', plays); }
   if (game) { view.innerHTML = ''; const root = document.createElement('div'); view.appendChild(root); cleanup = game.mount(root) || null; }
   else home();
 }
