@@ -84,7 +84,7 @@ const page = ({ path, title, desc, body, ld }) => `<!doctype html>
 <link rel="canonical" href="${SITE}${path}">
 <meta property="og:type" content="website"><meta property="og:site_name" content="乾杯遊戲機">
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
-<meta property="og:url" content="${SITE}${path}"><meta property="og:image" content="${SITE}og.png"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:url" content="${SITE}${path}"><meta property="og:image" content="${SITE}og.png?v=9"><meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1a100b"><link rel="icon" href="${'../'.repeat(path.split('/').filter(Boolean).length)}icon-192.png" type="image/png">
 ${ld ? `<script type="application/ld+json">${JSON.stringify(ld)}</script>` : ''}
 <style>${css}</style>
