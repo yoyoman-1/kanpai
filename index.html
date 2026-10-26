@@ -345,6 +345,7 @@ const CONFIG = {
   umamiId: '7116ffc5-6612-4917-9ff3-f57cf074b807', // Umami 網站 ID（流量與轉換追蹤）
   supportUrl: 'https://portaly.cc/kanpai/support', // 贊助連結（Portaly、Buy Me a Coffee、綠界…），空白就不顯示贊助按鈕
   feedbackEmail: 's0931104646@gmail.com', // 「給作者意見」寄到這裡，空白就不顯示
+  threadsUrl: 'https://www.threads.com/@nc_tim', // 「脆私訊作者」，空白就不顯示
 };
 // 轉換事件：沒設定 Umami 時什麼都不做
 const track = (name, data) => { try { window.umami && window.umami.track(name, data); } catch (e) {} };
@@ -371,6 +372,7 @@ const legal = () => `
     <a href="business/">店家合作</a>
     ${CONFIG.supportUrl ? `<a href="${esc(CONFIG.supportUrl)}" target="_blank" rel="noopener" id="support-btn">請作者喝一杯</a>` : ''}
     ${CONFIG.feedbackEmail ? `<a href="mailto:${esc(CONFIG.feedbackEmail)}?subject=${encodeURIComponent('乾杯遊戲機意見回饋')}" id="feedback-btn">給作者意見</a>` : ''}
+    ${CONFIG.threadsUrl ? `<a href="${esc(CONFIG.threadsUrl)}" target="_blank" rel="noopener" id="threads-btn">脆私訊作者</a>` : ''}
   </div>
   <p class="legal">未滿 18 歲請勿飲酒・喝酒不開車，開車不喝酒<br>飲酒過量，有害健康・量力而為，不想喝可以說不</p>`;
 function bindLegal() {
@@ -385,6 +387,8 @@ function bindLegal() {
   if (sp) sp.onclick = () => track('support_click');
   const fb = $('#feedback-btn');
   if (fb) fb.onclick = () => track('feedback_click');
+  const th = $('#threads-btn');
+  if (th) th.onclick = () => track('threads_click');
 }
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
