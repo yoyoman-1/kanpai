@@ -342,6 +342,11 @@ textarea { resize: vertical; line-height: 1.5; }
 .lt-res ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .lt-res li { display: flex; align-items: center; gap: 8px; min-width: 0; overflow-wrap: anywhere; line-height: 1.3; }
 .lt-res li .lt-ball { --s: 26px; }
+.lt-name { flex: 1; min-width: 0; }
+.lt-res section.all { grid-column: 1 / -1; }
+.lt-nw { display: inline-block; white-space: nowrap; }
+.lt-cups { flex: none; font-family: var(--num); font-weight: 400; color: var(--amber); white-space: nowrap; }
+.lt-cups.zero { font-family: var(--body); font-weight: 700; font-size: .85rem; color: var(--mint); }
 /* 拉霸機 */
 .lt-slot { position: relative; margin-right: 22px; padding: 14px 10px 12px; border: 4px solid #ffd36b; border-radius: 22px; background: linear-gradient(#7a2bd0, #3c0f73); box-shadow: 0 10px 24px rgba(0,0,0,.5), inset 0 0 0 3px #2a0a52; }
 .lt-bulbs { position: absolute; inset: 4px; border: 3px dotted #fff3b0; border-radius: 16px; pointer-events: none; animation: lt-blink .5s steps(2) infinite; }
@@ -2641,7 +2646,7 @@ registerGame({
           <div class="row"><button class="btn ghost" id="lt-rand">隨便幫我選</button><button class="btn" id="lt-ok" disabled>先點一個號碼</button></div>
           ${picksList()}
           ${picks.length ? '<button class="btn ghost" id="lt-undo">↩ 上一位重選</button>' : ''}
-          <p class="hint">1～${LT_MAX} 選一個號碼，可以跟別人選一樣的。全部選完開出 ${LT_DRAW} 個號碼，選中的人不用喝，沒中的人喝一杯。</p>
+          <p class="hint">1～${LT_MAX} 選一個號碼，可以跟別人選一樣的。全部選完開出 ${LT_DRAW} 個號碼：每有 1 人中獎，其他所有人（包括其他中獎的人）都喝 1 杯，沒中的人再加 1 杯基本杯。也就是中獎的喝「中獎人數−1」杯、沒中的喝「中獎人數＋1」杯。</p>
         </div>`;
       const ok = $('#lt-ok', root);
       const choose = n => {
@@ -2709,18 +2714,27 @@ registerGame({
       const hitSet = new Set(draws), picked = new Set(picks);
       const rows = order.map((p, i) => ({ p, n: picks[i], win: hitSet.has(picks[i]) }));
       const win = rows.filter(r => r.win), lose = rows.filter(r => !r.win);
-      const li = r => `<li>${ltBall(r.n)}<span>${esc(r.p)}</span></li>`, none = '<li class="hint">沒有人</li>';
+      // 喝酒規則：每有 1 人中獎，其他所有人（包括其他中獎的人）都喝 1 杯；沒中的人再加 1 杯基本杯
+      // → 中獎的喝「中獎人數−1」杯，沒中的喝「中獎人數＋1」杯
+      const W = win.length, winCups = Math.max(0, W - 1), loseCups = W + 1;
+      rows.forEach(r => r.cups = r.win ? winCups : loseCups);
+      const cupText = c => c ? `喝 ${c} 杯` : '不用喝', nw = t => `<span class="lt-nw">${t}</span>`; // nw：這段字不要從中間斷行
+      const li = r => `<li>${ltBall(r.n)}<span class="lt-name">${esc(r.p)}</span><b class="lt-cups${r.cups ? '' : ' zero'}" data-cups="${r.cups}">${r.cups ? `🍺×${r.cups}` : '不用喝'}</b></li>`;
+      const winners = win.length > 3 ? `${win.slice(0, 2).map(r => esc(r.p)).join('、')} 等 ${win.length} 人` : win.map(r => esc(r.p)).join('、');
       root.innerHTML = `
         <div class="stack">
-          <div class="result">${!lose.length ? '全員中獎，沒人要喝！' : !win.length ? '全軍覆沒，全部喝一杯！' : `${lose.length} 人沒中，喝一杯 🍺`}<small>下一局由 ${esc(current())} 先選</small></div>
+          <div class="result">${!W ? '全軍覆沒，每人喝 1 杯！' : !lose.length ? (winCups ? `全員中獎！每人喝 ${winCups} 杯` : '全員中獎，沒人要喝！') : `${nw(`${W} 人中獎！`)}${nw(`中的${cupText(winCups)}、`)}${nw(`沒中的喝 ${loseCups} 杯`)}`}<small>${W ? `中獎：${winners}・` : ''}下一局由 ${esc(current())} 先選</small></div>
           <div class="lt-tray" aria-label="開出的號碼">${[...draws].sort((a, b) => a - b).map(n => ltBall(n, picked.has(n) ? 'hit' : '')).join('')}</div>
           <div class="lt-res">
-            <section class="drink"><h4>🍺 喝一杯</h4><ul>${lose.map(li).join('') || none}</ul></section>
-            <section class="safe"><h4>🎉 不用喝</h4><ul>${win.map(li).join('') || none}</ul></section>
+            ${W && lose.length
+              ? `<section class="drink"><h4>${nw('🍺 沒中・')}${nw(`喝 ${loseCups} 杯`)}</h4><ul>${lose.map(li).join('')}</ul></section>
+                 <section class="safe"><h4>${nw('🎉 中獎・')}${nw(cupText(winCups))}</h4><ul>${win.map(li).join('')}</ul></section>`
+              : `<section class="all ${W ? 'safe' : 'drink'}"><h4>${W ? '🎉 全員中獎' : '🍺 全部沒中'}・每人${cupText(W ? winCups : loseCups)}</h4><ul>${rows.map(li).join('')}</ul></section>`}
           </div>
+          <p class="hint" style="text-align:center;text-wrap:balance">每有 1 人中獎，其他人都喝 1 杯；沒中的再加 1 杯基本杯</p>
           <button class="btn big" id="lt-again">再開一局</button>
         </div>`;
-      if (lose.length) { buzz([80, 60, 120]); beep(520, 0.15, 'sawtooth', 0.08); setTimeout(() => beep(390, 0.25, 'sawtooth', 0.08), 140); }
+      if (rows.some(r => r.cups)) { buzz([80, 60, 120]); beep(520, 0.15, 'sawtooth', 0.08); setTimeout(() => beep(390, 0.25, 'sawtooth', 0.08), 140); }
       else { buzz([40, 30, 40]); [784, 988, 1319].forEach((f, i) => setTimeout(() => beep(f, 0.14, 'triangle', 0.07), i * 110)); }
       $('#lt-again', root).onclick = newRound;
       window.scrollTo(0, 0);
