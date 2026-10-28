@@ -2183,7 +2183,7 @@ registerGame({
 
 /* ---------- 路由與畫面 ---------- */
 const view = $('#view');
-let cleanup = null, currentId = 'home';
+let cleanup = null, currentId = 'home', wantedId = null;
 // 每支手機各自記錄點進每個遊戲的次數，主選單依次數排序（一樣多就照原本順序）
 const plays = store.get('plays', {});
 const gamesByPlays = () => GAMES.map((g, i) => [g, i]).sort((a, b) => (plays[b[0].id] || 0) - (plays[a[0].id] || 0) || a[1] - b[1]).map(x => x[0]);
@@ -2278,7 +2278,7 @@ function show(id) {
   }
   $('#players-btn').hidden = false;
   const g = GAMES.find(x => x.id === id);
-  if (g && players.length < g.minPlayers) { openSheet(`${g.name}需要至少 ${g.minPlayers} 位玩家，先加人吧。`); id = 'home'; }
+  if (g && players.length < g.minPlayers) { wantedId = g.id; openSheet(`${g.name}需要至少 ${g.minPlayers} 位玩家，先加人吧。`); id = 'home'; }
   currentId = g && id !== 'home' ? id : 'home';
   const game = GAMES.find(x => x.id === currentId);
   $('#back').hidden = !game;
@@ -2299,7 +2299,12 @@ function renderPlayers() {
   });
 }
 function openSheet(msg) { $('#sheet-title').textContent = msg || '今晚的玩家'; renderPlayers(); $('#sheet').hidden = false; }
-function closeSheet() { $('#sheet').hidden = true; show(currentId); }
+// 因為人數不夠才打開名單的話，加完人關掉就直接進那個遊戲
+function closeSheet() {
+  $('#sheet').hidden = true;
+  const want = GAMES.find(x => x.id === wantedId); wantedId = null;
+  show(want && players.length >= want.minPlayers ? want.id : currentId);
+}
 $('#players-btn').onclick = () => openSheet();
 $('#sheet-close').onclick = closeSheet;
 $('#sheet').onclick = e => { if (e.target.id === 'sheet') closeSheet(); };
