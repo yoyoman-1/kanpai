@@ -1,7 +1,7 @@
 {
   "name": "乾杯遊戲機",
   "short_name": "乾杯遊戲機",
-  "description": "9 款手機喝酒遊戲，一支手機傳著玩",
+  "description": "10 款手機喝酒遊戲，一支手機傳著玩",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

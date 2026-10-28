@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1a100b">
-<meta name="description" content="9 款手機喝酒遊戲：懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、終極密碼、吹牛、注音快答…一支手機傳著玩，免下載免註冊，聚會馬上開局。">
+<meta name="description" content="10 款手機喝酒遊戲：懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、終極密碼、吹牛、注音快答、醉運開獎…一支手機傳著玩，免下載免註冊，聚會馬上開局。">
 <link rel="canonical" href="https://yoyoman-1.github.io/kanpai/">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"乾杯遊戲機","url":"https://yoyoman-1.github.io/kanpai/","applicationCategory":"GameApplication","operatingSystem":"Any","inLanguage":"zh-TW","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"TWD"},"description":"9 款手機喝酒遊戲合集，一支手機傳著玩，免下載免註冊。"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"乾杯遊戲機","url":"https://yoyoman-1.github.io/kanpai/","applicationCategory":"GameApplication","operatingSystem":"Any","inLanguage":"zh-TW","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"TWD"},"description":"10 款手機喝酒遊戲合集，一支手機傳著玩，免下載免註冊。"}</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="乾杯遊戲機">
-<meta property="og:title" content="乾杯遊戲機｜9 款手機喝酒遊戲，打開就能玩">
+<meta property="og:title" content="乾杯遊戲機｜10 款手機喝酒遊戲，打開就能玩">
 <meta property="og:description" content="懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、吹牛…一支手機傳著玩，免下載免註冊，聚會喝酒馬上開局。">
 <meta property="og:url" content="https://yoyoman-1.github.io/kanpai/">
 <meta property="og:image" content="https://yoyoman-1.github.io/kanpai/og.png?v=9">
@@ -29,7 +29,7 @@ body { margin: 0; }
 img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
-<title>乾杯遊戲機｜9 款手機喝酒遊戲・懲罰轉盤、踩地雷、真心話大冒險</title>
+<title>乾杯遊戲機｜10 款手機喝酒遊戲・懲罰轉盤、踩地雷、真心話大冒險</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -305,6 +305,79 @@ textarea { resize: vertical; line-height: 1.5; }
 .need li.ok { color: var(--foam); }
 .need li.ok b { color: var(--mint); }
 
+/* Lucky draw */
+.lt-ball {
+  --s: 30px; display: inline-grid; place-items: center; flex: none; width: var(--s); aspect-ratio: 1; border-radius: 50%;
+  font-family: var(--num); font-size: calc(var(--s) * .4); line-height: 1; color: var(--ink);
+  background: radial-gradient(circle at 50% 50%, var(--paper) 0 50%, transparent 52%), radial-gradient(circle at 32% 26%, rgba(255,255,255,.8), transparent 40%), var(--bc);
+  box-shadow: inset -3px -4px 6px rgba(0,0,0,.3), 0 2px 4px rgba(0,0,0,.35);
+}
+.lt-ball.new { animation: pop .35s cubic-bezier(.2,1.6,.4,1); }
+.lt-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+.lt-num {
+  position: relative; aspect-ratio: 1; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface-2);
+  font-family: var(--num); font-size: clamp(.85rem, 4vw, 1.15rem); color: var(--foam); transition: transform .12s ease;
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--bc) 55%, transparent);
+}
+.lt-num[aria-pressed="true"] { background: var(--bc); border-color: var(--paper); color: var(--ink); transform: scale(1.14); box-shadow: 0 0 0 3px rgba(255,255,255,.3); }
+.lt-num i { position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--cherry); color: var(--foam); font: 700 .68rem/17px var(--body); font-style: normal; }
+.chip.lt-pick { padding: 4px 12px 4px 4px; }
+.chip.lt-pick .lt-ball { --s: 26px; }
+.lt-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lt-head b { font-family: var(--display); font-weight: 400; font-size: 1.35rem; }
+.lt-head .btn { padding: 8px 14px; font-size: .95rem; }
+.lt-tray { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; }
+.lt-tray > * { width: 100%; }
+.lt-tray .lt-ball { font-size: clamp(.72rem, 3.5vw, 1.1rem); }
+.lt-tray .lt-ball.hit { outline: 3px solid var(--mint); outline-offset: 1px; }
+.lt-empty { aspect-ratio: 1; border-radius: 50%; border: 2px dashed var(--line); }
+#lt-msg b { font-family: var(--num); font-weight: 400; color: var(--amber); font-size: 1.3em; }
+.lt-canvas { display: block; margin: 0 auto; max-width: 100%; }
+.lt-res { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.lt-res section { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; min-width: 0; }
+.lt-res section.drink { border-color: var(--cherry); }
+.lt-res section.safe { border-color: var(--mint); }
+.lt-res h4 { margin: 0 0 8px; font-family: var(--display); font-weight: 400; font-size: 1.25rem; }
+.lt-res ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.lt-res li { display: flex; align-items: center; gap: 8px; min-width: 0; overflow-wrap: anywhere; line-height: 1.3; }
+.lt-res li .lt-ball { --s: 26px; }
+/* 拉霸機 */
+.lt-slot { position: relative; margin-right: 22px; padding: 14px 10px 12px; border: 4px solid #ffd36b; border-radius: 22px; background: linear-gradient(#7a2bd0, #3c0f73); box-shadow: 0 10px 24px rgba(0,0,0,.5), inset 0 0 0 3px #2a0a52; }
+.lt-bulbs { position: absolute; inset: 4px; border: 3px dotted #fff3b0; border-radius: 16px; pointer-events: none; animation: lt-blink .5s steps(2) infinite; }
+@keyframes lt-blink { 50% { border-color: #ff8a3d; } }
+.lt-slot-title { text-align: center; font-family: var(--num); color: #ffd36b; font-size: 1.25rem; letter-spacing: .12em; text-shadow: 0 2px 0 #b8360b; margin-bottom: 8px; }
+.lt-reels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.lt-reel { position: relative; height: 76px; overflow: hidden; border-radius: 10px; background: var(--paper); box-shadow: inset 0 9px 10px -5px rgba(0,0,0,.5), inset 0 -9px 10px -5px rgba(0,0,0,.5); }
+.lt-reel div { position: absolute; top: 0; left: 0; right: 0; height: 44px; display: grid; place-items: center; font-family: var(--num); font-size: clamp(1.15rem, 6vw, 1.6rem); color: var(--ink); will-change: transform; }
+.lt-reel.done { outline: 3px solid #ffd36b; animation: pop .3s cubic-bezier(.2,1.6,.4,1); }
+.lt-lever { position: absolute; right: -24px; top: 26px; width: 9px; height: 62px; border-radius: 5px; background: linear-gradient(90deg, #8d939c, #e3e6eb, #8d939c); transform-origin: 50% 100%; }
+.lt-lever::before { content: ""; position: absolute; top: -12px; left: 50%; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ff9a9a, var(--cherry) 55%, #8e2226); }
+.lt-lever.pull { animation: lt-pull .7s ease; }
+@keyframes lt-pull { 45% { transform: scaleY(-.6); } }
+/* 輪盤 */
+.lt-hub { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 26%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; background: var(--paper); color: var(--ink); font-family: var(--num); font-size: clamp(1.3rem, 8vw, 2.2rem); box-shadow: 0 0 0 5px var(--bc, var(--amber-deep)), 0 4px 12px rgba(0,0,0,.4); }
+.lt-hub.new { animation: pop .35s cubic-bezier(.2,1.6,.4,1); }
+/* 刮刮樂 */
+.lt-ticket { background: linear-gradient(160deg, #ffd36b, #f2a33a 55%, #e07b1a); border-radius: 18px; padding: 10px; box-shadow: 0 8px 20px rgba(0,0,0,.45); }
+.lt-ticket-title { text-align: center; font-family: var(--display); color: var(--ink); font-size: 1.3rem; margin-bottom: 6px; }
+.lt-scratch { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.lt-tic { position: relative; aspect-ratio: 3 / 4; display: grid; place-items: center; overflow: hidden; border-radius: 10px; background: var(--paper); }
+.lt-tic .lt-ball { --s: 78%; font-size: clamp(.95rem, 4.8vw, 1.45rem); width: 78%; }
+.lt-tic canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; transition: opacity .45s ease; }
+.lt-tic canvas.gone { opacity: 0; pointer-events: none; }
+/* 翻牌 */
+.lt-deck { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 5px; }
+.lt-card { aspect-ratio: 3 / 4; perspective: 400px; }
+.lt-card-in { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .55s cubic-bezier(.3,1.4,.5,1); }
+.lt-card.flipped .lt-card-in { transform: rotateY(180deg); }
+.lt-back, .lt-face { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 6px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.lt-back { background: repeating-linear-gradient(45deg, #5b1fa8 0 5px, #4a1690 5px 10px); border: 2px solid #ffd36b; color: #ffd36b; font-size: .8rem; transition: box-shadow .1s ease, transform .1s ease; }
+.lt-back::after { content: "★"; }
+.lt-card.hot .lt-back { box-shadow: 0 0 0 3px var(--paper), 0 0 16px #ffd36b; transform: translateY(-3px); }
+.lt-face { transform: rotateY(180deg); background: var(--paper); color: var(--ink); border: 3px solid var(--bc); font-family: var(--num); font-size: clamp(.8rem, 3.8vw, 1.1rem); }
+.lt-card.drawn .lt-face { background: var(--bc); box-shadow: 0 0 14px var(--bc); }
+.lt-card.miss { opacity: .35; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -382,7 +455,7 @@ function bindLegal() {
   const b = $('#share-btn');
   if (b) b.onclick = async () => {
     track('share_click');
-    const data = { title: '乾杯遊戲機', text: '今晚誰喝？9 款手機喝酒遊戲，打開就能玩', url: 'https://yoyoman-1.github.io/kanpai/' };
+    const data = { title: '乾杯遊戲機', text: '今晚誰喝？10 款手機喝酒遊戲，打開就能玩', url: 'https://yoyoman-1.github.io/kanpai/' };
     try { if (navigator.share) { await navigator.share(data); return; } } catch (e) { return; }
     try { await navigator.clipboard.writeText(data.url); b.textContent = '已複製連結'; } catch (e) { b.textContent = data.url; }
   };
@@ -2178,6 +2251,451 @@ registerGame({
     });
     $('#m-again', root).onclick = start;
     start();
+  }
+});
+
+/* ---------- 10. 醉運開獎 ---------- */
+const LT_MAX = 40, LT_DRAW = 10;
+// 球的顏色照號碼分段（每 8 號一色），所有開獎動畫和結果頁都用同一套
+const LT_COLORS = ['#f2a33a', '#e5484d', '#5cc8a0', '#6c8cff', '#b57bff'];
+const ltColor = n => LT_COLORS[Math.floor((n - 1) / 8)];
+const ltBall = (n, cls = '') => `<span class="lt-ball${cls ? ' ' + cls : ''}" style="--bc:${ltColor(n)}">${n}</span>`;
+function ltDrawBall(ctx, x, y, r, n, rot = 0) {
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = ltColor(n); ctx.fill();
+  const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r);
+  g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(0.45, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,.35)');
+  ctx.fillStyle = g; ctx.fill();
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.beginPath(); ctx.arc(0, 0, r * 0.56, 0, Math.PI * 2); ctx.fillStyle = '#fffdf7'; ctx.fill();
+  ctx.fillStyle = '#23140b'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = `${Math.max(1, Math.round(r * 0.62))}px Bungee, sans-serif`; ctx.fillText(n, 0, r * 0.05);
+  ctx.restore();
+}
+
+/* 開獎動畫：run(stage, draws, api) 把 draws（10 個號碼）演出來
+   api.reveal(i) 第 i 個號碼開出來了   api.done() 全部開完
+   api.later(fn, ms) / api.frame(fn) 跟 setTimeout / requestAnimationFrame 一樣，但按「跳過」或離開遊戲就自動停；frame 的 fn 回傳 false 結束 */
+
+// 彩球機：40 顆球在透明球箱裡被氣流吹著翻滾，一顆顆從出球口掉出來，滾到下面的軌道排成一列
+function ltBalls(stage, draws, api) {
+  stage.innerHTML = '<canvas class="lt-canvas" role="img" aria-label="彩球機開獎中"></canvas>';
+  const cv = stage.firstChild, ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  const W = Math.min(stage.clientWidth || 343, 440), H = Math.round(W * 1.08);
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+  const TAU = Math.PI * 2, R = W * 0.36, cx = W / 2, cy = R + W * 0.04, br = R * 0.115, outY = cy + R, G = R * 0.004;
+  const slotW = (W - 16) / LT_DRAW, sr = Math.min(br * 1.2, slotW * 0.44), railY = H - sr - 8, showY = outY + br * 2.4;
+  const slotX = i => 8 + slotW * (i + 0.5);
+  const inside = [...Array(LT_MAX)].map((_, i) => {
+    const a = Math.random() * TAU, d = Math.sqrt(Math.random()) * (R - br * 1.5);
+    return { n: i + 1, x: cx + Math.cos(a) * d, y: cy + Math.sin(a) * d, vx: 0, vy: 0, rot: Math.random() * TAU };
+  });
+  const landed = [];
+  let k = 0, phase = 'mix', t0 = performance.now(), mov = null, lastTick = 0;
+  // 簡單的物理：重力、底部吹氣、撞球箱壁反彈、球跟球互撞
+  function physics(jet) {
+    for (const b of inside) {
+      b.vy += G;
+      // 底部的球不定時被氣流往上噴，噴起來再掉下去，整箱球就會一直翻滾
+      if (b.y > cy + R * 0.25 && Math.random() < 0.09 * jet) { b.vy -= R * (0.04 + Math.random() * 0.045); b.vx += (Math.random() - 0.5) * R * 0.05; }
+      b.vx *= 0.995; b.vy *= 0.995;
+      const sp = Math.hypot(b.vx, b.vy), max = R * 0.09;
+      if (sp > max) { b.vx *= max / sp; b.vy *= max / sp; }
+      b.x += b.vx; b.y += b.vy; b.rot += b.vx / br * 0.5;
+      const dx = b.x - cx, dy = b.y - cy, d = Math.hypot(dx, dy), lim = R - br - 3;
+      if (d > lim) {
+        const nx = dx / d, ny = dy / d, vn = b.vx * nx + b.vy * ny;
+        b.x = cx + nx * lim; b.y = cy + ny * lim;
+        if (vn > 0) { b.vx -= 1.6 * vn * nx; b.vy -= 1.6 * vn * ny; }
+      }
+    }
+    for (let i = 0; i < inside.length; i++) for (let j = i + 1; j < inside.length; j++) {
+      const a = inside[i], b = inside[j], dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy, min = br * 2;
+      if (d2 >= min * min || d2 === 0) continue;
+      const d = Math.sqrt(d2), nx = dx / d, ny = dy / d, o = (min - d) / 2;
+      a.x -= nx * o; a.y -= ny * o; b.x += nx * o; b.y += ny * o;
+      const vn = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+      if (vn < 0) { const p = vn * 0.9; a.vx += p * nx; a.vy += p * ny; b.vx -= p * nx; b.vy -= p * ny; }
+    }
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    // 支架、出球管、軌道
+    ctx.fillStyle = '#5a3420';
+    ctx.beginPath(); ctx.moveTo(cx - R * 0.45, outY - R * 0.15); ctx.lineTo(cx + R * 0.45, outY - R * 0.15); ctx.lineTo(cx + R * 0.8, railY); ctx.lineTo(cx - R * 0.8, railY); ctx.closePath(); ctx.fill();
+    rr(ctx, cx - br * 1.4, outY - 6, br * 2.8, railY - outY, br * 1.4);
+    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.stroke();
+    rr(ctx, 4, railY - sr - 4, W - 8, sr * 2 + 8, sr + 4);
+    ctx.fillStyle = '#2a1a11'; ctx.fill(); ctx.strokeStyle = '#4d3324'; ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.08)';
+    for (let i = landed.length; i < LT_DRAW; i++) { ctx.beginPath(); ctx.arc(slotX(i), railY, sr * 0.8, 0, TAU); ctx.fill(); }
+    // 球箱
+    const glass = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
+    glass.addColorStop(0, 'rgba(255,255,255,.16)'); glass.addColorStop(1, 'rgba(180,140,255,.1)');
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fillStyle = glass; ctx.fill();
+    for (const b of inside) ltDrawBall(ctx, b.x, b.y, br, b.n, b.rot);
+    ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
+    ctx.lineWidth = R * 0.07; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.28)';
+    ctx.beginPath(); ctx.arc(cx, cy, R * 0.84, -2.7, -1.95); ctx.stroke(); ctx.lineCap = 'butt';
+    rr(ctx, cx - R * 0.22, cy - R - 9, R * 0.44, 16, 6); ctx.fillStyle = '#f2a33a'; ctx.fill();
+    for (const b of landed) ltDrawBall(ctx, b.x, b.y, sr, b.n, b.rot);
+    if (mov) ltDrawBall(ctx, mov.x, mov.y, mov.r, mov.n, mov.rot);
+  }
+  const ease = p => p * p * (3 - 2 * p);
+  api.frame(now => {
+    const t = now - t0;
+    physics(phase === 'end' ? 0 : phase === 'mix' ? 1 : 0.5);
+    if (phase === 'mix') {
+      // 攪拌：第一顆攪久一點，咚咚咚的鼓聲
+      if (now - lastTick > 85) { lastTick = now; beep(120 + Math.random() * 90, 0.05, 'triangle', 0.04); }
+      if (t > (k ? 750 : 1600)) {
+        const i = inside.findIndex(b => b.n === draws[k]);
+        mov = { ...inside[i], sx: inside[i].x, sy: inside[i].y, r: br };
+        inside.splice(i, 1); phase = 'out'; t0 = now;
+      }
+    } else if (phase === 'out') {
+      // 被吸到出球口
+      const p = Math.min(1, t / 380), e = ease(p);
+      mov.x = mov.sx + (cx - mov.sx) * e; mov.y = mov.sy + (showY - mov.sy) * e;
+      if (p === 1) { phase = 'show'; t0 = now; beep(880, 0.1, 'triangle', 0.07); api.later(() => beep(1320, 0.18, 'triangle', 0.07), 110); buzz(40); }
+    } else if (phase === 'show') {
+      // 在出球口放大亮相，再縮回去
+      mov.r = t < 650 ? br * (1 + 1.3 * Math.sin(Math.min(1, t / 180) * Math.PI / 2)) : br + (sr - br) * Math.min(1, (t - 650) / 150);
+      if (t > 800) { phase = 'drop'; t0 = now; mov.r = sr; }
+    } else if (phase === 'drop') {
+      const p = Math.min(1, t / 220);
+      mov.y = showY + (railY - showY) * p * p;
+      if (p === 1) { phase = 'roll'; t0 = now; mov.sx = cx; mov.dur = 250 + Math.abs(slotX(k) - cx) * 1.3; beep(330, 0.05, 'triangle', 0.05); }
+    } else if (phase === 'roll') {
+      // 沿著軌道滾到自己的位置
+      const p = Math.min(1, t / mov.dur), x = mov.sx + (slotX(k) - mov.sx) * (1 - Math.pow(1 - p, 2));
+      mov.rot += (x - mov.x) / sr; mov.x = x; mov.y = railY;
+      if (p === 1) {
+        landed.push(mov); mov = null; api.reveal(k); k++; t0 = now;
+        phase = k < LT_DRAW ? 'mix' : 'end';
+        if (phase === 'end') api.done();
+      }
+    }
+    draw();
+  });
+}
+
+// 拉霸機：10 個數字滾輪一起轉，從第一個開始一格一格慢下來停住，最後一個停最久
+function ltSlot(stage, draws, api) {
+  stage.innerHTML = `<div class="lt-slot"><div class="lt-bulbs"></div><div class="lt-slot-title">LUCKY 7</div>
+    <div class="lt-reels">${draws.map(() => '<div class="lt-reel"><div></div><div></div><div></div><div></div></div>').join('')}</div>
+    <div class="lt-lever"></div></div>`;
+  $('.lt-lever', stage).classList.add('pull');
+  const wrap = n => ((n - 1) % LT_MAX + LT_MAX) % LT_MAX + 1, V = 16; // 每秒轉幾格
+  const reels = [...stage.querySelectorAll('.lt-reel')].map((el, i) => ({
+    el, cells: [...el.children], pos: Math.random() * LT_MAX, state: 'spin',
+    stopAt: 1300 + i * 550 + (i === LT_DRAW - 1 ? 600 : 0), brake: i === LT_DRAW - 1 ? 1.5 : 0.8,
+  }));
+  const CH = reels[0].cells[0].offsetHeight || 44, mid = ((reels[0].el.clientHeight || 76) - CH) / 2;
+  // 停下來的那格跟上下兩格換成開出的號碼，其他格照順序
+  const label = (r, i, j) => r.to != null && Math.abs(i - r.to) <= 2 ? wrap(draws[j] + i - r.to) : wrap(i + 1);
+  const paint = (r, j) => {
+    const base = Math.floor(r.pos);
+    r.cells.forEach((c, q) => { const i = base + q - 1; c.style.transform = `translateY(${mid - (i - r.pos) * CH}px)`; c.textContent = label(r, i, j); });
+  };
+  const t0 = performance.now();
+  let last = t0, stopped = 0, hum = 0;
+  api.frame(now => {
+    const t = now - t0, dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (stopped < LT_DRAW - 1 && now - hum > 110) { hum = now; beep(260 + Math.random() * 40, 0.03, 'square', 0.015); }
+    reels.forEach((r, j) => {
+      if (r.state === 'spin') {
+        r.pos += V * Math.min(1, t / 400) * dt;
+        if (t >= r.stopAt) {
+          // 用 ease-out 減速，距離取整數格，速度剛好接得上
+          r.state = 'stop'; r.p0 = r.pos; r.to = Math.ceil(r.pos + V * r.brake / 3);
+          r.dur = 3 * (r.to - r.p0) / V * 1000; r.t1 = now; r.tick = Math.floor(r.pos);
+          if (j === LT_DRAW - 1) r.el.classList.add('done');
+        }
+      } else if (r.state === 'stop') {
+        const p = Math.min(1, (now - r.t1) / r.dur);
+        r.pos = r.p0 + (r.to - r.p0) * (1 - Math.pow(1 - p, 3));
+        if (Math.floor(r.pos) !== r.tick) { r.tick = Math.floor(r.pos); beep(700 + j * 50, 0.03, 'square', 0.04); }
+        if (p === 1) {
+          r.state = 'done'; r.pos = r.to;
+          r.el.classList.remove('done'); void r.el.offsetWidth; r.el.classList.add('done');
+          api.reveal(j);
+          if (++stopped === LT_DRAW) api.done();
+        }
+      } else return;
+      paint(r, j);
+    });
+  });
+  reels.forEach(paint);
+}
+
+// 輪盤：1～40 的轉盤轉 10 次，開過的號碼變暗，中間顯示剛開出的號碼
+function ltWheel(stage, draws, api) {
+  stage.innerHTML = '<div class="wheel-wrap"><div class="pointer"></div><canvas role="img" aria-label="輪盤開獎中"></canvas><div class="lt-hub">?</div></div>';
+  const cv = $('canvas', stage), ctx = cv.getContext('2d'), hub = $('.lt-hub', stage), TAU = Math.PI * 2;
+  cv.width = cv.height = Math.round((cv.getBoundingClientRect().width || 320) * (window.devicePixelRatio || 1));
+  const w = cv.width, r = w / 2, seg = TAU / LT_MAX, out = new Set();
+  let rot = 0, lit = -1, k = 0;
+  function draw() {
+    ctx.clearRect(0, 0, w, w); ctx.save(); ctx.translate(r, r);
+    for (let i = 0; i < LT_MAX; i++) {
+      const a = rot + i * seg, n = i + 1, gone = out.has(n);
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, a, a + seg); ctx.closePath();
+      ctx.fillStyle = gone ? '#3a2416' : ltColor(n); ctx.fill();
+      if (!gone && i % 2) { ctx.fillStyle = 'rgba(0,0,0,.16)'; ctx.fill(); }
+      if (i === lit) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill(); }
+      ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = w * 0.003; ctx.stroke();
+      ctx.save(); ctx.rotate(a + seg / 2); ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = gone ? '#7a5a40' : '#23140b'; ctx.font = `${Math.round(w * 0.042)}px Bungee, sans-serif`;
+      ctx.fillText(n, r - w * 0.035, 0); ctx.restore();
+    }
+    ctx.lineWidth = w * 0.02; ctx.strokeStyle = '#fbf0dc'; ctx.beginPath(); ctx.arc(0, 0, r - w * 0.01, 0, TAU); ctx.stroke();
+    ctx.restore();
+  }
+  const under = () => { let a = (-Math.PI / 2 - rot) % TAU; if (a < 0) a += TAU; return Math.floor(a / seg); };
+  function spin() {
+    const idx = draws[k] - 1, target = -Math.PI / 2 - (idx + 0.5) * seg + (Math.random() - 0.5) * seg * 0.6;
+    let d = (target - rot) % TAU; if (d < 0) d += TAU;
+    const start = rot, end = rot + d + TAU * (k ? 2 : 4), dur = k ? 1600 : 2600, t0 = performance.now();
+    let last = under(), lastBeep = 0;
+    hub.textContent = '?'; hub.style.removeProperty('--bc'); hub.classList.remove('new');
+    api.frame(now => {
+      const p = Math.min(1, (now - t0) / dur);
+      rot = start + (end - start) * (1 - Math.pow(1 - p, 4));
+      const u = under();
+      if (u !== last) { last = u; if (now - lastBeep > 40) { lastBeep = now; beep(900, 0.025, 'triangle', 0.04); } }
+      if (p < 1) { draw(); return; }
+      rot %= TAU; lit = idx; draw();
+      hub.textContent = draws[k]; hub.style.setProperty('--bc', ltColor(draws[k])); hub.classList.add('new');
+      api.reveal(k);
+      const n = draws[k++];
+      api.later(() => { out.add(n); lit = -1; draw(); if (k < LT_DRAW) spin(); else api.done(); }, 600);
+      return false;
+    });
+  }
+  draw(); api.later(spin, 300);
+}
+
+// 刮刮樂：10 格銀漆，用手指刮掉一半以上就自動揭曉；懶得刮可以按「一鍵刮開」
+function ltScratch(stage, draws, api) {
+  stage.innerHTML = `<div class="lt-ticket"><div class="lt-ticket-title">醉運刮刮樂</div>
+    <div class="lt-scratch">${draws.map((n, i) => `<div class="lt-tic" data-i="${i}">${ltBall(n)}<canvas></canvas></div>`).join('')}</div></div>
+    <div class="row" style="margin-top:12px"><p class="hint" style="align-self:center">用手指把 10 格銀漆刮開</p><button class="btn ghost" id="lt-auto" style="flex:none">一鍵刮開</button></div>`;
+  const grid = $('.lt-scratch', stage), N = 6, dpr = window.devicePixelRatio || 1; // 每格用 6×6 個取樣點估算刮開多少
+  const tics = [...grid.children].map((el, i) => {
+    const cv = $('canvas', el), c = cv.getContext('2d'), w = el.clientWidth || 60, h = el.clientHeight || 80;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const g = c.createLinearGradient(0, 0, cv.width, cv.height);
+    g.addColorStop(0, '#dfe2e8'); g.addColorStop(0.5, '#9ea5b1'); g.addColorStop(1, '#cfd3db');
+    c.fillStyle = g; c.fillRect(0, 0, cv.width, cv.height);
+    c.fillStyle = 'rgba(255,255,255,.4)'; c.font = `${Math.round(cv.width * 0.45)}px Huninn, sans-serif`;
+    c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('刮', cv.width / 2, cv.height / 2);
+    c.globalCompositeOperation = 'destination-out'; c.lineCap = c.lineJoin = 'round'; c.lineWidth = w * 0.36 * dpr;
+    return { i, el, cv, c, w, h, hit: new Set(), open: false, last: null };
+  });
+  let left = LT_DRAW, sfx = 0;
+  function open(t) {
+    if (t.open) return;
+    t.open = true; t.cv.classList.add('gone'); api.reveal(t.i);
+    if (!--left) { $('#lt-auto', stage).disabled = true; api.done(); }
+  }
+  function scratch(t, x, y) {
+    const c = t.c, rad = t.w * 0.2, from = t.last || [x, y], steps = Math.ceil(Math.hypot(x - from[0], y - from[1]) / 4);
+    c.beginPath(); c.moveTo(from[0] * dpr, from[1] * dpr); c.lineTo(x * dpr + 0.01, y * dpr); c.stroke();
+    for (let s = 0; s <= steps; s++) {
+      const px = from[0] + (x - from[0]) * s / (steps || 1), py = from[1] + (y - from[1]) * s / (steps || 1);
+      for (let q = 0; q < N * N; q++) if (Math.hypot((q % N + 0.5) / N * t.w - px, (Math.floor(q / N) + 0.5) / N * t.h - py) < rad) t.hit.add(q);
+    }
+    t.last = [x, y];
+    if (t.hit.size >= N * N * 0.55) { beep(1046, 0.08, 'triangle', 0.06); open(t); }
+  }
+  let cur = null;
+  const move = e => {
+    if (!e.buttons) { if (cur) cur.last = null; cur = null; return; }
+    const el = document.elementFromPoint(e.clientX, e.clientY)?.closest('.lt-tic'), t = el && tics.find(x => x.el === el);
+    if (t !== cur) { if (cur) cur.last = null; cur = t; }
+    if (!t || t.open) return;
+    e.preventDefault();
+    const b = t.el.getBoundingClientRect();
+    scratch(t, e.clientX - b.left, e.clientY - b.top);
+    const now = performance.now();
+    if (now - sfx > 70) { sfx = now; beep(1800 + Math.random() * 1400, 0.02, 'sawtooth', 0.012); }
+  };
+  grid.addEventListener('pointerdown', move);
+  grid.addEventListener('pointermove', move);
+  $('#lt-auto', stage).onclick = () => {
+    $('#lt-auto', stage).disabled = true;
+    tics.filter(t => !t.open).forEach((t, j) => api.later(() => { beep(1046, 0.08, 'triangle', 0.06); open(t); }, j * 280));
+  };
+}
+
+// 翻牌：40 張蓋著的牌，光點在牌上跳來跳去，停在哪張就翻開哪張；最後把沒開到的牌也翻開給大家看
+function ltFlip(stage, draws, api) {
+  const deck = shuffle([...Array(LT_MAX)].map((_, i) => i + 1));
+  stage.innerHTML = `<div class="lt-deck">${deck.map(n => `<div class="lt-card" data-n="${n}"><div class="lt-card-in"><div class="lt-back"></div><div class="lt-face" style="--bc:${ltColor(n)}">${n}</div></div></div>`).join('')}</div>`;
+  const cards = new Map([...stage.querySelectorAll('.lt-card')].map(el => [+el.dataset.n, el]));
+  let k = 0, hot = null;
+  const light = el => { if (hot) hot.classList.remove('hot'); hot = el; if (el) el.classList.add('hot'); };
+  function next() {
+    const target = cards.get(draws[k]), pool = [...cards.values()].filter(el => el !== target && !el.classList.contains('flipped'));
+    const gaps = k ? [70, 80, 95, 115, 140, 175, 220] : [60, 60, 70, 80, 95, 115, 140, 175, 220, 280];
+    let t = 0;
+    gaps.forEach((g, j) => {
+      t += g;
+      api.later(() => { light(j === gaps.length - 1 ? target : pick(pool.filter(el => el !== hot))); beep(600 + j * 40, 0.03, 'triangle', 0.04); }, t);
+    });
+    api.later(() => {
+      light(null); target.classList.add('flipped', 'drawn'); api.reveal(k++);
+      api.later(k < LT_DRAW ? next : finish, 650);
+    }, t + 280);
+  }
+  function finish() {
+    const rest = [...cards.values()].filter(el => !el.classList.contains('flipped'));
+    rest.forEach((el, j) => api.later(() => el.classList.add('flipped', 'miss'), j * 30));
+    api.later(api.done, rest.length * 30 + 400);
+  }
+  api.later(next, 400);
+}
+
+const LT_ANIMS = [
+  { id: 'balls', name: '彩球機', icon: '🎱', run: ltBalls },
+  { id: 'slot', name: '拉霸機', icon: '🎰', run: ltSlot },
+  { id: 'wheel', name: '輪盤', icon: '🎡', run: ltWheel },
+  { id: 'scratch', name: '刮刮樂', icon: '🪙', run: ltScratch },
+  { id: 'flip', name: '翻牌', icon: '🃏', run: ltFlip },
+];
+
+registerGame({
+  id: 'lotto', name: '醉運開獎', en: 'LUCKY DRAW', color: '#d9a8ff', tag: '運氣 · 開獎', ribbon: 'NEW', desc: '每人選一個號碼，開出 10 號，沒中的喝', minPlayers: 2,
+  art(ctx, w, h) {
+    const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#7b34d6'); g.addColorStop(1, '#1d0a3a');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    rays(ctx, w / 2, h * 0.55, h, 30, 'rgba(255,255,255,.07)');
+    bubbles(ctx, w, h * 0.42, 33, 16, 'rgba(255,224,150,.35)');
+    const cx = w / 2, cy = h * 0.55, R = w * 0.31, br = R * 0.18, railY = h * 0.83;
+    ctx.fillStyle = '#b86a17';
+    ctx.beginPath(); ctx.moveTo(cx - R * 0.45, cy + R * 0.8); ctx.lineTo(cx + R * 0.45, cy + R * 0.8); ctx.lineTo(cx + R * 0.75, railY); ctx.lineTo(cx - R * 0.75, railY); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fill();
+    const pos = [[-0.45, 0.55], [0, 0.55], [0.45, 0.55], [-0.66, 0.1], [-0.22, 0.1], [0.22, 0.1], [0.66, 0.1], [-0.45, -0.35], [0, -0.35], [0.45, -0.35], [0.2, -0.75]];
+    const nums = [7, 23, 36, 12, 31, 3, 18, 40, 26, 9, 15], rnd = seeded(5);
+    pos.forEach(([x, y], i) => ltDrawBall(ctx, cx + x * R * 0.8, cy + y * R * 0.8, br, nums[i], (rnd() - 0.5) * 1.2));
+    ctx.lineWidth = w * 0.018; ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = w * 0.03; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.3)';
+    ctx.beginPath(); ctx.arc(cx, cy, R * 0.84, -2.7, -1.95); ctx.stroke(); ctx.lineCap = 'butt';
+    rr(ctx, cx - R * 0.22, cy - R - w * 0.03, R * 0.44, w * 0.05, w * 0.02); ctx.fillStyle = '#f2a33a'; ctx.fill();
+    rr(ctx, w * 0.05, railY - br - w * 0.02, w * 0.9, br * 2 + w * 0.04, br + w * 0.02); ctx.fillStyle = '#2a1a11'; ctx.fill();
+    [5, 17, 28, 33].forEach((n, i) => ltDrawBall(ctx, w * 0.07 + br + i * (br * 2 + w * 0.012), railY, br, n, 0));
+    ltDrawBall(ctx, w * 0.93 - br, railY, br, 21, 0.4);
+  },
+  mount(root) {
+    let mode = store.get('lotto-anim', 'random');
+    if (!LT_ANIMS.some(a => a.id === mode)) mode = 'random';
+    let order = [], picks = [], sel = null, token = 0;
+    const stop = () => ++token;
+    const picksList = () => picks.length ? `<div class="chips">${picks.map((n, i) => `<span class="chip lt-pick">${ltBall(n)}${esc(order[i])}</span>`).join('')}</div>` : '';
+
+    function newRound() {
+      stop();
+      const s = turn % players.length;
+      order = [...players.slice(s), ...players.slice(0, s)]; picks = []; sel = null;
+      pickView();
+    }
+    function pickView() {
+      if (picks.length === order.length) return readyView();
+      const counts = {};
+      picks.forEach(n => counts[n] = (counts[n] || 0) + 1);
+      root.innerHTML = `
+        <div class="stack">
+          <div class="turn">輪到 <b>${esc(order[picks.length])}</b> 選號（${picks.length + 1}/${order.length}）</div>
+          <div class="lt-grid">${[...Array(LT_MAX)].map((_, i) => { const n = i + 1, c = counts[n]; return `<button class="lt-num" data-n="${n}" style="--bc:${ltColor(n)}" aria-pressed="false" aria-label="${n} 號${c ? `，已有 ${c} 人選` : ''}">${n}${c ? `<i>${c}</i>` : ''}</button>`; }).join('')}</div>
+          <div class="row"><button class="btn ghost" id="lt-rand">隨便幫我選</button><button class="btn" id="lt-ok" disabled>先點一個號碼</button></div>
+          ${picksList()}
+          ${picks.length ? '<button class="btn ghost" id="lt-undo">↩ 上一位重選</button>' : ''}
+          <p class="hint">1～${LT_MAX} 選一個號碼，可以跟別人選一樣的。全部選完開出 ${LT_DRAW} 個號碼，選中的人不用喝，沒中的人喝一杯。</p>
+        </div>`;
+      const ok = $('#lt-ok', root);
+      const choose = n => {
+        sel = n;
+        root.querySelectorAll('.lt-num').forEach(b => b.setAttribute('aria-pressed', +b.dataset.n === n));
+        ok.disabled = false; ok.textContent = `就選 ${n} 號`;
+        beep(500 + n * 12, 0.05, 'triangle', 0.05);
+      };
+      root.querySelectorAll('.lt-num').forEach(b => b.onclick = () => choose(+b.dataset.n));
+      $('#lt-rand', root).onclick = () => choose(1 + Math.floor(Math.random() * LT_MAX));
+      ok.onclick = () => { if (!sel) return; picks.push(sel); sel = null; buzz(30); pickView(); };
+      const undo = $('#lt-undo', root);
+      if (undo) undo.onclick = () => { picks.pop(); sel = null; pickView(); };
+    }
+    function readyView() {
+      root.innerHTML = `
+        <div class="stack">
+          <div class="turn"><b>${order.length}</b> 人都選好了</div>
+          ${picksList()}
+          <div class="stack" style="gap:8px"><strong>開獎動畫</strong>
+            <div class="chips" role="group" aria-label="開獎動畫">${[{ id: 'random', name: '每局隨機', icon: '🎲' }, ...LT_ANIMS].map(a => `<button class="chip cat" data-mode="${a.id}" aria-pressed="${a.id === mode}">${a.icon} ${a.name}</button>`).join('')}</div>
+          </div>
+          <button class="btn big red" id="lt-go">開獎！</button>
+          <button class="btn ghost" id="lt-undo">↩ 上一位重選</button>
+        </div>`;
+      root.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
+        mode = b.dataset.mode; store.set('lotto-anim', mode);
+        root.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x === b));
+      });
+      $('#lt-go', root).onclick = drawView;
+      $('#lt-undo', root).onclick = () => { picks.pop(); sel = null; pickView(); };
+    }
+    function drawView() {
+      keepAwake();
+      const anim = mode === 'random' ? pick(LT_ANIMS) : LT_ANIMS.find(a => a.id === mode);
+      const draws = shuffle([...Array(LT_MAX)].map((_, i) => i + 1)).slice(0, LT_DRAW);
+      const my = stop(), alive = () => my === token, shown = new Set();
+      track('lotto_draw', { anim: anim.id });
+      root.innerHTML = `
+        <div class="stack">
+          <div class="lt-head"><b>${anim.icon} ${anim.name}</b><button class="btn ghost" id="lt-skip">跳過動畫 ⏭</button></div>
+          <div id="lt-stage" data-anim="${anim.id}"></div>
+          ${anim.id === 'balls' ? '' : `<div class="lt-tray" id="lt-tray">${draws.map(() => '<span class="lt-empty"></span>').join('')}</div>`}
+          <div class="msg" id="lt-msg" aria-live="polite">開獎中…</div>
+        </div>`;
+      const api = {
+        later: (fn, ms) => setTimeout(() => { if (alive()) fn(); }, ms),
+        frame: fn => { const loop = now => { if (alive() && fn(now) !== false) requestAnimationFrame(loop); }; requestAnimationFrame(loop); },
+        reveal(i) {
+          if (!alive() || shown.has(i)) return;
+          shown.add(i);
+          const n = draws[i], who = order.filter((_, j) => picks[j] === n), slot = $('#lt-tray', root)?.children[i];
+          if (slot) slot.outerHTML = ltBall(n, 'new' + (who.length ? ' hit' : ''));
+          $('#lt-msg', root).innerHTML = `第 ${shown.size} 個號碼：<b>${n}</b>　${who.length ? `🎉 ${who.map(esc).join('、')} 中了！` : '沒人選這號'}`;
+          if (who.length) { buzz([40, 30, 80]); beep(988, 0.1, 'triangle', 0.07); api.later(() => beep(1319, 0.16, 'triangle', 0.07), 90); }
+        },
+        done: () => api.later(() => resultView(draws), 1300),
+      };
+      $('#lt-skip', root).onclick = () => resultView(draws);
+      anim.run($('#lt-stage', root), draws, api);
+    }
+    function resultView(draws) {
+      stop(); nextTurn();
+      const hitSet = new Set(draws), picked = new Set(picks);
+      const rows = order.map((p, i) => ({ p, n: picks[i], win: hitSet.has(picks[i]) }));
+      const win = rows.filter(r => r.win), lose = rows.filter(r => !r.win);
+      const li = r => `<li>${ltBall(r.n)}<span>${esc(r.p)}</span></li>`, none = '<li class="hint">沒有人</li>';
+      root.innerHTML = `
+        <div class="stack">
+          <div class="result">${!lose.length ? '全員中獎，沒人要喝！' : !win.length ? '全軍覆沒，全部喝一杯！' : `${lose.length} 人沒中，喝一杯 🍺`}<small>下一局由 ${esc(current())} 先選</small></div>
+          <div class="lt-tray" aria-label="開出的號碼">${[...draws].sort((a, b) => a - b).map(n => ltBall(n, picked.has(n) ? 'hit' : '')).join('')}</div>
+          <div class="lt-res">
+            <section class="drink"><h4>🍺 喝一杯</h4><ul>${lose.map(li).join('') || none}</ul></section>
+            <section class="safe"><h4>🎉 不用喝</h4><ul>${win.map(li).join('') || none}</ul></section>
+          </div>
+          <button class="btn big" id="lt-again">再開一局</button>
+        </div>`;
+      if (lose.length) { buzz([80, 60, 120]); beep(520, 0.15, 'sawtooth', 0.08); setTimeout(() => beep(390, 0.25, 'sawtooth', 0.08), 140); }
+      else { buzz([40, 30, 40]); [784, 988, 1319].forEach((f, i) => setTimeout(() => beep(f, 0.14, 'triangle', 0.07), i * 110)); }
+      $('#lt-again', root).onclick = newRound;
+      window.scrollTo(0, 0);
+    }
+    newRound();
+    return stop;
   }
 });
 
