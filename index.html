@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1a100b">
-<meta name="description" content="10 款手機喝酒遊戲：懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、終極密碼、吹牛、注音快答、醉運開獎…一支手機傳著玩，免下載免註冊，聚會馬上開局。">
+<meta name="description" content="11 款手機喝酒遊戲：懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、終極密碼、吹牛、注音快答、急中生詞…一支手機傳著玩，免下載免註冊，聚會馬上開局。">
 <link rel="canonical" href="https://yoyoman-1.github.io/kanpai/">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"乾杯遊戲機","url":"https://yoyoman-1.github.io/kanpai/","applicationCategory":"GameApplication","operatingSystem":"Any","inLanguage":"zh-TW","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"TWD"},"description":"10 款手機喝酒遊戲合集，一支手機傳著玩，免下載免註冊。"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"乾杯遊戲機","url":"https://yoyoman-1.github.io/kanpai/","applicationCategory":"GameApplication","operatingSystem":"Any","inLanguage":"zh-TW","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"TWD"},"description":"11 款手機喝酒遊戲合集，一支手機傳著玩，免下載免註冊。"}</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="乾杯遊戲機">
-<meta property="og:title" content="乾杯遊戲機｜10 款手機喝酒遊戲，打開就能玩">
+<meta property="og:title" content="乾杯遊戲機｜11 款手機喝酒遊戲，打開就能玩">
 <meta property="og:description" content="懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、吹牛…一支手機傳著玩，免下載免註冊，聚會喝酒馬上開局。">
 <meta property="og:url" content="https://yoyoman-1.github.io/kanpai/">
 <meta property="og:image" content="https://yoyoman-1.github.io/kanpai/og.png?v=9">
@@ -29,7 +29,7 @@ body { margin: 0; }
 img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
-<title>乾杯遊戲機｜10 款手機喝酒遊戲・懲罰轉盤、踩地雷、真心話大冒險</title>
+<title>乾杯遊戲機｜11 款手機喝酒遊戲・懲罰轉盤、踩地雷、真心話大冒險</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -256,6 +256,17 @@ textarea { resize: vertical; line-height: 1.5; }
 .tally b { display: block; font-family: var(--num); font-weight: 400; font-size: 1.4rem; color: var(--foam); }
 .rules { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; line-height: 1.55; }
 
+/* Word rush */
+.jz-cat { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 10px 14px 12px; text-align: center; font-family: var(--display); font-size: clamp(1.5rem, 7vw, 2rem); line-height: 1.3; color: var(--amber); overflow-wrap: anywhere; }
+.jz-cat small { display: block; font-family: var(--body); font-size: .8rem; color: var(--muted); }
+.jz-ans { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
+.jz-ans b { display: block; color: var(--amber); margin-bottom: 4px; }
+.jz-ans span { color: var(--foam); }
+.jz-own { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 0 14px; }
+.jz-own summary { min-height: 44px; display: flex; align-items: center; font-weight: 700; color: var(--foam); cursor: pointer; }
+.jz-own[open] { padding-bottom: 14px; }
+.jz-own .chips { margin-top: 10px; }
+.jz-own .chip { overflow-wrap: anywhere; }
 /* Zhuyin rush */
 .mine-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .mine-cell { aspect-ratio: 1; border: 0; border-radius: 12px; background: #4f8f45; box-shadow: inset 0 -5px 0 rgba(0,0,0,.3), inset 0 3px 0 rgba(255,255,255,.18); font-family: var(--num); font-size: clamp(1.3rem, 7vw, 2rem); line-height: 1; color: var(--ink); padding: 0; }
@@ -461,7 +472,7 @@ function bindLegal() {
   const b = $('#share-btn');
   if (b) b.onclick = async () => {
     track('share_click');
-    const data = { title: '乾杯遊戲機', text: '今晚誰喝？10 款手機喝酒遊戲，打開就能玩', url: 'https://yoyoman-1.github.io/kanpai/' };
+    const data = { title: '乾杯遊戲機', text: '今晚誰喝？11 款手機喝酒遊戲，打開就能玩', url: 'https://yoyoman-1.github.io/kanpai/' };
     try { if (navigator.share) { await navigator.share(data); return; } } catch (e) { return; }
     try { await navigator.clipboard.writeText(data.url); b.textContent = '已複製連結'; } catch (e) { b.textContent = data.url; }
   };
@@ -2741,6 +2752,147 @@ registerGame({
     }
     newRound();
     return stop;
+  }
+});
+
+/* ---------- 急中生詞 ---------- */
+// 類別 → 注音開頭 → 參考答案（每個注音至少 2 個答案，保證有解）
+const JZ_BANK = {
+  '醫院裡看得到的': { ㄅ: '病床 繃帶 鼻胃管 病歷 便盆 病人', ㄇ: '棉花棒 麻醉師 面罩', ㄈ: '婦產科 復健科', ㄉ: '導尿管 點滴 擔架 電梯', ㄊ: '聽診器 體溫計 退燒藥', ㄍ: '拐杖 掛號單 骨科 感冒藥', ㄎ: '口罩 開刀房', ㄏ: '護士 護理師 候診室 化驗單', ㄐ: '酒精 急診室 救護車 家屬 檢驗報告', ㄒ: '消毒水 血壓計 心電圖', ㄓ: '針筒 診間 住院醫師', ㄔ: '超音波 抽血站', ㄕ: '手術刀 手術室 手套 紗布', ㄧ: '醫生 藥水 藥袋 氧氣罩 眼科 牙科 嬰兒室 營養師' },
+  '在空中飛的': { ㄅ: '蝙蝠 白鷺鷥', ㄇ: '麻雀 蜜蜂 貓頭鷹', ㄈ: '飛機 風箏 蜂鳥 飛碟 飛盤 飛行傘', ㄊ: '天使 天鵝 太空船', ㄎ: '孔明燈 客機', ㄏ: '蝴蝶 火箭 滑翔翼 海鷗', ㄐ: '降落傘 金龜子', ㄑ: '蜻蜓 氣球', ㄒ: '喜鵲 仙女', ㄓ: '直升機 蟑螂 戰鬥機', ㄧ: '燕子 螢火蟲 鸚鵡', ㄨ: '烏鴉 蚊子 無人機 巫婆' },
+  '夜市吃得到的': { ㄅ: '冰淇淋捲餅 芭樂', ㄇ: '木瓜牛奶 麻糬 棉花糖', ㄉ: '大腸包小腸 地瓜球 豆花 當歸鴨 大腸麵線', ㄊ: '甜不辣 土魠魚羹 糖葫蘆 鐵板燒', ㄍ: '刈包 棺材板 骨仔肉', ㄎ: '烤香腸 烤玉米 烤魷魚', ㄏ: '花枝丸 胡椒餅 紅豆餅', ㄐ: '雞排 雞蛋糕', ㄓ: '珍珠奶茶 章魚燒 炸彈蔥油餅 炸湯圓', ㄔ: '臭豆腐 車輪餅 炒米粉', ㄕ: '水煎包 生煎包 燒烤', ㄖ: '潤餅 肉圓 肉粽', ㄘ: '蔥油餅 剉冰 脆皮雞蛋糕', ㄧ: '藥燉排骨 魷魚羹 楊桃汁' },
+  '便利商店買得到的': { ㄅ: '便當 報紙 冰塊 餅乾 保險套 冰棒', ㄆ: '泡麵 啤酒', ㄉ: '大亨堡 地瓜 電池 打火機 豆漿', ㄋ: '牛奶 暖暖包', ㄌ: '涼麵 綠茶', ㄍ: '關東煮 刮鬍刀 高粱', ㄎ: '礦泉水 咖啡 口香糖 口罩', ㄑ: '汽水 巧克力', ㄒ: '香菸 鮮奶 香蕉', ㄕ: '沙拉 手機充電線 舒跑 霜淇淋 水果', ㄖ: '乳液 肉包 熱狗', ㄙ: '三明治 蘇打水', ㄧ: '洋芋片 優酪乳 悠遊卡', ㄨ: '衛生紙 維他命', ㄩ: '雨傘 雨衣 御飯糰' },
+  '熱炒店菜單上的': { ㄇ: '麻油腰花 麻婆豆腐', ㄉ: '地瓜葉 豆苗', ㄊ: '鐵板豆腐 塔香海瓜 燙青菜 糖醋排骨', ㄌ: '滷肉飯 臘肉 涼拌小黃瓜 螺肉蒜 龍鬚菜', ㄍ: '宮保雞丁 高麗菜', ㄎ: '客家小炒 空心菜 烤魚', ㄒ: '鹹蛋苦瓜 下水湯', ㄔ: '炒青菜 炒麵 炒飯 川七', ㄕ: '沙茶牛肉 生魚片', ㄘ: '蒼蠅頭 菜脯蛋', ㄙ: '三杯雞 三杯中卷 蒜泥白肉', ㄧ: '鹽酥蝦 油條', ㄨ: '五更腸旺 烏魚子' },
+  '動物園看得到的': { ㄅ: '斑馬 豹 冰淇淋', ㄇ: '貓熊 蟒蛇 梅花鹿 馬來貘', ㄉ: '大象 袋鼠 導覽員', ㄊ: '鴕鳥 兔子', ㄌ: '老虎 駱駝', ㄏ: '河馬 猴子 狐狸 灰狼 紅毛猩猩 黑熊', ㄒ: '犀牛 猩猩 蜥蜴', ㄔ: '長頸鹿 穿山甲', ㄕ: '獅子 水豚 山羌 食蟻獸 水鳥 樹懶', ㄧ: '遊園車 羊駝', ㄨ: '無尾熊 烏龜' },
+  '海裡或海邊有的': { ㄅ: '鮑魚 貝殼 比基尼', ㄇ: '魔鬼魚 牡蠣 鰻魚', ㄈ: '浮潛 帆船 防波堤', ㄏ: '海豚 海星 海草 海膽 海馬 海浪', ㄐ: '寄居蟹 鯨魚 救生員', ㄒ: '蝦子 小丑魚', ㄕ: '鯊魚 沙灘 沙子 珊瑚 水母', ㄧ: '魷魚 遊艇 郵輪', ㄨ: '烏賊 烏龜 鮪魚', ㄩ: '泳圈 魚網 漁夫 泳衣' },
+  '身體部位': { ㄅ: '鼻子 背 脖子', ㄆ: '屁股 皮膚 膀胱', ㄉ: '肚子 肚臍 大腿 膽 蛋蛋', ㄊ: '頭髮 腿 太陽穴', ㄍ: '肝 骨頭', ㄐ: '肩膀 腳趾 腳踝 脊椎 睫毛', ㄒ: '膝蓋 小腿 胸部 心臟 下巴', ㄕ: '舌頭 手指 手臂 腎臟', ㄧ: '牙齒 腰 眼睛 陰毛' },
+  '職業': { ㄅ: '保全 保母 編輯', ㄇ: '模特兒 美髮師 木工', ㄈ: '飛行員 服務生 法官', ㄉ: '導遊 導演 店員', ㄊ: '太空人 調酒師', ㄌ: '律師 老師 立委 里長', ㄍ: '歌手 工程師', ㄐ: '警察 記者 教授 軍人 計程車司機 檢察官', ㄒ: '消防員 銷售員 校長', ㄓ: '主持人 主播', ㄕ: '水電工 設計師 攝影師', ㄙ: '司機 算命師', ㄧ: '演員 醫生 藥師 郵差', ㄨ: '網紅 外送員' },
+  '交通工具': { ㄇ: '摩托車 馬車', ㄈ: '飛機 帆船', ㄉ: '電動車 電動機車 獨木舟', ㄊ: '坦克 拖拉機 拖吊車 太空梭', ㄌ: '輪船 垃圾車 纜車', ㄍ: '高鐵 公車', ㄏ: '火車 滑板', ㄐ: '腳踏車 機車 計程車 捷運 救護車 警車', ㄑ: '汽車 潛水艇', ㄒ: '消防車 雪橇', ㄙ: '三輪車 賽車', ㄧ: '遊覽車 油罐車 郵輪 遊艇' },
+  '台灣的地名': { ㄅ: '板橋 北投 八里', ㄆ: '平溪 屏東 澎湖', ㄇ: '苗栗 馬祖 美濃', ㄉ: '大安 大甲 淡水 東港', ㄊ: '台北 台中 台南 桃園 太魯閣', ㄋ: '南投 內湖 南港', ㄌ: '羅東 蘆洲 龍潭 鹿港 綠島', ㄏ: '花蓮 恆春', ㄐ: '嘉義 基隆 金門 九份 礁溪', ㄑ: '清水 七股', ㄒ: '新竹 新北 新店 西門町', ㄓ: '彰化 中壢 竹北 中和', ㄕ: '士林 石門', ㄙ: '三重 蘇澳', ㄧ: '宜蘭 鶯歌', ㄨ: '烏來 萬華', ㄩ: '永和 員林 雲林' },
+  '國家': { ㄅ: '巴西 比利時 不丹 巴基斯坦 波蘭', ㄇ: '美國 馬來西亞 墨西哥 緬甸 蒙古', ㄈ: '法國 菲律賓 芬蘭', ㄉ: '丹麥 德國', ㄊ: '泰國 土耳其', ㄋ: '南非 南韓 挪威 尼泊爾 紐西蘭', ㄏ: '韓國 荷蘭', ㄐ: '加拿大 柬埔寨 捷克', ㄒ: '希臘 新加坡 西班牙', ㄓ: '中國 智利', ㄖ: '瑞士 瑞典 日本', ㄞ: '埃及 愛爾蘭', ㄧ: '伊朗 以色列 義大利 印度 印尼 英國' },
+  '運動項目': { ㄅ: '棒球 保齡球', ㄆ: '排球 跑步 乒乓球 攀岩', ㄈ: '飛鏢 帆船', ㄊ: '跆拳道 田徑 體操 鐵人三項 太極拳 踢毽子', ㄌ: '籃球 溜冰 壘球', ㄍ: '高爾夫球 橄欖球', ㄏ: '滑冰 滑板 滑雪 划船', ㄐ: '擊劍 健身 舉重', ㄑ: '拳擊 曲棍球', ㄓ: '撞球 桌球', ㄕ: '射箭 摔角', ㄗ: '足球 自行車', ㄩ: '瑜珈 羽球' },
+  '手機裡常見的 App': { ㄅ: '備忘錄 播客', ㄉ: '地圖 抖音 電子信箱', ㄊ: '淘寶 台灣大車隊 天氣', ㄐ: '計算機 記事本 健康 街口支付 計時器', ㄒ: '蝦皮 小紅書 相機 相簿 行事曆', ㄕ: '時鐘 設定 手電筒', ㄧ: '悠遊付 音樂 郵件', ㄨ: '微信 網銀' },
+  '飲料店菜單上的': { ㄅ: '波霸奶茶 百香綠茶 冰沙 布丁 冰塊 半糖', ㄆ: '葡萄柚 蘋果汁 普洱', ㄇ: '木瓜牛奶 麥香紅茶 梅子綠 芒果冰沙', ㄈ: '蜂蜜檸檬 鳳梨冰茶 粉圓', ㄉ: '冬瓜茶 多多綠', ㄋ: '檸檬綠 檸檬紅 奶蓋', ㄌ: '綠茶 柳橙汁 蘆薈', ㄍ: '高山茶 甘蔗青茶', ㄏ: '紅茶 寒天 黑糖', ㄐ: '金萱 焦糖奶茶', ㄒ: '仙草凍 仙草奶凍 鮮奶茶 西瓜汁', ㄓ: '珍珠奶茶 珍奶', ㄕ: '水果茶 少冰', ㄧ: '椰果 楊枝甘露' },
+  '廚房裡有的': { ㄅ: '冰箱 保鮮膜 杯子', ㄆ: '平底鍋 排油煙機 泡麵', ㄇ: '抹布 米酒 麻油', ㄈ: '蜂蜜 飯匙', ㄉ: '電鍋 打蛋器', ㄊ: '調味料 湯匙', ㄌ: '辣椒 料理酒 垃圾桶', ㄎ: '烤箱 開瓶器 筷子 烤盤', ㄐ: '醬油 薑', ㄒ: '洗碗精 洗碗機', ㄓ: '砧板 蟑螂', ㄔ: '鏟子 叉子 廚餘桶', ㄕ: '水壺 水槽 砂糖', ㄘ: '菜刀 菜瓜布 蔥', ㄨ: '碗 瓦斯爐 味精 微波爐 圍裙' },
+  '學校裡看得到的': { ㄅ: '班長 便當 布告欄 板擦 畢業紀念冊', ㄈ: '粉筆 福利社 風紀股長', ㄉ: '導師 督學 點名簿', ㄊ: '體育館 跳箱 圖書館', ㄌ: '溜滑梯 老師', ㄎ: '考卷 課本', ㄏ: '黑板 合作社', ㄐ: '教室 教官', ㄒ: '訓導主任 校長 校車 學生 校門 橡皮擦', ㄓ: '制服 主任 周記', ㄕ: '書包 實驗室 升旗台', ㄙ: '司令台 掃把', ㄧ: '游泳池 營養午餐 音樂教室' },
+  '浴室裡有的': { ㄇ: '馬桶 毛巾 沐浴乳 棉花棒', ㄈ: '肥皂 防滑墊', ㄊ: '頭髮 拖鞋', ㄌ: '蓮蓬頭 垃圾桶', ㄍ: '刮鬍刀 刮鬍泡', ㄒ: '洗髮精 洗面乳', ㄔ: '吹風機 除濕機', ㄖ: '潤髮乳 乳液', ㄧ: '牙刷 牙膏', ㄩ: '浴缸 浴巾 浴帽' },
+  '衣櫃裡有的': { ㄅ: '背心 比基尼', ㄆ: '皮帶 皮衣', ㄇ: '毛衣 帽T 棉被', ㄉ: '短褲 短裙 丁字褲 吊帶襪', ㄋ: '內衣 內褲 牛仔褲 男友的衣服', ㄒ: '西裝 雪紡衫', ㄓ: '制服 樟腦丸', ㄔ: '襯衫 長裙 除濕包', ㄧ: '洋裝 衣架', ㄨ: '圍巾 外套 襪子', ㄩ: '羽絨外套 運動褲 泳衣' },
+  '水果': { ㄅ: '百香果 芭樂', ㄆ: '蘋果 葡萄 葡萄柚', ㄇ: '木瓜 芒果 梅子', ㄈ: '鳳梨 番茄', ㄌ: '荔枝 藍莓 李子 龍眼 柳丁 蓮霧 梨子 酪梨 榴槤', ㄏ: '哈密瓜 火龍果', ㄐ: '橘子 金桔', ㄒ: '香蕉 西瓜 杏桃', ㄕ: '柿子 釋迦 水蜜桃 山竹', ㄧ: '櫻桃 椰子 楊桃' },
+  '吃火鍋會點的': { ㄅ: '白菜 冰淇淋', ㄇ: '米血 蘑菇 麻辣湯底', ㄉ: '蛋餃 豆腐 冬粉 豆皮 大腸', ㄊ: '茼蒿 甜不辣', ㄋ: '牛肉片 年糕', ㄍ: '貢丸 高麗菜', ㄒ: '蝦子 香菇 蟹肉棒', ㄕ: '沙茶醬 水餃 涮涮鍋', ㄧ: '鴨血 羊肉片 燕餃', ㄨ: '烏龍麵 王子麵 娃娃菜', ㄩ: '魚板 魚餃 芋頭' },
+  '早餐店有的': { ㄇ: '饅頭 米漿 美而美', ㄈ: '飯糰 法式吐司', ㄉ: '蛋餅 豆漿 蛋 大冰奶', ㄊ: '鐵板麵 土司', ㄌ: '蘿蔔糕 老闆娘', ㄏ: '漢堡 火腿 紅茶', ㄕ: '薯餅 燒餅 水煎包 帥哥', ㄖ: '熱狗 肉鬆' },
+  '藝人或歌手': { ㄆ: '彭于晏 潘瑋柏', ㄉ: '大S 鄧麗君', ㄊ: '田馥甄 陶晶瑩', ㄌ: '林志玲 林俊傑 劉德華 羅志祥 梁朝偉 李連杰', ㄏ: '黃渤 黃子佼', ㄐ: '江蕙 金城武', ㄒ: '徐若瑄 蕭敬騰 蕭亞軒 小S', ㄓ: '周杰倫 周星馳 張惠妹 張學友 張信哲 豬哥亮', ㄔ: '陳奕迅 陳美鳳 成龍', ㄘ: '蔡依林 蔡康永', ㄨ: '伍佰 五月天 吳宗憲 吳青峰 王力宏 王心凌' },
+  '卡通或動漫角色': { ㄆ: '皮卡丘 派大星 胖虎', ㄇ: '美少女戰士 米老鼠 麵包超人 鳴人', ㄉ: '哆啦A夢 大雄', ㄊ: '天線寶寶 唐老鴨 跳跳虎 炭治郎', ㄌ: '蠟筆小新 魯夫 流川楓', ㄎ: '柯南 卡比獸', ㄏ: '海綿寶寶 灰姑娘 虎克船長 花木蘭', ㄒ: '小丸子 小美人魚' },
+  '喝酒時會看到的': { ㄅ: '杯子 冰塊 白酒 杯墊', ㄆ: '啤酒 撲克牌', ㄇ: '梅酒 米酒 毛巾', ㄌ: '滷味 老闆 蘭姆酒 龍舌蘭', ㄎ: '開瓶器 烤肉', ㄏ: '花生 紅酒', ㄐ: '酒杯 解酒液 計程車', ㄑ: '清酒 乾杯 前任', ㄒ: '下酒菜 小菜', ㄕ: '水果酒 漱口水' },
+  '夜店或酒吧看得到的': { ㄅ: '保鑣 吧檯 包廂', ㄇ: '門票 妹子', ㄌ: '雷射燈 辣妹 喇叭', ㄍ: '高腳杯 公關', ㄒ: '洗手間 香檳 型男', ㄕ: '帥哥 手環', ㄧ: '煙霧機 螢光棒 飲料券', ㄨ: '舞池 舞者' },
+  '情侶吵架會講的': { ㄅ: '不要碰我 別碰我', ㄈ: '分手 煩死了 放過我', ㄉ: '當我沒說 都你對 對不起 都是你', ㄊ: '她是誰 他是誰', ㄋ: '你走開 你不懂 你變了 你自己想 你根本不愛我 你去找她 你說啊 你手機給我看 男人都一樣', ㄗ: '再見 自己睡沙發', ㄙ: '隨便 算了', ㄨ: '我沒事 無所謂' },
+  '讓人尷尬的場合': { ㄅ: '被抓包 被放鳥 背後講壞話被聽到', ㄐ: '叫錯名字 講錯話', ㄑ: '前任出現 前任婚禮', ㄔ: '傳錯訊息 查勤被抓', ㄕ: '手機播A片 上台跌倒 視訊沒關麥', ㄧ: '牙縫有菜 演講忘詞' },
+  '十八禁話題會出現的': { ㄅ: '避孕藥 保險套', ㄇ: '馬殺雞 摩鐵 摸摸茶', ㄈ: '粉味 飛機杯', ㄊ: '跳蛋 舔 脫衣舞', ㄋ: '內衣 內褲', ㄎ: '口交 開房間', ㄑ: '情趣用品 前戲 情趣內衣 汽車旅館', ㄕ: '手銬 舌吻', ㄖ: '潤滑液 乳溝 乳頭', ㄨ: '吻痕 舞男', ㄩ: '約炮 浴室' },
+};
+const JZ_ZY = [...'ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙㄧㄨㄩ']; // 自己出的題從這裡抽注音
+const JZ_QS = Object.entries(JZ_BANK).flatMap(([cat, g]) => Object.keys(g).map(zy => ({ cat, zy, ans: g[zy].split(' ') })));
+registerGame({
+  id: 'wordrush', name: '急中生詞', en: 'WORD RUSH', color: '#ffb27a', tag: '搶答 · 造詞', ribbon: 'NEW', desc: '題目配注音，大家一起搶答，也能自己出題', minPlayers: 2,
+  art(ctx, w, h) {
+    const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#e8743b'); g.addColorStop(1, '#5a1c10');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    rays(ctx, w / 2, h * 0.62, h, 24, 'rgba(255,255,255,.07)');
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    // 題目
+    ctx.save(); ctx.translate(w * 0.5, h * 0.37);
+    ctx.fillStyle = 'rgba(35,20,11,.75)'; rr(ctx, -w * 0.42, -w * 0.07, w * 0.84, w * 0.14, w * 0.04); ctx.fill();
+    ctx.fillStyle = '#ffe066'; ctx.font = `${Math.round(w * 0.078)}px Huninn, "Noto Sans TC", sans-serif`; ctx.fillText('醫院裡看得到的', 0, w * 0.005);
+    ctx.restore();
+    // 注音牌
+    ctx.save(); ctx.translate(w * 0.5, h * 0.565); ctx.rotate(0.06);
+    const s = w * 0.3;
+    ctx.fillStyle = 'rgba(0,0,0,.3)'; rr(ctx, -s / 2 + s * 0.05, -s / 2 + s * 0.08, s, s, s * 0.16); ctx.fill();
+    ctx.fillStyle = '#ffe066'; rr(ctx, -s / 2, -s / 2, s, s, s * 0.16); ctx.fill();
+    ctx.strokeStyle = '#23140b'; ctx.lineWidth = s * 0.04; rr(ctx, -s / 2 + s * 0.06, -s / 2 + s * 0.06, s * 0.88, s * 0.88, s * 0.12); ctx.stroke();
+    ctx.fillStyle = '#23140b'; ctx.font = `${Math.round(s * 0.66)}px Huninn, "Noto Sans TC", sans-serif`; ctx.fillText('ㄅ', 0, s * 0.04);
+    ctx.restore();
+    // 答案泡泡
+    ctx.save(); ctx.translate(w * 0.5, h * 0.74); ctx.rotate(-0.04);
+    ctx.fillStyle = '#fff'; rr(ctx, -w * 0.3, -w * 0.075, w * 0.6, w * 0.15, w * 0.05); ctx.fill();
+    ctx.fillStyle = '#23140b'; ctx.font = `${Math.round(w * 0.082)}px Huninn, "Noto Sans TC", sans-serif`; ctx.fillText('鼻胃管！', 0, w * 0.005);
+    ctx.restore();
+  },
+  mount(root) {
+    let own = store.get('jzOwn', []), bag = [], q;
+    const ownQs = () => own.flatMap(cat => shuffle(JZ_ZY).slice(0, 5).map(zy => ({ cat, zy, own: true, ans: [] })));
+    root.innerHTML = `
+      <div class="stack">
+        <div class="jz-cat" id="jz-cat" aria-live="polite"></div>
+        <div class="zy-card" id="jz-zy"></div>
+        <button class="btn big" id="jz-next">下一題</button>
+        <div class="row">
+          <button class="btn ghost" id="jz-swap">同題目換注音</button>
+          <button class="btn ghost" id="jz-show">看參考答案</button>
+        </div>
+        <div class="jz-ans" id="jz-ans" hidden></div>
+        <p class="hint" style="text-align:center">大家一起搶答，用這個注音開頭，說出符合題目的詞。誰喝你們自己決定，例如最後說出來的喝。</p>
+        <details class="jz-own">
+          <summary>自己出題</summary>
+          <form class="add-row" id="jz-form">
+            <input type="text" id="jz-input" placeholder="例如：前任會做的事" maxlength="20" autocomplete="off" aria-label="自己出的題目">
+            <button class="btn" type="submit">加入</button>
+          </form>
+          <div class="chips" id="jz-list"></div>
+        </details>
+      </div>`;
+    const ans = $('#jz-ans', root), showBtn = $('#jz-show', root);
+    function draw() {
+      $('#jz-cat', root).innerHTML = `<small>題目</small>${esc(q.cat)}`;
+      const zy = $('#jz-zy', root);
+      zy.innerHTML = `<span>${q.zy}</span>`;
+      zy.style.animation = 'none'; void zy.offsetWidth; zy.style.animation = 'pop .35s cubic-bezier(.2,1.6,.4,1)';
+      ans.hidden = true;
+      showBtn.disabled = q.own;
+      showBtn.textContent = q.own ? '自己出的題沒有答案' : '看參考答案';
+      beep(700, 0.08, 'triangle'); buzz(30); keepAwake();
+    }
+    function next() {
+      if (!bag.length) bag = shuffle([...JZ_QS, ...ownQs()]);
+      q = bag.pop();
+      draw();
+    }
+    function drawList() {
+      $('#jz-list', root).innerHTML = own.map((c, i) => `<span class="chip">${esc(c)}<button type="button" data-rm="${i}" aria-label="刪除 ${esc(c)}">×</button></span>`).join('');
+      root.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+        const [cat] = own.splice(+b.dataset.rm, 1);
+        store.set('jzOwn', own);
+        bag = bag.filter(x => !(x.own && x.cat === cat));
+        drawList();
+      });
+    }
+    $('#jz-next', root).onclick = next;
+    // 換注音時避開現在這個，內建題目只從有答案的注音裡挑
+    $('#jz-swap', root).onclick = () => {
+      const pool = q.own ? JZ_ZY : Object.keys(JZ_BANK[q.cat]);
+      q = { ...q, zy: pick(pool.filter(z => z !== q.zy)) };
+      if (!q.own) q.ans = JZ_BANK[q.cat][q.zy].split(' ');
+      draw();
+    };
+    showBtn.onclick = () => {
+      ans.innerHTML = `<b>${esc(q.cat)}・${q.zy}</b><span>${q.ans.map(esc).join('、')}</span>`;
+      ans.hidden = false;
+    };
+    $('#jz-form', root).onsubmit = e => {
+      e.preventDefault();
+      const input = $('#jz-input', root), cat = input.value.trim();
+      if (!cat) return;
+      input.value = '';
+      if (!own.includes(cat)) {
+        own.push(cat); store.set('jzOwn', own); drawList();
+        bag.push(...ownQs().filter(x => x.cat === cat));
+        bag = shuffle(bag);
+      }
+      // 剛出的題馬上玩
+      q = { cat, zy: pick(JZ_ZY), own: true, ans: [] };
+      draw();
+      window.scrollTo(0, 0);
+    };
+    drawList();
+    next();
   }
 });
 

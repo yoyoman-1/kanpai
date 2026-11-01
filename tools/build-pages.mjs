@@ -9,7 +9,8 @@ const src = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const seg = (start) => { const a = src.indexOf(start); const b = src.indexOf('registerGame(', a); return src.slice(a, b); };
 const data = new Function(`${seg('const WHEEL_DEFAULT')}${seg('const TD_DEFAULT')}${seg('const WORD_PAIRS')}${seg('const WML_RAW')}${seg('const DRAW_LEVELS')}
 ${src.slice(src.indexOf('const ZY_KEYS'), src.indexOf('registerGame(', src.indexOf('const ZY_KEYS')))}
-return { WHEEL_DEFAULT, TD_DEFAULT, WORD_PAIRS, WML, DRAW_WORDS, DRAW_LEVELS, ZY_SETS };`)();
+${src.slice(src.indexOf('const JZ_BANK'), src.indexOf('registerGame(', src.indexOf('const JZ_BANK')))}
+return { WHEEL_DEFAULT, TD_DEFAULT, WORD_PAIRS, WML, DRAW_WORDS, DRAW_LEVELS, ZY_SETS, JZ_QS };`)();
 
 let seed = 20261026;
 const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -60,6 +61,10 @@ const GAMES = [
     intro: '每個人輪流從 1～40 選一個號碼，全部選完手機開出 10 個號碼：每有 1 人中獎，其他所有人（包括其他中獎的人）都喝 1 杯，沒中的人再加 1 杯基本杯，中的人越多大家喝越多。開獎動畫有彩球機、拉霸機、輪盤、刮刮樂、翻牌五種，每局隨機，也能自己挑。',
     rules: ['手機照座位順序傳下去，每個人從 1～40 選一個號碼，可以跟別人選一樣的。', '全部選完按「開獎！」，選一種開獎動畫，或讓手機每局隨機。', '手機開出 10 個不重複的號碼。每有 1 人中獎，其他所有人（包括其他中獎的人）都喝 1 杯；沒中的人再加 1 杯基本杯。', '算起來就是：中獎的喝「中獎人數−1」杯，沒中的喝「中獎人數＋1」杯；全部都沒中就每人喝 1 杯。', '等不及可以按「跳過動畫」直接看結果，按「再開一局」繼續。'],
     examples: () => ['阿凱選 7、小美選 23、大雄也選 7', '開出：3、7、12、18、21、26、31、33、36、40', '7 號開出來了 → 阿凱、大雄中獎，各喝 2−1＝1 杯', '23 號沒開 → 小美喝 2＋1＝3 杯', '三個人都中 → 每人喝 2 杯；三個人都沒中 → 每人喝 1 杯'] },
+  { id: 'wordrush', slug: 'word-rush', name: '急中生詞', kw: '注音造詞 喝酒遊戲', count: `${data.JZ_QS.length} 題`, players: '2 人以上',
+    intro: '手機列出一個題目和一個注音，大家一起搶答，用這個注音開頭說出符合題目的詞，例如「醫院裡看得到的」＋「ㄅ」→ 繃帶、病床。誰喝你們自己決定，題目也可以自己出。',
+    rules: ['手機列出題目和注音。', '大家一起搶答，用這個注音開頭，說出符合題目的詞。', '誰喝你們自己決定，例如最後說出來的喝。', '按「下一題」換題，按「同題目換注音」繼續玩同一題。', '吵起來可以按「看參考答案」；打開「自己出題」可以加入你們的題目。'],
+    examples: () => ['在空中飛的＋ㄈ → 飛機、風箏', '夜市吃得到的＋ㄔ → 臭豆腐、車輪餅', '便利商店買得到的＋ㄉ → 大亨堡、打火機', '身體部位＋ㄒ → 膝蓋、小腿', '台灣的地名＋ㄐ → 嘉義、基隆'] },
 ];
 
 const css = `
@@ -132,20 +137,20 @@ ${LIST_OF[g.id] ? LIST_OF[g.id].map(([slug, name]) => `<p><a href="../../questio
 // 總覽頁：鎖定「喝酒遊戲」「喝酒遊戲推薦」
 const faq = [
   ['喝酒遊戲要下載 App 嗎？', '不用。用手機瀏覽器打開乾杯遊戲機就能玩，也不用註冊。想常常玩可以「加到主畫面」。'],
-  ['人很少可以玩什麼？', '2 個人可以玩懲罰轉盤、終極密碼、真心話大冒險、踩地雷、注音快答、醉運開獎；吹牛每個人用自己的手機就能玩。'],
+  ['人很少可以玩什麼？', '2 個人可以玩懲罰轉盤、終極密碼、真心話大冒險、踩地雷、注音快答、醉運開獎、急中生詞；吹牛每個人用自己的手機就能玩。'],
   ['人很多適合玩什麼？', '4 人以上推薦誰是臥底；3 人以上推薦誰最可能、你畫我猜，人越多越好笑。'],
   ['不想喝酒也能玩嗎？', '可以，把「喝一口」換成喝飲料、做伏地挺身或其他懲罰就好。量力而為，不想喝可以說不。'],
 ];
 write('games/', page({
   path: 'games/',
-  title: '喝酒遊戲推薦｜10 款手機喝酒遊戲玩法大全（免下載）｜乾杯遊戲機',
-  desc: '聚會喝酒玩什麼？懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、誰最可能、終極密碼、你畫我猜、吹牛、注音快答、醉運開獎，10 款喝酒遊戲玩法一次看，手機打開就能玩。',
+  title: '喝酒遊戲推薦｜11 款手機喝酒遊戲玩法大全（免下載）｜乾杯遊戲機',
+  desc: '聚會喝酒玩什麼？懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、誰最可能、終極密碼、你畫我猜、吹牛、注音快答、醉運開獎、急中生詞，11 款喝酒遊戲玩法一次看，手機打開就能玩。',
   ld: { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
   body: `<nav class="crumb"><a href="../">乾杯遊戲機</a> › 喝酒遊戲玩法</nav>
-<h1>喝酒遊戲推薦：10 款手機就能玩的派對遊戲</h1>
-<p class="lead">聚會、夜衝、熱炒、KTV 不知道玩什麼？這 10 款喝酒遊戲都能用一支手機放桌上輪流玩，免下載、免註冊、不用準備撲克牌或骰子。</p>
+<h1>喝酒遊戲推薦：11 款手機就能玩的派對遊戲</h1>
+<p class="lead">聚會、夜衝、熱炒、KTV 不知道玩什麼？這 11 款喝酒遊戲都能用一支手機放桌上輪流玩，免下載、免註冊、不用準備撲克牌或骰子。</p>
 <a class="cta" href="../">打開乾杯遊戲機，馬上開局 →</a>
-<h2>10 款喝酒遊戲</h2>
+<h2>11 款喝酒遊戲</h2>
 <ul class="grid">${GAMES.map(g => `<li><a href="${g.slug}/"><b>${esc(g.name)}</b><small>${esc(g.players)}・${esc(g.count)}<br>${esc(g.intro.slice(0, 40))}…</small></a></li>`).join('')}</ul>
 <p><a href="../questions/">想直接看題目？真心話、大冒險、懲罰題目清單 →</a></p>
 <h2>常見問題</h2>
@@ -167,7 +172,7 @@ write('business/', page({
 <li>專屬網址和桌上立牌用的 QR code，客人不用下載 App。</li>
 <li>首頁顯示店名、Logo、主題色和今晚優惠（例如「生啤買二送一」）。</li>
 <li>懲罰轉盤每輪固定混入 2 題你的店家題目，可以導向加點、打卡、通關密語。</li>
-<li>10 款遊戲全部可用：懲罰轉盤、踩地雷、真心話大冒險、誰是臥底…</li>
+<li>11 款遊戲全部可用：懲罰轉盤、踩地雷、真心話大冒險、誰是臥底…</li>
 <li>優惠和題目隨時可以請我們幫你改。</li>
 </ul>
 <h2>方案</h2>
