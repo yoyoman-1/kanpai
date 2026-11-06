@@ -396,7 +396,7 @@ textarea { resize: vertical; line-height: 1.5; }
 .lt-card.miss { opacity: .35; }
 
 /* 瘋狂心臟病 */
-.ht-card { align-self: center; width: min(56vw, 240px); aspect-ratio: 5 / 7; border: 0; padding: 0; border-radius: 18px; position: relative; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; box-shadow: 0 8px 0 rgba(0,0,0,.35); }
+.ht-card { align-self: center; width: min(52vw, 224px); aspect-ratio: 5 / 7; border: 0; padding: 0; border-radius: 18px; position: relative; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; box-shadow: 0 8px 0 rgba(0,0,0,.35); }
 .ht-card.back { background: repeating-linear-gradient(45deg, #8e2226 0 9px, #a8292e 9px 18px); border: 6px solid var(--paper); }
 .ht-card.back::after { content: "點我翻牌"; position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 1.5rem; color: var(--paper); text-shadow: 0 2px 0 rgba(0,0,0,.4); }
 .ht-card.face { background: var(--paper); color: var(--c, var(--ink)); border: 6px solid var(--paper); animation: pop .3s cubic-bezier(.2,1.6,.4,1); }
@@ -405,8 +405,9 @@ textarea { resize: vertical; line-height: 1.5; }
 .ht-card .r.b { left: auto; top: auto; right: 12px; bottom: 8px; transform: rotate(180deg); }
 .ht-card .r small { display: block; font-size: 1.4rem; }
 .ht-card .s { position: absolute; inset: 0; display: grid; place-items: center; font-size: clamp(5rem, 28vw, 7.5rem); line-height: 1; }
-.ht-card .s.joker { font-family: var(--display); font-size: clamp(2.4rem, 13vw, 3.4rem); writing-mode: vertical-rl; letter-spacing: .1em; }
 .ht-act { min-height: 92px; display: grid; place-items: center; }
+.ht-call { text-align: center; color: var(--muted); margin: -4px 0; }
+.ht-call b { display: inline-block; min-width: 1.6em; font-family: var(--num); font-weight: 400; font-size: 2rem; line-height: 1; color: var(--amber); margin-left: 6px; vertical-align: -4px; }
 .ht-act .msg { margin: 0; }
 .ht-hit { width: 100%; background: var(--cherry); color: var(--paper); border-radius: 18px; padding: 10px 12px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,.45); animation: pop .3s cubic-bezier(.2,1.6,.4,1); }
 .ht-hit small { display: block; font-family: var(--body); font-weight: 900; font-size: .8rem; line-height: 1.4; }
@@ -3032,48 +3033,47 @@ registerGame({
   },
   mount(root) {
     let crazy = store.get('htCrazy', true), deck = [], call = 0, act;
-    const newDeck = () => shuffle([...HT_RANKS.flatMap(r => HT_SUITS.map(([s, c]) => ({ r, s, c }))), { joker: 1 }, { joker: 1 }]);
+    const newDeck = () => shuffle(HT_RANKS.flatMap(r => HT_SUITS.map(([s, c]) => ({ r, s, c }))));
     // 這一輪喊中要做的動作，一開始就先公布
     const nextAct = () => { act = crazy ? pick(HT_ACTS.filter(x => x !== act)) : '拍桌'; };
     root.innerHTML = `
       <div class="stack">
         <div class="ht-act" id="ht-act" aria-live="polite"></div>
+        <div class="ht-call" id="ht-call"></div>
         <button class="ht-card back" id="ht-card" aria-label="翻牌"></button>
         <div class="turn" id="ht-who" aria-live="polite"></div>
         <div class="seg" role="group" aria-label="動作"><button data-c="1" aria-pressed="${crazy}">瘋狂隨機動作</button><button data-c="0" aria-pressed="${!crazy}">只拍桌</button></div>
-        <p class="hint" style="text-align:center">輪到的人點牌，同時照順序喊 A、2、3…10、J、Q、K。翻出來的牌跟喊的一樣，大家馬上做最上面的動作，最後一個做完的喝。翻到鬼牌不管喊什麼都要做。喊中之後換一個動作，從 A 重新喊。</p>
+        <p class="hint" style="text-align:center">輪到的人點牌，同時照順序喊 A、2、3…10、J、Q、K。翻出來的牌跟喊的一樣，大家馬上做最上面的動作，最後一個做完的喝。喊中之後換一個動作，從 A 重新喊。</p>
       </div>`;
     const cardEl = $('#ht-card', root), actEl = $('#ht-act', root);
-    const drawTurn = () => { $('#ht-who', root).innerHTML = `輪到 <b>${esc(current())}</b> 翻牌`; };
+    // 計牌器：現在輪到的人要喊幾
+    const drawTurn = () => {
+      $('#ht-call', root).innerHTML = `現在要喊<b>${HT_RANKS[call]}</b>`;
+      $('#ht-who', root).innerHTML = `輪到 <b>${esc(current())}</b> 翻牌`;
+    };
     const drawAct = () => { actEl.innerHTML = `<div class="ht-hit ready"><small>喊中就要</small><b>${esc(act)}</b></div>`; };
-    // 喊中或鬼牌：最上面的動作變紅閃一下，順便公布下一輪的動作
-    function hit(title) {
+    // 喊中：最上面的動作變紅閃一下，順便公布下一輪的動作
+    function hit() {
       buzz([120, 60, 120, 60, 300]);
       [880, 660, 990].forEach((f, k) => setTimeout(() => beep(f, 0.14, 'square', 0.1), k * 90));
       cardEl.classList.add('hit');
       const done = act;
       nextAct();
-      actEl.innerHTML = `<div class="ht-hit"><small>${title}</small><b>${esc(done)}！</b><small>下一輪：${esc(act)}</small></div>`;
+      actEl.innerHTML = `<div class="ht-hit"><small>心臟病！</small><b>${esc(done)}！</b><small>下一輪：${esc(act)}</small></div>`;
       call = 0;
     }
     function flip() {
       keepAwake();
       if (!deck.length) deck = newDeck();
-      const c = deck.pop(), said = HT_RANKS[call];
+      const c = deck.pop();
       nextTurn();
       cardEl.className = 'ht-card face';
       void cardEl.offsetWidth;
-      if (c.joker) {
-        cardEl.style.setProperty('--c', '#7b2fd0');
-        cardEl.innerHTML = '<span class="s joker">鬼牌</span>';
-        hit('鬼牌！不管喊什麼都要做');
-      } else {
-        cardEl.style.setProperty('--c', c.c);
-        cardEl.innerHTML = `<span class="r">${c.r}<small>${c.s}</small></span><span class="s">${c.s}</span><span class="r b">${c.r}<small>${c.s}</small></span>`;
-        if (c.r === said) hit('心臟病！');
-        else { call = (call + 1) % HT_RANKS.length; drawAct(); beep(520, 0.05, 'triangle'); buzz(20); }
-      }
-      cardEl.setAttribute('aria-label', c.joker ? '鬼牌，點一下翻下一張' : `${c.s}${c.r}，點一下翻下一張`);
+      cardEl.style.setProperty('--c', c.c);
+      cardEl.innerHTML = `<span class="r">${c.r}<small>${c.s}</small></span><span class="s">${c.s}</span><span class="r b">${c.r}<small>${c.s}</small></span>`;
+      if (c.r === HT_RANKS[call]) hit();
+      else { call = (call + 1) % HT_RANKS.length; drawAct(); beep(520, 0.05, 'triangle'); buzz(20); }
+      cardEl.setAttribute('aria-label', `${c.s}${c.r}，點一下翻下一張`);
       drawTurn();
     }
     cardEl.onclick = flip;
