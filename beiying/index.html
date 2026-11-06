@@ -195,7 +195,8 @@ function layout() {
   L.groundY = L.trackTop + (L.bottom - L.trackTop) * 0.62;
   L.sonX = W * 0.17;
   L.scale = clamp(H / 760, 0.75, 1.15);
-  if (S.f) { S.f.x = clamp(S.f.x, W * 0.3, W * 0.94); S.f.tx = clamp(S.f.tx, W * 0.3, W * 0.94); }
+  L.xMin = 44 * L.scale; L.xMax = W - 44 * L.scale; // 爸爸能走的範圍：兩邊橘子攤前面
+  if (S.f) { S.f.x = clamp(S.f.x, L.xMin, L.xMax); S.f.tx = clamp(S.f.tx, L.xMin, L.xMax); }
 }
 
 // ---------- 遊戲狀態 ----------
@@ -229,7 +230,7 @@ function newGame() {
 }
 
 function spawnOrange(scatter) {
-  if (scatter) { S.oranges.push({ x: rand(W * 0.32, W * 0.92), y: L.groundY, vx: 0, vy: 0, fall: false, rot: rand(0, 6) }); return; }
+  if (scatter) { S.oranges.push({ x: rand(L.xMin + 10, L.xMax - 10), y: L.groundY, vx: 0, vy: 0, fall: false, rot: rand(0, 6) }); return; }
   // 從左右兩邊的橘子攤滾進來
   const fromLeft = Math.random() < 0.5;
   S.oranges.push({ x: fromLeft ? -14 : W + 14, y: L.groundY, vx: (fromLeft ? 1 : -1) * rand(140, 230), vy: 0, fall: false, rot: rand(0, 6) });
@@ -247,7 +248,7 @@ function updateVendor(dt) {
   if (!v) return;
   v.x += v.dir * 120 * dt; v.step += dt * 9;
   v.nextDrop -= dt;
-  if (v.nextDrop <= 0 && v.drops > 0 && v.x > W * 0.34 && v.x < W * 0.9) {
+  if (v.nextDrop <= 0 && v.drops > 0 && v.x > L.xMin + 10 && v.x < L.xMax - 10) {
     v.drops--; v.nextDrop = rand(0.3, 0.6);
     S.oranges.push({ x: v.x, y: L.platformY - 20 * L.scale, vx: rand(-40, 40), vy: -rand(20, 90), fall: true, rot: rand(0, 6) });
   }
@@ -359,8 +360,8 @@ function update(dt) {
     } else {
       o.x += o.vx * dt; o.vx *= Math.pow(0.4, dt); o.rot += o.vx * dt / 9;
       // 停下來的位置一定在爸爸走得到的範圍內
-      if (o.vx < 0 && o.x < W * 0.3) { o.x = W * 0.3; o.vx = 0; }
-      if (o.vx > 0 && o.x > W * 0.94 && o.x < W) { o.x = W * 0.94; o.vx = 0; }
+      if (o.vx < 0 && o.x < L.xMin && o.x > 0) { o.x = L.xMin; o.vx = 0; }
+      if (o.vx > 0 && o.x > L.xMax && o.x < W) { o.x = L.xMax; o.vx = 0; }
     }
   }
 
@@ -369,7 +370,7 @@ function update(dt) {
   if (f.state === 'ground') {
     const dx = f.tx - f.x, step = 170 * slow * dt;
     if (Math.abs(dx) > 1) { f.x += Math.sign(dx) * Math.min(step, Math.abs(dx)); f.walk += step * 0.15; f.dir = Math.sign(dx); }
-    f.x = clamp(f.x, W * 0.3, W * 0.94);
+    f.x = clamp(f.x, L.xMin, L.xMax);
     for (let i = S.oranges.length - 1; i >= 0; i--) {
       const o = S.oranges[i];
       if (!o.fall && Math.abs(o.x - f.x) < 24 * L.scale) {
@@ -696,7 +697,7 @@ layout();
 refreshAchCount();
 // 標題畫面的展示
 S.f = { x: W * 0.62, tx: W * 0.62, state: 'climb', p: 0.45, carry: 3, walk: 0, dir: 1 };
-S.oranges = []; for (let i = 0; i < 5; i++) S.oranges.push({ x: rand(W * 0.3, W * 0.9), y: 0, vx: 0, vy: 0, fall: false, rot: rand(0, 6) });
+S.oranges = []; for (let i = 0; i < 5; i++) S.oranges.push({ x: rand(L.xMin, L.xMax), y: 0, vx: 0, vy: 0, fall: false, rot: rand(0, 6) });
 S.oranges.forEach(o => { o.y = L.groundY; });
 requestAnimationFrame(loop);
 </script>
