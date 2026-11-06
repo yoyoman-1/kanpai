@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>背影：撿橘子</title>
+<meta name="description" content="我買幾個橘子去，你就在此地，不要走動。幫爸爸撿橘子、爬月台、躲火車，解鎖 14 個成就。">
+<meta property="og:title" content="背影：撿橘子">
+<meta property="og:description" content="我買幾個橘子去，你就在此地，不要走動。">
+<style>
+:root { --ink: #2b2622; --paper: #f3ead8; --orange: #f08a24; --red: #c8442f; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: #1f1b18; overscroll-behavior: none; }
+body { font-family: "Noto Serif TC", "Songti TC", "PMingLiU", serif; color: var(--ink); display: flex; justify-content: center;
+  user-select: none; -webkit-user-select: none; touch-action: none; }
+#app { position: relative; width: 100%; max-width: 480px; height: 100%; overflow: hidden; background: var(--paper); }
+canvas { display: block; width: 100%; height: 100%; }
+#hud { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; gap: 8px;
+  padding: calc(10px + env(safe-area-inset-top)) 14px 6px; font-size: 15px; font-weight: 700; pointer-events: none; }
+#hud span { background: #fffc; border-radius: 99px; padding: 3px 10px; }
+#ctrl { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(14px + env(safe-area-inset-bottom)); }
+#climb { --p: 0; width: 100%; height: 64px; border: 0; border-radius: 16px; color: var(--paper); font: inherit; font-size: 22px; font-weight: 700;
+  letter-spacing: .12em; box-shadow: 0 4px 0 #000; touch-action: none;
+  background: linear-gradient(90deg, var(--orange) calc(var(--p) * 100%), var(--ink) calc(var(--p) * 100%)); }
+#climb.on { transform: translateY(3px); box-shadow: 0 1px 0 #000; }
+#climb:disabled { opacity: .55; }
+#quote { position: absolute; left: 16px; right: 16px; bottom: 104px; text-align: center; font-size: 16px; line-height: 1.5;
+  color: #fff; text-shadow: 0 1px 3px #000, 0 0 8px #000; opacity: 0; transition: opacity .4s; pointer-events: none; }
+#quote.show { opacity: 1; }
+#toast { position: absolute; left: 50%; top: calc(52px + env(safe-area-inset-top)); transform: translate(-50%, calc(-100% - 80px)); opacity: 0; transition: transform .35s, opacity .35s;
+  background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 12px; font-size: 15px; white-space: nowrap; z-index: 9;
+  box-shadow: 0 4px 12px #0006; pointer-events: none; }
+#toast.show { transform: translate(-50%, 0); opacity: 1; }
+#toast b { color: #ffc46b; }
+.screen { position: absolute; inset: 0; background: #f3ead8f2; display: none; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px 22px calc(24px + env(safe-area-inset-bottom)); text-align: center; overflow-y: auto; z-index: 5; }
+.screen.show { display: flex; }
+#sAch { justify-content: flex-start; background: var(--paper); z-index: 6; }
+.screen h1 { font-size: 52px; margin: 0; letter-spacing: .2em; line-height: 1.1; }
+.screen h1 small { display: block; font-size: 22px; letter-spacing: .5em; color: var(--orange); margin-top: 6px; }
+.lead { font-size: 17px; margin: 18px 0 10px; line-height: 1.6; }
+.how { font-size: 14px; line-height: 1.7; margin: 0 0 20px; color: #5a5048; max-width: 340px; text-align: left; }
+.btn { display: block; width: 100%; max-width: 300px; margin: 6px auto; padding: 14px; border: 0; border-radius: 14px; font: inherit; font-size: 19px; font-weight: 700;
+  background: var(--ink); color: var(--paper); box-shadow: 0 3px 0 #000; }
+.btn.alt { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+.foot { font-size: 12px; color: #7a6e62; margin-top: 16px; line-height: 1.6; }
+.foot a { color: inherit; }
+.big { font-size: 24px; font-weight: 700; margin: 8px 0; line-height: 1.5; }
+.big b { color: var(--orange); font-size: 34px; }
+.sub { font-size: 15px; color: #5a5048; margin-bottom: 12px; }
+#newAch { margin: 6px 0 14px; font-size: 14px; color: var(--red); line-height: 1.7; }
+#achList { width: 100%; max-width: 360px; list-style: none; padding: 0; margin: 10px 0 16px; text-align: left; }
+#achList li { display: flex; gap: 10px; align-items: center; padding: 9px 10px; border-bottom: 1px dashed #c9bba3; }
+#achList li i { font-style: normal; font-size: 24px; width: 30px; text-align: center; }
+#achList li.lock { opacity: .45; }
+#achList li b { display: block; font-size: 16px; }
+#achList li span { font-size: 13px; color: #6b6058; }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="cv"></canvas>
+  <div id="hud"><span id="hDel">🍊 送達 0</span><span id="hCar">抱著 0</span><span id="hTime">⏱ 60</span></div>
+  <div id="quote"></div>
+  <div id="ctrl"><button id="climb">按住 爬月台</button></div>
+  <div id="toast"></div>
+
+  <div class="screen show" id="sTitle">
+    <h1>背影<small>撿橘子</small></h1>
+    <p class="lead">「我買幾個橘子去。<br>你就在此地，不要走動。」</p>
+    <p class="how">・你的火車 60 秒後開，開車前讓爸爸送越多橘子越好。<br>・點鐵軌，爸爸會走過去撿橘子。<br>・按住下方按鈕爬上月台，把橘子交給你。<br>・抱越多爬越慢、越容易掉，但一次送 6 顆以上有加碼。<br>・聽到汽笛就趕快爬上去，被火車攔下就結束。</p>
+    <button class="btn" id="bStart">開始</button>
+    <button class="btn alt" data-ach>成就 <span class="achCount"></span></button>
+    <p class="foot">文本出自朱自清〈背影〉（1925）<br>牛大做的小遊戲 · <a href="https://www.instagram.com/aishorts0625/" target="_blank" rel="noopener">IG @aishorts0625</a></p>
+  </div>
+
+  <div class="screen" id="sOver">
+    <p class="sub" id="oReason"></p>
+    <p class="lead">「等他的背影混入來來往往的人裡，<br>再找不著了。」</p>
+    <div class="big">你爸爬了 <b id="oClimb">0</b> 次月台</div>
+    <div class="sub">送來 <span id="oDel">0</span> 顆橘子 ・ 躲過 <span id="oTrain">0</span> 班火車 ・ 最佳 <span id="oBest">0</span> 顆</div>
+    <div id="newAch"></div>
+    <button class="btn" id="bAgain">再來一次</button>
+    <button class="btn alt" id="bShare">分享成績</button>
+    <button class="btn alt" data-ach>成就 <span class="achCount"></span></button>
+    <p class="foot">牛大做的小遊戲 · <a href="https://www.instagram.com/aishorts0625/" target="_blank" rel="noopener">IG @aishorts0625</a></p>
+  </div>
+
+  <div class="screen" id="sAch">
+    <h2>成就 <span class="achCount"></span></h2>
+    <ul id="achList"></ul>
+    <button class="btn" id="bBack">返回</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// ---------- 統計與成就 ----------
+const UMAMI_ID = '7116ffc5-6612-4917-9ff3-f57cf074b807';
+const track = (name, data) => { try { window.umami && window.umami.track(name, data); } catch (e) {} };
+if (UMAMI_ID) {
+  const sc = document.createElement('script');
+  sc.defer = true; sc.src = 'https://cloud.umami.is/script.js'; sc.dataset.websiteId = UMAMI_ID;
+  document.head.appendChild(sc);
+}
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('beiying:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('beiying:' + k, JSON.stringify(v)); } catch (e) {} },
+};
+const ACH = [
+  { id: 'first_pick', icon: '🍊', name: '我買幾個橘子去', desc: '撿到第一顆橘子' },
+  { id: 'dont_move', icon: '🧍', name: '你就在此地，不要走動', desc: '開局 5 秒內什麼都不碰' },
+  { id: 'first_top', icon: '🧥', name: '黑布大馬褂', desc: '第一次爬上月台' },
+  { id: 'slip', icon: '↙️', name: '肥胖的身子向左微傾', desc: '爬到一半手滑，摔回鐵軌' },
+  { id: 'armful', icon: '🤲', name: '一次抱好多', desc: '一次抱 8 顆以上爬上月台' },
+  { id: 'spill', icon: '💥', name: '散放在地上', desc: '同一次爬月台掉了 2 顆以上' },
+  { id: 'tears', icon: '💧', name: '我的淚很快地流下來了', desc: '單局送達 40 顆橘子' },
+  { id: 'love', icon: '❤️', name: '父愛如山', desc: '累計送達 200 顆橘子' },
+  { id: 'trains', icon: '🚂', name: '進去吧，裡邊沒人', desc: '撐到開車，一次都沒被火車攔下' },
+  { id: 'close', icon: '😱', name: '差一點', desc: '火車快到時才爬上月台' },
+  { id: 'juice', icon: '🧃', name: '柳橙汁', desc: '單局讓火車壓爛 20 顆橘子' },
+  { id: 'zero', icon: '❓', name: '橘子呢？', desc: '一顆都沒送到就結束', hidden: true },
+  { id: 'son', icon: '👦', name: '爸爸，你走吧', desc: '在月台上點兒子 10 次', hidden: true },
+  { id: 'all', icon: '🏆', name: '背影', desc: '解鎖其他所有成就' },
+];
+let got = store.get('ach', {});
+const stats = Object.assign({ delivered: 0, juice: 0, best: 0, plays: 0 }, store.get('stats', {}));
+const saveStats = () => store.set('stats', stats);
+const achCount = () => `${ACH.filter(a => got[a.id]).length}/${ACH.length}`;
+function refreshAchCount() { document.querySelectorAll('.achCount').forEach(e => { e.textContent = achCount(); }); }
+
+let toastQ = [], toastBusy = false;
+function showToast(html) { toastQ.push(html); if (!toastBusy) nextToast(); }
+function nextToast() {
+  const t = $('#toast'), h = toastQ.shift();
+  if (!h) { toastBusy = false; return; }
+  toastBusy = true; t.innerHTML = h; t.classList.add('show');
+  setTimeout(() => { t.classList.remove('show'); setTimeout(nextToast, 380); }, 2200);
+}
+function unlock(id) {
+  if (got[id]) return;
+  const a = ACH.find(x => x.id === id);
+  got[id] = Date.now(); store.set('ach', got);
+  if (S.newAch) S.newAch.push(a);
+  showToast(`🏆 解鎖成就：<b>${a.name}</b>`);
+  sfx.ach(); buzz([30, 40, 30]); track('achievement', { id });
+  refreshAchCount();
+  if (id !== 'all' && ACH.every(x => x.id === 'all' || got[x.id])) unlock('all');
+}
+function renderAch() {
+  $('#achList').innerHTML = ACH.map(a => {
+    const open = got[a.id], hide = a.hidden && !open;
+    return `<li class="${open ? '' : 'lock'}"><i>${open ? a.icon : '🔒'}</i><div><b>${hide ? '？？？' : a.name}</b><span>${hide ? '隱藏成就' : a.desc}</span></div></li>`;
+  }).join('');
+  refreshAchCount();
+}
+
+// ---------- 音效 ----------
+let AC = null;
+function audio() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (AC && AC.state === 'suspended') AC.resume(); }
+function tone(f, d, type = 'sine', v = 0.12, delay = 0) {
+  if (!AC) return;
+  const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + 0.02);
+}
+const sfx = {
+  pick() { tone(880, 0.08, 'triangle', 0.1); },
+  drop() { tone(220, 0.12, 'triangle', 0.12); },
+  deliver(n) { [523, 659, 784].forEach((f, i) => tone(f, 0.14, 'triangle', 0.1, i * 0.07)); if (n >= 5) tone(1047, 0.25, 'triangle', 0.08, 0.21); },
+  whistle() { tone(740, 0.5, 'square', 0.05); tone(587, 0.9, 'square', 0.05, 0.5); },
+  hit() { tone(110, 0.5, 'sawtooth', 0.15); tone(70, 0.6, 'square', 0.1, 0.05); },
+  ach() { [784, 988, 1319].forEach((f, i) => tone(f, 0.18, 'sine', 0.09, i * 0.09)); },
+};
+const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+// ---------- 畫面配置 ----------
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+const L = {};
+function layout() {
+  const r = $('#app').getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = r.width; H = r.height;
+  cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ctrlH = $('#ctrl').offsetHeight;
+  L.platformY = H * 0.34;
+  L.wallH = Math.max(56, H * 0.09);
+  L.trackTop = L.platformY + L.wallH;
+  L.bottom = H - ctrlH;
+  L.groundY = L.trackTop + (L.bottom - L.trackTop) * 0.62;
+  L.sonX = W * 0.17;
+  L.scale = clamp(H / 760, 0.75, 1.15);
+  if (S.f) { S.f.x = clamp(S.f.x, W * 0.3, W * 0.94); S.f.tx = clamp(S.f.tx, W * 0.3, W * 0.94); }
+}
+
+// ---------- 遊戲狀態 ----------
+const ROUND = 60; // 兒子的火車幾秒後開
+let DOUBLE_P = 0.2; // 30 秒後火車連兩班的機率
+let WARN_MIN = 1.4, WARN_DECAY = 0.25;
+let BONUS_AT = 6, JUICE_AT = 20, TEARS_AT = 40; // 一次送幾顆開始加碼；柳橙汁要單局壓爛幾顆 // 火車預警秒數：從 2.5 秒每班遞減，最少 WARN_MIN
+const S = { mode: 'title', t: 0, fx: [], shake: 0, flash: 0, ring: null, f: null, oranges: [], tears: [], train: null, holding: false, sonTaps: 0, newAch: null };
+let quoteTimer = 0;
+function quote(text) {
+  const q = $('#quote'); q.textContent = text; q.classList.add('show');
+  clearTimeout(quoteTimer); quoteTimer = setTimeout(() => q.classList.remove('show'), 2800);
+}
+
+function newGame() {
+  audio();
+  Object.assign(S, {
+    mode: 'play', t: 0, oranges: [], tears: [], train: null, holding: false, idle: true, overT: 0,
+    delivered: 0, climbs: 0, trains: 0, spawnT: 0.4, trainGap: 7, nextTrain: 5, newAch: [], sonTaps: 0,
+    timeLeft: ROUND, endReason: '', squashed: 0, fx: [], shake: 0, flash: 0, hitstop: 0,
+    f: { x: W * 0.6, tx: W * 0.6, state: 'ground', p: 0, carry: 0, dropT: 0, drops: 0, slip: false, walk: 0, dir: 1 },
+  });
+  for (let i = 0; i < 6; i++) spawnOrange(true);
+  stats.plays++; saveStats();
+  ['#sTitle', '#sOver', '#sAch'].forEach(s => $(s).classList.remove('show'));
+  quote('「我買幾個橘子去。你就在此地，不要走動。」');
+  track('play');
+}
+
+function spawnOrange(scatter) {
+  S.oranges.push({
+    x: scatter ? rand(W * 0.3, W * 0.95) : W + 14, y: L.groundY, vx: scatter ? 0 : -rand(60, 140), vy: 0,
+    fall: false, rot: rand(0, 6),
+  });
+}
+
+function vulnerable(f) { return f.state === 'ground' || f.state === 'down' || (f.state === 'climb' && f.p < 0.7); }
+
+function arrive() {
+  const f = S.f;
+  f.state = 'top'; f.p = 1; S.climbs++;
+  unlock('first_top');
+  const n = f.carry;
+  if (n >= 8) unlock('armful');
+  if (f.drops >= 2) unlock('spill');
+  const tr = S.train;
+  if (tr && ((tr.phase === 'warn' && tr.warn - tr.t < 0.6) || (tr.phase === 'pass' && tr.x - f.x < 160 && tr.x > f.x))) unlock('close');
+  if (n > 0) {
+    // 一次抱越多越冒險，給加碼：6 顆以上每顆算 1.5 顆
+    const bonus = n >= BONUS_AT ? Math.floor(n * 0.5) : 0;
+    if (bonus) S.fx.push({ kind: 'text', text: `一次 ${n} 顆！加碼 +${bonus}`, x: W / 2, y: L.platformY - 90 * L.scale, vy: -30, life: 1.2, color: '#c8442f' });
+    S.delivered += n + bonus; stats.delivered += n + bonus; saveStats();
+    sfx.deliver(n); buzz(25);
+    for (let i = 0; i < Math.min(12, 2 + n); i++) S.tears.push({ x: L.sonX + rand(-6, 6), y: L.platformY - 58 * L.scale, vy: rand(20, 80), life: 1.2 });
+    if (n >= 5) quote('「我的淚很快地流下來了。」');
+    if (S.delivered >= TEARS_AT) unlock('tears');
+    if (stats.delivered >= 200) unlock('love');
+  } else {
+    quote('爸爸兩手空空地爬上來了。');
+  }
+  f.carry = 0;
+}
+
+function gameOver() {
+  S.mode = 'dying'; S.overT = 0; S.endReason = 'hit';
+  S.shake = 0.3; S.flash = 0.1; S.hitstop = 0.08;
+  sfx.hit(); buzz([80, 60, 160]);
+  quote('爸爸被火車攔在鐵軌上了。');
+}
+
+function timeUp() {
+  S.mode = 'dying'; S.overT = 0; S.endReason = 'time';
+  sfx.whistle(); buzz(60);
+  quote('「進去吧，裡邊沒人。」火車開了。');
+  unlock('trains');
+}
+
+function showOver() {
+  S.mode = 'over';
+  if (S.delivered === 0) unlock('zero');
+  stats.best = Math.max(stats.best, S.delivered); saveStats();
+  $('#oReason').textContent = S.endReason === 'hit' ? '爸爸被火車攔在鐵軌上了。' : '火車開了。';
+  $('#oClimb').textContent = S.climbs;
+  $('#oDel').textContent = S.delivered;
+  $('#oTrain').textContent = S.trains;
+  $('#oBest').textContent = stats.best;
+  $('#newAch').innerHTML = S.newAch.length ? '這局解鎖：' + S.newAch.map(a => `${a.icon} ${a.name}`).join('、') : '';
+  refreshAchCount();
+  $('#sOver').classList.add('show');
+  track('over', { delivered: S.delivered, climbs: S.climbs, trains: S.trains });
+}
+
+// ---------- 更新 ----------
+function update(dt) {
+  if (S.mode !== 'play' && S.mode !== 'dying') return;
+  S.t += dt;
+  const f = S.f;
+
+  S.shake = Math.max(0, S.shake - dt); S.flash = Math.max(0, S.flash - dt);
+  for (const p of S.fx) { p.life -= dt; p.y += p.vy * dt; if (p.kind === 'drop') { p.x += p.vx * dt; p.vy += 700 * dt; } }
+  S.fx = S.fx.filter(p => p.life > 0);
+  if (S.hitstop > 0) { S.hitstop -= dt; return; }
+
+  if (S.mode === 'dying') {
+    S.overT += dt;
+    if (S.train) S.train.x -= S.train.speed * dt * 0.25;
+    if (S.overT > 1.4) showOver();
+    return;
+  }
+
+  if (S.idle && S.t >= 5) { S.idle = false; unlock('dont_move'); }
+  S.timeLeft -= dt;
+  if (S.timeLeft <= 0) { S.timeLeft = 0; syncUI(); timeUp(); return; }
+  if (S.timeLeft < 10 && Math.ceil(S.timeLeft) !== Math.ceil(S.timeLeft + dt)) tone(990, 0.06, 'square', 0.04);
+
+  // 橘子：從右邊的攤子滾進來
+  S.spawnT -= dt;
+  if (S.spawnT <= 0) { S.spawnT = rand(0.8, 1.5); if (S.oranges.length < 14) spawnOrange(false); }
+  for (const o of S.oranges) {
+    if (o.fall) {
+      o.vy += 900 * dt; o.y += o.vy * dt; o.x += o.vx * dt;
+      if (o.y >= L.groundY) { o.y = L.groundY; if (o.vy > 140) o.vy *= -0.35; else { o.vy = 0; o.fall = false; } }
+    } else {
+      o.x += o.vx * dt; o.vx *= Math.pow(0.4, dt); o.rot += o.vx * dt / 9;
+      if (o.x < 8) { o.x = 8; o.vx = 0; }
+    }
+  }
+
+  // 爸爸
+  const slow = Math.max(0.45, 1 - 0.035 * f.carry);
+  if (f.state === 'ground') {
+    const dx = f.tx - f.x, step = 170 * slow * dt;
+    if (Math.abs(dx) > 1) { f.x += Math.sign(dx) * Math.min(step, Math.abs(dx)); f.walk += step * 0.15; f.dir = Math.sign(dx); }
+    f.x = clamp(f.x, W * 0.3, W * 0.94);
+    for (let i = S.oranges.length - 1; i >= 0; i--) {
+      const o = S.oranges[i];
+      if (!o.fall && Math.abs(o.x - f.x) < 24 * L.scale) {
+        S.oranges.splice(i, 1); f.carry++; sfx.pick(); unlock('first_pick');
+        S.fx.push({ kind: 'text', text: '+1', x: f.x, y: L.groundY - 110 * L.scale, vy: -50, life: 0.7 });
+      }
+    }
+    if (S.holding) { f.state = 'climb'; f.drops = 0; f.slip = false; f.dropT = 0; }
+  }
+  if (f.state === 'climb') {
+    if (S.holding) {
+      f.p += dt * 1.05 / (1 + 0.07 * f.carry);
+      f.dropT += dt;
+      if (f.dropT > 0.3) {
+        f.dropT = 0;
+        if (f.carry > 0 && Math.random() < Math.min(0.45, f.carry * 0.03)) {
+          f.carry--; f.drops++; sfx.drop();
+          S.oranges.push({ x: f.x + rand(-10, 10), y: fatherFootY() - 50, vx: (Math.random() < 0.5 ? -1 : 1) * rand(120, 200), vy: -rand(60, 160), fall: true, rot: 0 });
+          S.fx.push({ kind: 'text', text: '掉了！', x: f.x, y: fatherFootY() - 120 * L.scale, vy: -40, life: 0.7, color: '#c8442f' });
+        }
+      }
+      if (f.p > 0.5) f.slip = true;
+      if (f.p >= 1) arrive();
+    } else {
+      f.p -= dt * 2.4;
+      if (f.p <= 0) {
+        f.p = 0; f.state = 'ground'; f.tx = f.x;
+        if (f.slip) { unlock('slip'); quote('「他肥胖的身子向左微傾，顯出努力的樣子。」'); }
+      }
+    }
+  }
+  if (f.state === 'down') {
+    f.p -= dt * 2.2;
+    if (f.p <= 0) { f.p = 0; f.state = 'ground'; f.tx = f.x; }
+  }
+
+  // 火車
+  if (!S.train && S.t >= S.nextTrain) {
+    S.train = { phase: 'warn', t: 0, warn: Math.max(WARN_MIN, 2.5 - S.trains * WARN_DECAY), x: W + 20, len: W * 1.5, speed: 0 };
+    sfx.whistle(); buzz(60);
+  }
+  const tr = S.train;
+  if (tr) {
+    if (tr.phase === 'warn') {
+      tr.t += dt;
+      if (tr.t >= tr.warn) { tr.phase = 'pass'; tr.x = W + 20; tr.speed = (W + tr.len + 40) / 1.3; }
+    } else {
+      tr.x -= tr.speed * dt;
+      const back = tr.x + tr.len;
+      for (let i = S.oranges.length - 1; i >= 0; i--) {
+        const o = S.oranges[i];
+        if (o.x >= tr.x && o.x <= back) {
+          S.oranges.splice(i, 1); stats.juice++; S.squashed++;
+          for (let j = 0; j < 5; j++) S.fx.push({ kind: 'drop', x: o.x, y: o.y - 6, vx: rand(-120, 120), vy: -rand(80, 220), life: 0.5 });
+        }
+      }
+      if (S.squashed >= JUICE_AT) unlock('juice');
+      if (vulnerable(f) && f.x >= tr.x && f.x <= back) { saveStats(); gameOver(); return; }
+      if (back < -20) {
+        S.train = null; S.trains++; saveStats();
+        // 30 秒後有機率緊接著再來一班
+        const double = S.t > 30 && Math.random() < DOUBLE_P;
+        S.nextTrain = S.t + (double ? 0.4 : S.trainGap); S.trainGap = Math.max(2.5, S.trainGap - 0.5);
+      }
+    }
+  }
+
+  for (const d of S.tears) { d.y += d.vy * dt; d.vy += 200 * dt; d.life -= dt; }
+  S.tears = S.tears.filter(d => d.life > 0);
+  syncUI();
+}
+
+function fatherFootY() {
+  const f = S.f, top = L.platformY, g = L.groundY;
+  return g + (top - g) * easeInOut(f.p);
+}
+const easeInOut = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+let lastLabel = '';
+function syncUI() {
+  const f = S.f;
+  $('#hDel').textContent = `🍊 送達 ${S.delivered}`;
+  $('#hCar').textContent = `抱著 ${f.carry}`;
+  $('#hTime').textContent = `⏱ ${Math.ceil(S.timeLeft)}`;
+  const btn = $('#climb');
+  let label;
+  if (f.state === 'top') label = S.train && S.train.phase === 'pass' ? '火車經過中…' : '跳下去撿橘子';
+  else if (f.state === 'climb') label = S.holding ? '撐住！' : '滑下去了…';
+  else if (f.state === 'down') label = '下去中…';
+  else label = '按住 爬月台';
+  if (label !== lastLabel) { btn.textContent = label; lastLabel = label; }
+  btn.style.setProperty('--p', f.state === 'climb' ? f.p.toFixed(3) : 0);
+}
+
+// ---------- 繪圖 ----------
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.save();
+  if (S.shake > 0) { const a = 10 * S.shake / 0.3; ctx.translate(rand(-a, a), rand(-a, a)); }
+  drawScene();
+  // 回饋特效
+  for (const p of S.fx) {
+    ctx.globalAlpha = clamp(p.life / 0.4, 0, 1);
+    if (p.kind === 'text') {
+      ctx.font = `700 ${20 * L.scale}px serif`; ctx.textAlign = 'center';
+      ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.strokeText(p.text, p.x, p.y);
+      ctx.fillStyle = p.color || '#e07010'; ctx.fillText(p.text, p.x, p.y);
+    } else { ctx.fillStyle = '#f08a24'; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 7); ctx.fill(); }
+  }
+  ctx.globalAlpha = 1;
+  if (S.ring && S.ring.life > 0) {
+    S.ring.life -= 1 / 60;
+    ctx.strokeStyle = `rgba(255,255,255,${S.ring.life / 0.4})`; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(S.ring.x, L.groundY + 8, 26 * (1.4 - S.ring.life), 8 * (1.4 - S.ring.life), 0, 0, 7); ctx.stroke();
+  }
+  ctx.restore();
+  if (S.flash > 0) { ctx.fillStyle = `rgba(255,255,255,${S.flash / 0.1})`; ctx.fillRect(0, 0, W, H); }
+}
+
+function drawScene() {
+  const k = L.scale;
+  // 天空與月台頂棚
+  const sky = ctx.createLinearGradient(0, 0, 0, L.platformY);
+  sky.addColorStop(0, '#c9d3d6'); sky.addColorStop(1, '#ece2cd');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, L.platformY);
+  ctx.fillStyle = '#5b4b3e'; ctx.fillRect(0, 0, W, 14);
+  for (let x = W * 0.08; x < W; x += W * 0.3) { ctx.fillRect(x, 14, 8, L.platformY - 26); }
+  ctx.fillStyle = '#7d6a58'; ctx.fillRect(0, 14, W, 6);
+  // 站牌
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2b2622'; ctx.lineWidth = 2;
+  const sw = 110 * k, sh = 34 * k, sx = W * 0.62, sy = L.platformY * 0.34;
+  ctx.fillRect(sx, sy, sw, sh); ctx.strokeRect(sx, sy, sw, sh);
+  ctx.fillStyle = '#2b2622'; ctx.font = `700 ${18 * k}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('浦口站', sx + sw / 2, sy + sh / 2 + 1);
+  // 月台
+  ctx.fillStyle = '#a49b8e'; ctx.fillRect(0, L.platformY - 10, W, 10);
+  ctx.fillStyle = '#e8c547'; ctx.fillRect(0, L.platformY - 3, W, 3);
+  ctx.fillStyle = '#8b837a'; ctx.fillRect(0, L.platformY, W, L.wallH);
+  ctx.strokeStyle = '#7a7269'; ctx.lineWidth = 1;
+  for (let y = L.platformY + 14; y < L.trackTop; y += 14) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  // 鐵軌
+  ctx.fillStyle = '#7a6e62'; ctx.fillRect(0, L.trackTop, W, L.bottom - L.trackTop + 200);
+  ctx.fillStyle = '#5d4a3a';
+  for (let x = -10; x < W + 20; x += 26) ctx.fillRect(x, L.groundY + 2, 14, 10);
+  ctx.fillStyle = '#c9c4bd'; ctx.fillRect(0, L.groundY + 1, W, 3); ctx.fillRect(0, L.groundY + 11, W, 3);
+  // 右邊的橘子攤
+  ctx.fillStyle = '#6b4a2b'; ctx.fillRect(W - 34 * k, L.groundY - 34 * k, 34 * k, 34 * k);
+  for (let i = 0; i < 5; i++) drawOrange(W - 26 * k + (i % 3) * 9 * k, L.groundY - 36 * k - Math.floor(i / 3) * 8 * k, 6 * k, 0);
+
+  // 火車預警號誌
+  const tr = S.train;
+  if (S.mode !== 'title' && tr && tr.phase === 'warn') {
+    const on = Math.floor(tr.t * 6) % 2 === 0;
+    ctx.fillStyle = on ? '#e33' : '#511'; ctx.beginPath(); ctx.arc(W - 22, L.platformY + L.wallH / 2, 9, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = `700 ${22 * k}px serif`; ctx.textAlign = 'center';
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 4;
+    const msg = '嗚——！火車要來了';
+    ctx.strokeText(msg, W / 2, L.trackTop + 28 * k); ctx.fillText(msg, W / 2, L.trackTop + 28 * k);
+  }
+
+  for (const o of S.oranges) drawOrange(o.x, o.y - 9 * k, 9 * k, o.rot);
+
+  drawSon(L.sonX, L.platformY, k);
+  for (const d of S.tears) { ctx.globalAlpha = clamp(d.life, 0, 1); ctx.fillStyle = '#5aa9e6'; ctx.beginPath(); ctx.arc(d.x, d.y, 3, 0, 7); ctx.fill(); }
+  ctx.globalAlpha = 1;
+
+  if (S.f) drawFather();
+  if (tr && tr.phase === 'pass') drawTrain(tr);
+}
+
+function drawOrange(x, y, r, rot) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.fillStyle = '#f08a24'; ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#b85f10'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.fillStyle = '#4c8a3a'; ctx.beginPath(); ctx.ellipse(r * 0.3, -r * 0.95, r * 0.45, r * 0.22, -0.5, 0, 7); ctx.fill();
+  ctx.restore();
+}
+
+function drawSon(x, y, k) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = '#3b3b48'; ctx.fillRect(-9 * k, -22 * k, 7 * k, 22 * k); ctx.fillRect(2 * k, -22 * k, 7 * k, 22 * k);
+  ctx.fillStyle = '#6b4a8a'; // 紫毛大衣
+  ctx.beginPath(); ctx.roundRect(-15 * k, -56 * k, 30 * k, 38 * k, 8 * k); ctx.fill();
+  ctx.fillStyle = '#f1c9a0'; ctx.beginPath(); ctx.arc(0, -66 * k, 11 * k, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2b2622'; ctx.beginPath(); ctx.arc(0, -70 * k, 11 * k, Math.PI, 0); ctx.fill();
+  ctx.fillRect(-4 * k, -66 * k, 2 * k, 2 * k); ctx.fillRect(2 * k, -66 * k, 2 * k, 2 * k);
+  ctx.restore();
+}
+
+function drawFather() {
+  const f = S.f, k = L.scale, y = fatherFootY();
+  const climbing = f.state === 'climb' || f.state === 'down';
+  const lean = climbing ? -0.18 + Math.sin(S.t * 14) * 0.05 : 0;
+  ctx.save(); ctx.translate(f.x, y); ctx.rotate(lean);
+  const sw = f.state === 'ground' ? Math.sin(f.walk) * 4 * k : 0;
+  // 腿
+  ctx.fillStyle = '#2f3a4a';
+  if (climbing) { ctx.fillRect(-14 * k, -26 * k, 10 * k, 22 * k); ctx.fillRect(5 * k, -34 * k, 10 * k, 18 * k); }
+  else { ctx.fillRect(-13 * k, -22 * k + sw, 10 * k, 22 * k - sw); ctx.fillRect(3 * k, -22 * k - sw, 10 * k, 22 * k + sw); }
+  // 深青布棉袍
+  ctx.fillStyle = '#2f5d62';
+  ctx.beginPath(); ctx.moveTo(-22 * k, -54 * k); ctx.lineTo(22 * k, -54 * k); ctx.lineTo(25 * k, -20 * k); ctx.lineTo(-25 * k, -20 * k); ctx.closePath(); ctx.fill();
+  // 黑布大馬褂（胖）
+  ctx.fillStyle = '#1b1a1a';
+  ctx.beginPath(); ctx.roundRect(-28 * k, -86 * k, 56 * k, 40 * k, 16 * k); ctx.fill();
+  // 手
+  if (climbing || f.state === 'top') {
+    const up = f.state === 'top' ? 0 : 1;
+    ctx.fillRect(-28 * k, -112 * k * up - 80 * k * (1 - up), 11 * k, 34 * k);
+    ctx.fillRect(17 * k, -112 * k * up - 80 * k * (1 - up), 11 * k, 34 * k);
+  } else {
+    ctx.fillRect(-34 * k, -82 * k, 10 * k, 30 * k); ctx.fillRect(24 * k, -82 * k, 10 * k, 30 * k);
+  }
+  // 頭與黑布小帽（背面）
+  ctx.fillStyle = '#3a2a20'; ctx.beginPath(); ctx.arc(0, -96 * k, 12 * k, 0, 7); ctx.fill();
+  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(0, -100 * k, 12.5 * k, Math.PI, 0); ctx.fill();
+  ctx.fillRect(-13 * k, -101 * k, 26 * k, 3 * k);
+  // 抱著的橘子
+  if (f.carry > 0 && !climbing) {
+    const n = Math.min(f.carry, 8);
+    for (let i = 0; i < n; i++) drawOrange((i % 2 ? 1 : -1) * (30 + Math.floor(i / 2) * 3) * k, (-60 - Math.floor(i / 2) * 9) * k, 7 * k, 0);
+  }
+  ctx.restore();
+  if (f.carry > 0) {
+    ctx.fillStyle = '#2b2622'; ctx.font = `700 ${15 * k}px serif`; ctx.textAlign = 'center';
+    ctx.fillText(`🍊×${f.carry}`, f.x, y - 124 * k);
+  }
+}
+
+function drawTrain(tr) {
+  const k = L.scale, top = L.trackTop + 10, bot = L.groundY + 16, h = bot - top;
+  ctx.fillStyle = '#2f5b3a'; ctx.beginPath(); ctx.roundRect(tr.x, top, tr.len, h, [h * 0.35, 6, 6, 6]); ctx.fill();
+  ctx.fillStyle = '#e8c547'; ctx.fillRect(tr.x, bot - h * 0.3, tr.len, 6 * k);
+  ctx.fillStyle = '#cfe3e8';
+  for (let x = tr.x + 40 * k; x < tr.x + tr.len - 20; x += 46 * k) ctx.fillRect(x, top + h * 0.22, 28 * k, h * 0.28);
+  ctx.fillStyle = '#ffe9a3'; ctx.beginPath(); ctx.arc(tr.x + 12 * k, bot - h * 0.45, 6 * k, 0, 7); ctx.fill();
+}
+
+// ---------- 輸入 ----------
+function anyInput() { audio(); if (S.mode === 'play') S.idle = false; }
+function pos(e) { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+let dragging = false;
+cv.addEventListener('pointerdown', e => {
+  if (S.mode !== 'play') return;
+  anyInput();
+  const p = pos(e), k = L.scale;
+  if (Math.abs(p.x - L.sonX) < 26 * k && p.y > L.platformY - 80 * k && p.y < L.platformY) {
+    S.sonTaps++;
+    if (S.sonTaps === 3) quote('「爸爸，你走吧。」');
+    if (S.sonTaps >= 10) unlock('son');
+    return;
+  }
+  if (p.y > L.trackTop && S.f.state === 'ground') { S.f.tx = p.x; dragging = true; S.ring = { x: p.x, life: 0.4 }; }
+});
+cv.addEventListener('pointermove', e => { if (dragging && S.mode === 'play') S.f.tx = pos(e).x; });
+addEventListener('pointerup', () => { dragging = false; });
+
+const btn = $('#climb');
+function press() {
+  if (S.mode !== 'play') return;
+  anyInput();
+  const f = S.f;
+  if (f.state === 'top') {
+    if (S.train && S.train.phase === 'pass') { quote('火車還沒過，等一下。'); return; }
+    f.state = 'down';
+    return;
+  }
+  S.holding = true; btn.classList.add('on');
+}
+function release() { S.holding = false; btn.classList.remove('on'); }
+btn.addEventListener('pointerdown', e => { e.preventDefault(); btn.setPointerCapture && btn.setPointerCapture(e.pointerId); press(); });
+btn.addEventListener('pointerup', release);
+btn.addEventListener('pointercancel', release);
+btn.addEventListener('lostpointercapture', release);
+btn.addEventListener('contextmenu', e => e.preventDefault());
+
+const keys = {};
+addEventListener('keydown', e => {
+  if (e.repeat) return;
+  keys[e.key] = true;
+  if (e.key === ' ' || e.key === 'ArrowUp') { e.preventDefault(); press(); }
+  if (S.mode === 'play' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) anyInput();
+});
+addEventListener('keyup', e => { keys[e.key] = false; if (e.key === ' ' || e.key === 'ArrowUp') release(); });
+function keyMove() {
+  if (S.mode !== 'play' || S.f.state !== 'ground') return;
+  if (keys.ArrowLeft) S.f.tx = S.f.x - 40;
+  else if (keys.ArrowRight) S.f.tx = S.f.x + 40;
+}
+
+$('#bStart').onclick = newGame;
+$('#bAgain').onclick = newGame;
+$('#bBack').onclick = () => { $('#sAch').classList.remove('show'); };
+document.querySelectorAll('[data-ach]').forEach(b => b.onclick = () => { renderAch(); $('#sAch').classList.add('show'); });
+$('#bShare').onclick = async () => {
+  const lastAch = S.newAch && S.newAch.length ? S.newAch[S.newAch.length - 1].name : '';
+  const ending = S.endReason === 'hit' ? '被火車撞' : '火車開了';
+  const text = `我爸爬了 ${S.climbs} 次月台，送來 ${S.delivered} 顆橘子🍊${lastAch ? `「${lastAch}」→ ${ending}` : `→ ${ending}`}｜成就 ${achCount()} #背影撿橘子`;
+  const url = location.href.split('#')[0];
+  try {
+    if (navigator.share) await navigator.share({ title: '背影：撿橘子', text, url });
+    else { await navigator.clipboard.writeText(text + ' ' + url); showToast('已複製，貼給朋友吧'); }
+    track('share');
+  } catch (e) {}
+};
+
+// ---------- 主迴圈 ----------
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  keyMove();
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+addEventListener('resize', layout);
+layout();
+refreshAchCount();
+// 標題畫面的展示
+S.f = { x: W * 0.62, tx: W * 0.62, state: 'climb', p: 0.45, carry: 3, walk: 0, dir: 1 };
+S.oranges = []; for (let i = 0; i < 5; i++) S.oranges.push({ x: rand(W * 0.3, W * 0.9), y: 0, vx: 0, vy: 0, fall: false, rot: rand(0, 6) });
+S.oranges.forEach(o => { o.y = L.groundY; });
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
