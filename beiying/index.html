@@ -301,7 +301,13 @@ function gameOver() {
   S.mode = 'dying'; S.overT = 0; S.endReason = 'hit';
   S.shake = 0.3; S.flash = 0.1; S.hitstop = 0.08;
   sfx.hit(); buzz([80, 60, 160]);
-  quote('爸爸被火車攔在鐵軌上了。');
+  // 爸爸黏在火車頭前面被推走，抱著的橘子撒一地
+  const f = S.f;
+  f.state = 'pushed'; f.p = 0;
+  if (S.train) S.train.speed = 230 * L.scale; // 撞到後減速，讓人看得到爸爸被推走
+  for (let i = 0; i < f.carry * 3; i++) S.fx.push({ kind: 'drop', x: f.x, y: L.groundY - 60 * L.scale, vx: rand(-200, 200), vy: -rand(150, 380), life: 0.9 });
+  f.carry = 0;
+  syncUI();
 }
 
 function timeUp() {
@@ -315,7 +321,7 @@ function showOver() {
   S.mode = 'over';
   if (S.delivered === 0) unlock('zero');
   stats.best = Math.max(stats.best, S.delivered); saveStats();
-  $('#oReason').textContent = S.endReason === 'hit' ? '爸爸被火車攔在鐵軌上了。' : '火車開了。';
+  $('#oReason').textContent = S.endReason === 'hit' ? '爸爸被火車推走了。「爸爸還會再回來的！」' : '火車開了。';
   $('#oClimb').textContent = S.climbs;
   $('#oDel').textContent = S.delivered;
   $('#oTrain').textContent = S.trains;
@@ -339,8 +345,14 @@ function update(dt) {
 
   if (S.mode === 'dying') {
     S.overT += dt;
-    if (S.train) S.train.x -= S.train.speed * dt * 0.25;
-    if (S.overT > 1.4) showOver();
+    const tr = S.train;
+    if (S.endReason === 'hit' && tr) {
+      // 火車照速度開走，爸爸被火車頭推著一起走
+      tr.x -= tr.speed * dt;
+      S.f.x = tr.x - 24 * L.scale;
+    }
+    const pushedOut = S.endReason === 'hit' && S.f.x < -80 && S.overT > 1.2;
+    if (pushedOut || S.overT > (S.endReason === 'hit' ? 3.2 : 1.4)) showOver();
     return;
   }
 
@@ -488,6 +500,14 @@ function draw() {
   }
   ctx.restore();
   if (S.flash > 0) { ctx.fillStyle = `rgba(255,255,255,${S.flash / 0.1})`; ctx.fillRect(0, 0, W, H); }
+  if (S.mode === 'dying' && S.endReason === 'hit' && S.overT > 0.3) {
+    const k = L.scale, a = clamp((S.overT - 0.3) / 0.3, 0, 1);
+    ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `900 ${30 * k}px serif`; ctx.lineWidth = 6; ctx.strokeStyle = '#2b2622'; ctx.fillStyle = '#fff';
+    const y = L.platformY + L.wallH / 2;
+    ctx.strokeText('「爸爸還會再回來的！」', W / 2, y); ctx.fillText('「爸爸還會再回來的！」', W / 2, y);
+    ctx.globalAlpha = 1;
+  }
 }
 
 function drawScene() {
@@ -566,7 +586,7 @@ function drawSon(x, y, k) {
 function drawFather() {
   const f = S.f, k = L.scale, y = fatherFootY();
   const climbing = f.state === 'climb' || f.state === 'down';
-  const lean = climbing ? -0.18 + Math.sin(S.t * 14) * 0.05 : 0;
+  const lean = f.state === 'pushed' ? -0.55 + Math.sin(S.t * 30) * 0.12 : climbing ? -0.18 + Math.sin(S.t * 14) * 0.05 : 0;
   ctx.save(); ctx.translate(f.x, y); ctx.rotate(lean);
   const sw = f.state === 'ground' ? Math.sin(f.walk) * 4 * k : 0;
   // 腿
