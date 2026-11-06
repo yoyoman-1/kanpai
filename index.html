@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1a100b">
-<meta name="description" content="11 款手機喝酒遊戲：懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、終極密碼、吹牛、注音快答、急中生詞…一支手機傳著玩，免下載免註冊，聚會馬上開局。">
+<meta name="description" content="12 款手機喝酒遊戲：懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、終極密碼、吹牛、注音快答、急中生詞、瘋狂心臟病…一支手機傳著玩，免下載免註冊，聚會馬上開局。">
 <link rel="canonical" href="https://yoyoman-1.github.io/kanpai/">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"乾杯遊戲機","url":"https://yoyoman-1.github.io/kanpai/","applicationCategory":"GameApplication","operatingSystem":"Any","inLanguage":"zh-TW","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"TWD"},"description":"11 款手機喝酒遊戲合集，一支手機傳著玩，免下載免註冊。"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"乾杯遊戲機","url":"https://yoyoman-1.github.io/kanpai/","applicationCategory":"GameApplication","operatingSystem":"Any","inLanguage":"zh-TW","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"TWD"},"description":"12 款手機喝酒遊戲合集，一支手機傳著玩，免下載免註冊。"}</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="乾杯遊戲機">
-<meta property="og:title" content="乾杯遊戲機｜11 款手機喝酒遊戲，打開就能玩">
+<meta property="og:title" content="乾杯遊戲機｜12 款手機喝酒遊戲，打開就能玩">
 <meta property="og:description" content="懲罰轉盤、踩地雷、真心話大冒險、誰是臥底、吹牛…一支手機傳著玩，免下載免註冊，聚會喝酒馬上開局。">
 <meta property="og:url" content="https://yoyoman-1.github.io/kanpai/">
 <meta property="og:image" content="https://yoyoman-1.github.io/kanpai/og.png?v=9">
@@ -29,7 +29,7 @@ body { margin: 0; }
 img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
-<title>乾杯遊戲機｜11 款手機喝酒遊戲・懲罰轉盤、踩地雷、真心話大冒險</title>
+<title>乾杯遊戲機｜12 款手機喝酒遊戲・懲罰轉盤、踩地雷、真心話大冒險</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -395,6 +395,26 @@ textarea { resize: vertical; line-height: 1.5; }
 .lt-card.drawn .lt-face { background: var(--bc); box-shadow: 0 0 14px var(--bc); }
 .lt-card.miss { opacity: .35; }
 
+/* 瘋狂心臟病 */
+.ht-call { text-align: center; color: var(--muted); }
+.ht-call b { display: inline-block; min-width: 1.6em; font-family: var(--num); font-weight: 400; font-size: 2.2rem; line-height: 1; color: var(--amber); margin: 0 4px; vertical-align: -4px; }
+.ht-card { align-self: center; width: min(62vw, 260px); aspect-ratio: 5 / 7; border: 0; padding: 0; border-radius: 18px; position: relative; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; box-shadow: 0 8px 0 rgba(0,0,0,.35); }
+.ht-card.back { background: repeating-linear-gradient(45deg, #8e2226 0 9px, #a8292e 9px 18px); border: 6px solid var(--paper); }
+.ht-card.back::after { content: "點我翻牌"; position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 1.5rem; color: var(--paper); text-shadow: 0 2px 0 rgba(0,0,0,.4); }
+.ht-card.face { background: var(--paper); color: var(--c, var(--ink)); border: 6px solid var(--paper); animation: pop .3s cubic-bezier(.2,1.6,.4,1); }
+.ht-card.hit { box-shadow: 0 0 0 5px var(--cherry), 0 0 36px var(--cherry); animation: shake .45s ease 2; }
+.ht-card .r { position: absolute; left: 12px; top: 8px; font-family: var(--num); font-size: 2rem; line-height: 1.1; text-align: center; }
+.ht-card .r.b { left: auto; top: auto; right: 12px; bottom: 8px; transform: rotate(180deg); }
+.ht-card .r small { display: block; font-size: 1.4rem; }
+.ht-card .s { position: absolute; inset: 0; display: grid; place-items: center; font-size: clamp(5rem, 28vw, 7.5rem); line-height: 1; }
+.ht-card .s.joker { font-family: var(--display); font-size: clamp(2.4rem, 13vw, 3.4rem); writing-mode: vertical-rl; letter-spacing: .1em; }
+.ht-hit { position: absolute; left: -10px; right: -10px; top: 50%; transform: translateY(-50%) rotate(-4deg); background: var(--cherry); color: var(--paper); border-radius: 16px; padding: 10px 12px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,.45); animation: pop .3s cubic-bezier(.2,1.6,.4,1); }
+.ht-hit small { display: block; font-family: var(--body); font-weight: 900; font-size: .8rem; line-height: 1.4; }
+.ht-hit b { display: block; font-family: var(--display); font-weight: 400; font-size: clamp(1.7rem, 8.5vw, 2.5rem); line-height: 1.2; text-wrap: balance; }
+.ht-score { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.ht-score span { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; font-size: .9rem; color: var(--muted); }
+.ht-score b { color: var(--amber); margin-left: 4px; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -472,7 +492,7 @@ function bindLegal() {
   const b = $('#share-btn');
   if (b) b.onclick = async () => {
     track('share_click');
-    const data = { title: '乾杯遊戲機', text: '今晚誰喝？11 款手機喝酒遊戲，打開就能玩', url: 'https://yoyoman-1.github.io/kanpai/' };
+    const data = { title: '乾杯遊戲機', text: '今晚誰喝？12 款手機喝酒遊戲，打開就能玩', url: 'https://yoyoman-1.github.io/kanpai/' };
     try { if (navigator.share) { await navigator.share(data); return; } } catch (e) { return; }
     try { await navigator.clipboard.writeText(data.url); b.textContent = '已複製連結'; } catch (e) { b.textContent = data.url; }
   };
@@ -2975,6 +2995,121 @@ registerGame({
     };
     drawList();
     next();
+  }
+});
+
+/* ---------- 12. 瘋狂心臟病 ---------- */
+const HT_RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const HT_SUITS = [['♠', '#23140b'], ['♥', '#d62c2c'], ['♦', '#d62c2c'], ['♣', '#23140b']];
+// 翻到跟喊的一樣時大家要做的動作，最後一個做完的喝
+const HT_ACTS = [
+  '拍桌', '拍桌', '拍桌', '摸鼻子', '摸頭', '舉雙手', '站起來', '雙手比愛心', '敬禮', '摀住耳朵',
+  '抱頭', '雙手比讚', '指天花板', '拍左邊的人肩膀', '拍右邊的人肩膀', '大喊「乾杯」', '舉起杯子', '雙手摸臉頰',
+  '比 YA', '雙手交叉胸前', '摸自己的膝蓋', '單手撐下巴', '大喊「心臟病」', '跟旁邊的人擊掌'
+];
+// 鬼牌：不管喊什麼都要做
+const HT_JOKER = ['學猩猩捶胸', '全部站起來', '大喊「我沒醉」', '雙手舉高大喊「乾」', '學雞叫', '摸地板'];
+registerGame({
+  id: 'heart', name: '瘋狂心臟病', en: 'CRAZY HEART', color: '#ff8a9a', tag: '反應 · 拍桌', ribbon: 'NEW', desc: '輪流翻牌喊數字，喊中就做動作，最慢的喝', minPlayers: 2,
+  art(ctx, w, h) {
+    const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#ff6b6b'); g.addColorStop(1, '#4a0d14');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    rays(ctx, w / 2, h * 0.55, h, 24, 'rgba(255,255,255,.08)');
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const card = (x, y, rot, rank, suit, col) => {
+      const cw = w * 0.42, ch = cw * 1.4;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+      ctx.fillStyle = 'rgba(0,0,0,.3)'; rr(ctx, -cw / 2 + cw * 0.04, -ch / 2 + cw * 0.06, cw, ch, cw * 0.1); ctx.fill();
+      ctx.fillStyle = '#fffdf7'; rr(ctx, -cw / 2, -ch / 2, cw, ch, cw * 0.1); ctx.fill();
+      ctx.fillStyle = col;
+      ctx.font = `${Math.round(cw * 0.2)}px Bungee, sans-serif`; ctx.fillText(rank, -cw * 0.3, -ch * 0.36);
+      ctx.font = `${Math.round(cw * 0.5)}px sans-serif`; ctx.fillText(suit, 0, ch * 0.04);
+      ctx.restore();
+    };
+    card(w * 0.34, h * 0.56, -0.22, 'A', '♠', '#23140b');
+    card(w * 0.64, h * 0.54, 0.16, '7', '♥', '#d62c2c');
+    // 拍下去的手
+    ctx.save(); ctx.translate(w * 0.56, h * 0.76); ctx.rotate(-0.25);
+    ctx.font = `${Math.round(w * 0.3)}px sans-serif`; ctx.fillText('🖐️', 0, 0);
+    ctx.restore();
+  },
+  mount(root) {
+    let hint = store.get('htHint', true), crazy = store.get('htCrazy', true);
+    let deck = [], call = 0, cups = {};
+    const newDeck = () => shuffle([...HT_RANKS.flatMap(r => HT_SUITS.map(([s, c]) => ({ r, s, c }))), { joker: 1 }, { joker: 1 }]);
+    root.innerHTML = `
+      <div class="stack">
+        <div class="turn" id="ht-who"></div>
+        <button class="ht-card back" id="ht-card" aria-label="翻牌"></button>
+        <div id="ht-msg" aria-live="polite"></div>
+        <div class="ht-score" id="ht-score"></div>
+        <div class="seg" role="group" aria-label="喊數提示"><button data-h="1" aria-pressed="${hint}">顯示該喊幾</button><button data-h="0" aria-pressed="${!hint}">不顯示（喊錯喝）</button></div>
+        <div class="seg" role="group" aria-label="動作"><button data-c="1" aria-pressed="${crazy}">瘋狂隨機動作</button><button data-c="0" aria-pressed="${!crazy}">只拍桌</button></div>
+        <p class="hint" style="text-align:center">輪到的人點牌，同時照順序喊 A、2、3…10、J、Q、K。翻出來的牌跟喊的一樣，大家馬上做畫面上的動作，最後一個做完的喝。翻到鬼牌不管喊什麼都要做。喊中之後從 A 重新喊。</p>
+      </div>`;
+    const cardEl = $('#ht-card', root), msg = $('#ht-msg', root);
+    function drawTurn() {
+      $('#ht-who', root).innerHTML = `輪到 <b>${esc(current())}</b> 翻牌` + (hint ? `<div class="ht-call">要喊<b>${HT_RANKS[call]}</b></div>` : '');
+    }
+    function drawScore() {
+      const list = players.filter(p => cups[p]);
+      $('#ht-score', root).innerHTML = list.length ? list.map(p => `<span>${esc(p)}<b>${cups[p]} 杯</b></span>`).join('') : '';
+    }
+    // 喊中或鬼牌：顯示動作，點最慢的人記一杯
+    function hit(title, act) {
+      buzz([120, 60, 120, 60, 300]);
+      [880, 660, 990].forEach((f, k) => setTimeout(() => beep(f, 0.14, 'square', 0.1), k * 90));
+      // 動作直接蓋在牌上，手機不用往下捲就看得到
+      cardEl.insertAdjacentHTML('beforeend', `<span class="ht-hit"><small>${title}</small><b>${esc(act)}！</b></span>`);
+      msg.innerHTML = `<p class="hint" style="text-align:center;margin:0 0 6px">誰最後一個做完？點他記一杯（不用記就直接點牌）</p>
+        <div class="plist">${players.map((p, i) => `<button data-p="${i}">${esc(p)}</button>`).join('')}</div>`;
+      msg.querySelectorAll('[data-p]').forEach(b => b.onclick = () => {
+        const p = players[+b.dataset.p];
+        cups[p] = (cups[p] || 0) + 1;
+        drawScore();
+        msg.innerHTML = `<div class="result">🍺 ${esc(p)} 喝！<small>${esc(current())} 點牌繼續</small></div>`;
+      });
+    }
+    function flip() {
+      keepAwake();
+      if (!deck.length) deck = newDeck();
+      const c = deck.pop(), said = HT_RANKS[call], who = current();
+      nextTurn();
+      cardEl.className = 'ht-card face';
+      void cardEl.offsetWidth;
+      if (c.joker) {
+        cardEl.style.setProperty('--c', '#7b2fd0');
+        cardEl.innerHTML = '<span class="s joker">鬼牌</span>';
+        cardEl.classList.add('hit');
+        call = 0;
+        hit(`鬼牌！${esc(who)} 不管喊什麼都要做`, pick(HT_JOKER));
+      } else {
+        cardEl.style.setProperty('--c', c.c);
+        cardEl.innerHTML = `<span class="r">${c.r}<small>${c.s}</small></span><span class="s">${c.s}</span><span class="r b">${c.r}<small>${c.s}</small></span>`;
+        if (c.r === said) {
+          cardEl.classList.add('hit');
+          call = 0;
+          hit(`心臟病！${esc(who)} 喊 ${said} 翻到 ${said}`, crazy ? pick(HT_ACTS) : '拍桌');
+        } else {
+          call = (call + 1) % HT_RANKS.length;
+          beep(520, 0.05, 'triangle'); buzz(20);
+          msg.innerHTML = `<p class="msg">${esc(who)} 喊 ${said}，翻到 ${c.r}，沒中</p>`;
+        }
+      }
+      cardEl.setAttribute('aria-label', c.joker ? '鬼牌，點一下翻下一張' : `${c.s}${c.r}，點一下翻下一張`);
+      drawTurn();
+    }
+    cardEl.onclick = flip;
+    root.querySelectorAll('[data-h]').forEach(b => b.onclick = () => {
+      hint = b.dataset.h === '1'; store.set('htHint', hint);
+      root.querySelectorAll('[data-h]').forEach(x => x.setAttribute('aria-pressed', x === b));
+      drawTurn();
+    });
+    root.querySelectorAll('[data-c]').forEach(b => b.onclick = () => {
+      crazy = b.dataset.c === '1'; store.set('htCrazy', crazy);
+      root.querySelectorAll('[data-c]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    });
+    drawTurn();
   }
 });
 
