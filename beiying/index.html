@@ -118,11 +118,11 @@ const ACH = [
   { id: 'slip', icon: '↙️', name: '肥胖的身子向左微傾', desc: '爬到一半手滑，摔回鐵軌' },
   { id: 'armful', icon: '🤲', name: '一次抱好多', desc: '一次抱 8 顆以上爬上月台' },
   { id: 'spill', icon: '💥', name: '散放在地上', desc: '同一次爬月台掉了 2 顆以上' },
-  { id: 'tears', icon: '💧', name: '我的淚很快地流下來了', desc: '單局送達 40 顆橘子' },
+  { id: 'tears', icon: '💧', name: '我的淚很快地流下來了', desc: '單局送達 45 顆橘子' },
   { id: 'love', icon: '❤️', name: '父愛如山', desc: '累計送達 200 顆橘子' },
   { id: 'trains', icon: '🚂', name: '進去吧，裡邊沒人', desc: '撐到開車，一次都沒被火車攔下' },
   { id: 'close', icon: '😱', name: '差一點', desc: '火車快到時才爬上月台' },
-  { id: 'juice', icon: '🧃', name: '柳橙汁', desc: '單局讓火車壓爛 20 顆橘子' },
+  { id: 'juice', icon: '🧃', name: '柳橙汁', desc: '單局讓火車壓爛 50 顆橘子' },
   { id: 'zero', icon: '❓', name: '橘子呢？', desc: '一顆都沒送到就結束', hidden: true },
   { id: 'son', icon: '👦', name: '爸爸，你走吧', desc: '在月台上點兒子 10 次', hidden: true },
   { id: 'all', icon: '🏆', name: '背影', desc: '解鎖其他所有成就' },
@@ -201,8 +201,11 @@ function layout() {
 // ---------- 遊戲狀態 ----------
 const ROUND = 60; // 兒子的火車幾秒後開
 let DOUBLE_P = 0.2; // 30 秒後火車連兩班的機率
-let WARN_MIN = 1.4, WARN_DECAY = 0.25;
-let BONUS_AT = 6, JUICE_AT = 20, TEARS_AT = 40; // 一次送幾顆開始加碼；柳橙汁要單局壓爛幾顆 // 火車預警秒數：從 2.5 秒每班遞減，最少 WARN_MIN
+let WARN_MIN = 1.25, WARN_DECAY = 0.25;
+let SPAWN_MIN = 0.7, SPAWN_MAX = 1.3; // 兩側滾進來的間隔秒數
+let SLOW_PER = 0.06, SLOW_MIN = 0.35; // 每抱 1 顆走路慢多少、最慢到幾成
+const walkSpeed = n => Math.max(SLOW_MIN, 1 - SLOW_PER * n);
+let BONUS_AT = 6, JUICE_AT = 50, TEARS_AT = 45; // 一次送幾顆開始加碼；柳橙汁要單局壓爛幾顆 // 火車預警秒數：從 2.5 秒每班遞減，最少 WARN_MIN
 const S = { mode: 'title', t: 0, fx: [], shake: 0, flash: 0, ring: null, f: null, oranges: [], tears: [], train: null, holding: false, sonTaps: 0, newAch: null };
 let quoteTimer = 0;
 function quote(text) {
@@ -215,7 +218,7 @@ function newGame() {
   Object.assign(S, {
     mode: 'play', t: 0, oranges: [], tears: [], train: null, holding: false, idle: true, overT: 0,
     delivered: 0, climbs: 0, trains: 0, spawnT: 0.4, trainGap: 7, nextTrain: 5, newAch: [], sonTaps: 0,
-    timeLeft: ROUND, endReason: '', squashed: 0, fx: [], shake: 0, flash: 0, hitstop: 0,
+    timeLeft: ROUND, endReason: '', squashed: 0, vendor: null, vendorT: rand(3, 5), fx: [], shake: 0, flash: 0, hitstop: 0,
     f: { x: W * 0.6, tx: W * 0.6, state: 'ground', p: 0, carry: 0, dropT: 0, drops: 0, slip: false, walk: 0, dir: 1 },
   });
   for (let i = 0; i < 6; i++) spawnOrange(true);
@@ -226,10 +229,44 @@ function newGame() {
 }
 
 function spawnOrange(scatter) {
-  S.oranges.push({
-    x: scatter ? rand(W * 0.3, W * 0.95) : W + 14, y: L.groundY, vx: scatter ? 0 : -rand(60, 140), vy: 0,
-    fall: false, rot: rand(0, 6),
-  });
+  if (scatter) { S.oranges.push({ x: rand(W * 0.32, W * 0.92), y: L.groundY, vx: 0, vy: 0, fall: false, rot: rand(0, 6) }); return; }
+  // 從左右兩邊的橘子攤滾進來
+  const fromLeft = Math.random() < 0.5;
+  S.oranges.push({ x: fromLeft ? -14 : W + 14, y: L.groundY, vx: (fromLeft ? 1 : -1) * rand(140, 230), vy: 0, fall: false, rot: rand(0, 6) });
+}
+
+// 賣橘子的小販從月台上走過，沿路隨機把橘子撒到鐵軌上
+function updateVendor(dt) {
+  S.vendorT -= dt;
+  if (!S.vendor && S.vendorT <= 0) {
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    S.vendor = { x: dir > 0 ? -40 : W + 40, dir, drops: 4 + Math.floor(Math.random() * 3), nextDrop: rand(0.2, 0.5), step: 0 };
+    S.fx.push({ kind: 'text', text: '賣橘子的經過了！', x: W / 2, y: L.platformY - 40 * L.scale, vy: -20, life: 1.2, color: '#e07010' });
+  }
+  const v = S.vendor;
+  if (!v) return;
+  v.x += v.dir * 120 * dt; v.step += dt * 9;
+  v.nextDrop -= dt;
+  if (v.nextDrop <= 0 && v.drops > 0 && v.x > W * 0.34 && v.x < W * 0.9) {
+    v.drops--; v.nextDrop = rand(0.3, 0.6);
+    S.oranges.push({ x: v.x, y: L.platformY - 20 * L.scale, vx: rand(-40, 40), vy: -rand(20, 90), fall: true, rot: rand(0, 6) });
+  }
+  if ((v.dir > 0 && v.x > W + 50) || (v.dir < 0 && v.x < -50)) { S.vendor = null; S.vendorT = rand(5, 9); }
+}
+
+function drawVendor(v, k) {
+  ctx.save(); ctx.translate(v.x, L.platformY - 10); ctx.scale(v.dir, 1);
+  const sw = Math.sin(v.step) * 3 * k;
+  ctx.fillStyle = '#3d3026'; ctx.fillRect(-8 * k, -20 * k + sw, 6 * k, 20 * k - sw); ctx.fillRect(2 * k, -20 * k - sw, 6 * k, 20 * k + sw);
+  ctx.fillStyle = '#6e5a3c'; ctx.beginPath(); ctx.roundRect(-11 * k, -50 * k, 22 * k, 32 * k, 6 * k); ctx.fill();
+  ctx.fillStyle = '#e2b98f'; ctx.beginPath(); ctx.arc(0, -58 * k, 8 * k, 0, 7); ctx.fill();
+  ctx.fillStyle = '#c9a25a'; ctx.beginPath(); ctx.moveTo(-15 * k, -60 * k); ctx.lineTo(15 * k, -60 * k); ctx.lineTo(0, -72 * k); ctx.closePath(); ctx.fill(); // 斗笠
+  ctx.strokeStyle = '#5b4325'; ctx.lineWidth = 3 * k; ctx.beginPath(); ctx.moveTo(-30 * k, -46 * k); ctx.lineTo(30 * k, -46 * k); ctx.stroke(); // 扁擔
+  for (const bx of [-30, 30]) {
+    ctx.fillStyle = '#8a6a3a'; ctx.fillRect((bx - 9) * k, -34 * k + sw * 0.5, 18 * k, 12 * k);
+    for (let i = 0; i < 3; i++) drawOrange((bx - 5 + i * 5) * k, -36 * k + sw * 0.5, 4 * k, 0);
+  }
+  ctx.restore();
 }
 
 function vulnerable(f) { return f.state === 'ground' || f.state === 'down' || (f.state === 'climb' && f.p < 0.7); }
@@ -313,19 +350,22 @@ function update(dt) {
 
   // 橘子：從右邊的攤子滾進來
   S.spawnT -= dt;
-  if (S.spawnT <= 0) { S.spawnT = rand(0.8, 1.5); if (S.oranges.length < 14) spawnOrange(false); }
+  if (S.spawnT <= 0) { S.spawnT = rand(SPAWN_MIN, SPAWN_MAX); if (S.oranges.length < 16) spawnOrange(false); }
+  updateVendor(dt);
   for (const o of S.oranges) {
     if (o.fall) {
       o.vy += 900 * dt; o.y += o.vy * dt; o.x += o.vx * dt;
       if (o.y >= L.groundY) { o.y = L.groundY; if (o.vy > 140) o.vy *= -0.35; else { o.vy = 0; o.fall = false; } }
     } else {
       o.x += o.vx * dt; o.vx *= Math.pow(0.4, dt); o.rot += o.vx * dt / 9;
-      if (o.x < 8) { o.x = 8; o.vx = 0; }
+      // 停下來的位置一定在爸爸走得到的範圍內
+      if (o.vx < 0 && o.x < W * 0.3) { o.x = W * 0.3; o.vx = 0; }
+      if (o.vx > 0 && o.x > W * 0.94 && o.x < W) { o.x = W * 0.94; o.vx = 0; }
     }
   }
 
   // 爸爸
-  const slow = Math.max(0.45, 1 - 0.035 * f.carry);
+  const slow = walkSpeed(f.carry);
   if (f.state === 'ground') {
     const dx = f.tx - f.x, step = 170 * slow * dt;
     if (Math.abs(dx) > 1) { f.x += Math.sign(dx) * Math.min(step, Math.abs(dx)); f.walk += step * 0.15; f.dir = Math.sign(dx); }
@@ -475,9 +515,12 @@ function drawScene() {
   ctx.fillStyle = '#5d4a3a';
   for (let x = -10; x < W + 20; x += 26) ctx.fillRect(x, L.groundY + 2, 14, 10);
   ctx.fillStyle = '#c9c4bd'; ctx.fillRect(0, L.groundY + 1, W, 3); ctx.fillRect(0, L.groundY + 11, W, 3);
-  // 右邊的橘子攤
-  ctx.fillStyle = '#6b4a2b'; ctx.fillRect(W - 34 * k, L.groundY - 34 * k, 34 * k, 34 * k);
-  for (let i = 0; i < 5; i++) drawOrange(W - 26 * k + (i % 3) * 9 * k, L.groundY - 36 * k - Math.floor(i / 3) * 8 * k, 6 * k, 0);
+  // 左右兩邊的橘子攤
+  for (const sx of [W - 34 * k, 0]) {
+    ctx.fillStyle = '#6b4a2b'; ctx.fillRect(sx, L.groundY - 34 * k, 34 * k, 34 * k);
+    for (let i = 0; i < 5; i++) drawOrange(sx + 8 * k + (i % 3) * 9 * k, L.groundY - 36 * k - Math.floor(i / 3) * 8 * k, 6 * k, 0);
+  }
+  if (S.vendor) drawVendor(S.vendor, k);
 
   // 火車預警號誌
   const tr = S.train;
@@ -555,7 +598,10 @@ function drawFather() {
   ctx.restore();
   if (f.carry > 0) {
     ctx.fillStyle = '#2b2622'; ctx.font = `700 ${15 * k}px serif`; ctx.textAlign = 'center';
+    const sp = walkSpeed(f.carry);
     ctx.fillText(`🍊×${f.carry}`, f.x, y - 124 * k);
+    ctx.font = `700 ${12 * k}px serif`; ctx.fillStyle = sp < 0.6 ? '#c8442f' : '#5a5048';
+    ctx.fillText(`速度 ${Math.round(sp * 100)}%`, f.x, y - 140 * k);
   }
 }
 
