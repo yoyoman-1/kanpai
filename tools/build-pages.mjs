@@ -101,6 +101,8 @@ const page = ({ path, title, desc, body, ld }) => `<!doctype html>
 <meta name="theme-color" content="#1a100b"><link rel="icon" href="${'../'.repeat(path.split('/').filter(Boolean).length)}icon-192.png" type="image/png">
 ${ld ? `<script type="application/ld+json">${JSON.stringify(ld)}</script>` : ''}
 <style>${css}</style>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="7116ffc5-6612-4917-9ff3-f57cf074b807"></script>
+<script>document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('.cta');if(a){try{window.umami&&window.umami.track('seo_cta',{page:location.pathname})}catch(_){}}});</script>
 </head>
 <body><main>
 ${body}
