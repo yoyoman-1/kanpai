@@ -151,7 +151,7 @@ h1,h2,h3{font-family:var(--sign);font-weight:900;margin:0;text-wrap:balance}
 .ticket .pr{font:400 clamp(25px,7vw,31px)/1 var(--mono);filter:drop-shadow(0 2px 0 #0007)}
 .t-c100{--c1:#8e1a22;--c2:#d9423a}.t-c200{--c1:#a33a08;--c2:#ef9a2a}.t-c300{--c1:#075040;--c2:#1fa37c}.t-c500{--c1:#6e4700;--c2:#d2a11b}.t-c1000{--c1:#0d1b4d;--c2:#3560c4}.t-c2000{--c1:#1f0c33;--c2:#6f2ba0}.t-c5000{--c1:#060504;--c2:#3a3220}
 .scr{position:relative;z-index:2;background:linear-gradient(#fdf6e3,#efe2c2);color:var(--ink);border:1px solid #6b4a12;border-radius:2px;padding:8px;margin:7px 6px 0;user-select:none;-webkit-user-select:none}
-.scr canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:2px;touch-action:none;cursor:crosshair}
+.scr canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:2px;touch-action:pan-y;cursor:crosshair}
 .cells{display:grid;gap:6px}
 .m3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .m3 div,.gr div{display:grid;place-items:center;height:70px;border-radius:50%/44%;background:radial-gradient(circle,#fff9e6 40%,#ecd9a8);box-shadow:inset 0 0 0 1px #c7a355,inset 0 0 0 4px #fff7e0,inset 0 0 0 5px #d8bd80;font:900 20px var(--serif);color:#6b1212}
@@ -1081,7 +1081,7 @@ function setupScratch() {
   for (let i = 0; i < W * H / 14; i++) { c.fillStyle = Math.random() < .5 ? '#ffffff30' : '#00000024'; c.fillRect(Math.random() * W, Math.random() * H, 1.4, 1.4); }
   c.fillStyle = '#6d727d'; c.font = '900 20px "Noto Sans TC",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
   c.fillText('按 住 刮 開', W / 2, H / 2);
-  c.globalCompositeOperation = 'destination-out'; c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = 36;
+  c.globalCompositeOperation = 'destination-out'; c.strokeStyle = '#000'; c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = 46;
   let down = false, lx = 0, ly = 0, moves = 0, done = false;
   const pos = e => { const b = cv.getBoundingClientRect(); return [(e.clientX - b.left) * (W / b.width), (e.clientY - b.top) * (H / b.height)]; };
   const stroke = (x, y) => { c.beginPath(); c.moveTo(lx, ly); c.lineTo(x + .01, y); c.stroke(); lx = x; ly = y; };
@@ -1090,7 +1090,7 @@ function setupScratch() {
     if (!down || done) return;
     const [x, y] = pos(e); stroke(x, y);
     burst(e.clientX, e.clientY, 3, ['#9aa0ab', '#c7cad1', '#70747e'], 3, 3, .35);
-    if (++moves % 8 === 0 && cleared() > .55) { done = true; finish(); }
+    if (++moves % 3 === 0 && cleared() > .5) { done = true; finish(); }
   };
   const end = () => { if (down) { down = false; scratching(false); } };
   cv.onpointerup = end; cv.onpointercancel = end;
@@ -1151,7 +1151,7 @@ function renderCardBtns() {
 function renderStage() {
   const st = $('#stage'); if (!st) return;
   if (S.cards.length && !cardState.revealed) {
-    st.innerHTML = cardHTML(S.cards[0]) + `<div class="result" id="cardres">按住拖曳來刮</div><div class="row" id="cardbtns"></div>`;
+    st.innerHTML = cardHTML(S.cards[0]) + `<div class="result" id="cardres">左右來回刮開，上下滑可捲動頁面</div><div class="row" id="cardbtns"></div>`;
     setupScratch();
   } else if (cardState.revealed && cardState.last) {
     st.innerHTML = cardHTML(cardState.last) + `<div class="result" id="cardres"></div><div class="row" id="cardbtns"></div>`;
@@ -1598,13 +1598,15 @@ const act = {
     if (busy || settling) return;
     const c = ENGINE.CARD[el.dataset.c]; const n = +el.dataset.n;
     if (S.money < c.price * n || c.lv > level()) return;
+    const had = S.cards.length; // 手上已有沒刮的票時留在貨架，方便接著買別款
     audio();
     for (let i = 0; i < n; i++) { spend(c.price, c.name); S.cards.push(Object.assign(ENGINE.buildCard(c), { sn: R(100000, 999999) })); }
     cardState = { revealed: false, last: null };
     if (n >= 10) bossSay(`${n} 張！今天是不是有什麼好事？`);
     renderStage(); after(); renderShelfBtns(); bossFace(ART.bossSmile, 1200);
     const st = $('#stage'); // 在貨架下方買票時，把新票帶回視線內
-    if (st) { const hudH = $('#hud').offsetHeight, top = st.getBoundingClientRect().top; if (top < hudH || top > innerHeight * .45) window.scrollTo({ top: scrollY + top - hudH - 8, behavior: scrollMode() }); }
+    if (had) toast(`買了 ${n} 張${c.name}，還有 ${S.cards.length} 張沒刮`);
+    else if (st) { const hudH = $('#hud').offsetHeight, top = st.getBoundingClientRect().top; if (top < hudH || top > innerHeight * .45) window.scrollTo({ top: scrollY + top - hudH - 8, behavior: scrollMode() }); }
   },
   nextcard() { cardState = { revealed: false, last: null }; renderStage(); },
   revealall() { const cv = $('#scratch'); if (cv && cv._finish) cv._finish(); },
