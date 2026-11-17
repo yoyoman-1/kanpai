@@ -2389,8 +2389,9 @@ var SCRIPTS = {
   },
   runeFall: function* (g) {
     g.sfx('fall'); yield fx('shake');
-    g.respawn();
+    g.respawn(); g.layRunes(true);
     yield say('', '腳下的石板一沉，流沙把你送回了廊道的起點。');
+    yield say('', '沙子退去時，地上的符文全都換了位置。');
   },
   gateLocked: function* (g) { g.sfx('deny'); yield say('', '門緊緊關著。附近應該有讓它打開的機關。'); }
 };
@@ -2987,7 +2988,7 @@ ROOMS.r2 = {
   e: {
     V: warpTo('r1', 'N', 'down'),
     e: rune('e'), h: rune('h'), x: rune('x'),
-    Z: { type: 'obj', spr: 'stele', script: function* (g) { yield say('', '廊道入口的石碑：'); yield say('', JOURNAL.j_r_rune.text); yield say('', '（前方的地板刻滿了三種符文：眼睛、手掌、心。）'); g.note('j_r_rune'); } },
+    Z: { type: 'obj', spr: 'stele', script: function* (g) { yield say('', '廊道入口的石碑：'); yield say('', JOURNAL.j_r_rune.text); yield say('', '（前方的地板刻滿了三種符文：眼睛、手掌、心。流沙一動，它們就會換位置。）'); g.note('j_r_rune'); } },
     Y: { type: 'obj', spr: 'plaque', script: function* (g) { yield say('', '石門前的石板上刻著四組記號：'); yield say('', '「▬●●　○　●●●●　▬●●●●」'); g.note('j_r_tablet'); } },
     C: {
       type: 'gate', spr: 'codegate', latch: 'r2_open', script: function* (g) {
@@ -3448,6 +3449,52 @@ GP.loadRoom = function (rid) {
     return e;
   });
   this.beams = []; this.litSet = {};
+  if (this.def.runeSeq) this.layRunes(false);
+};
+/* 符文廊：每次進房、每次踩錯都重排地板（版面存在房間變數 rl，存讀檔不會變）；
+   保證有一條從最下排踩「眼」開始、照順序走到最上排的路。fixedRunes＝測試用，保留地圖原本的排法。 */
+GP.layRunes = function (fresh) {
+  var runes = this.ents.filter(function (e) { return e.type === 'rune'; });
+  if (!runes.length || this.fixedRunes) return;
+  var v = this.S.rooms[this.rid].v, seq = this.def.runeSeq;
+  if (fresh || !v.rl || v.rl.length !== runes.length) {
+    var x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
+    runes.forEach(function (e) { x0 = Math.min(x0, e.hx); y0 = Math.min(y0, e.hy); x1 = Math.max(x1, e.hx); y1 = Math.max(y1, e.hy); });
+    var W = x1 - x0 + 1, H = y1 - y0 + 1, R = Math.random, grid, path;
+    // 最短解要幾步（不能重踩）；用來擋掉亂數填格碰巧連出的捷徑
+    var shortest = function () {
+      var best = Infinity;
+      var go = function (x, y, i, vis) {
+        if (i >= best) return;
+        if (y < 0) { best = i; return; }
+        if (x < 0 || x >= W || y >= H || vis[y * W + x] || grid[y][x] !== seq[i % seq.length]) return;
+        vis[y * W + x] = 1;
+        go(x, y - 1, i + 1, vis); go(x + 1, y, i + 1, vis); go(x - 1, y, i + 1, vis); go(x, y + 1, i + 1, vis);
+        vis[y * W + x] = 0;
+      };
+      for (var sx = 0; sx < W; sx++) go(sx, H - 1, 0, []);
+      return best;
+    };
+    for (var round = 0; round < 60; round++) {
+    for (var tries = 0; tries < 200; tries++) {
+      path = []; var used = {}, cx = Math.floor(R() * W), cy = H - 1;
+      path.push([cx, cy]); used[cx + ',' + cy] = 1;
+      while (true) {
+        var side = R() < 0.5 ? -1 : 1, n = Math.floor(R() * 4);
+        for (var k = 0; k < n; k++) { var nx = cx + side; if (nx < 0 || nx >= W || used[nx + ',' + cy]) break; cx = nx; path.push([cx, cy]); used[cx + ',' + cy] = 1; }
+        if (cy === 0) break;
+        cy--; path.push([cx, cy]); used[cx + ',' + cy] = 1;
+      }
+      if (path.length >= H + 4) break;
+    }
+    grid = [];
+    for (var y = 0; y < H; y++) { grid.push([]); for (var x = 0; x < W; x++) grid[y].push(seq[Math.floor(R() * seq.length)]); }
+    path.forEach(function (p, i) { grid[p[1]][p[0]] = seq[i % seq.length]; });
+    if (shortest() >= H + 3) break;
+    }
+    v.rl = runes.map(function (e) { return grid[e.hy - y0][e.hx - x0]; }).join('');
+  }
+  runes.forEach(function (e, i) { e.glyph = v.rl[i]; });
 };
 GP.vars = function () { return this.S.rooms[this.rid].v; };
 GP.syncRoom = function () {
@@ -3596,6 +3643,7 @@ GP.stopHere = function () {
 };
 GP.warp = function (rid, marker, dir) {
   this.syncRoom();
+  if (ROOMS[rid].runeSeq && this.S.rooms[rid]) delete this.S.rooms[rid].v.rl;
   this.loadRoom(rid);
   var S = this.S, m = this.ent(marker), d = DIRS[dir];
   if (!m) throw new Error('warp target missing ' + rid + ':' + marker);
@@ -3621,13 +3669,19 @@ GP.afterStep = function () {
     if (e.type === 'trigger' && !(e.once && S.flags[e.once]) && (!e.cond || e.cond(this))) { if (e.once) S.flags[e.once] = true; this.run(e.script, e); }
     if (e.type === 'shade') { this.run(SCRIPTS.caught); return; }
     if (e.type === 'rune') {
+      if (S.flags['runes_' + this.rid]) continue;
       onRune = true;
       var v = this.vars(), seq = this.def.runeSeq, idx = v.ri || 0;
       if (e.glyph === seq[idx % seq.length] && !e.st.on) { v.ri = idx + 1; e.st.on = 1; this.sfx('rune'); }
       else { v.ri = 0; this.clearRunes(); this.run(SCRIPTS.runeFall); return; }
     }
   }
-  if (!onRune && this.def.runeSeq && this.vars().ri) { this.vars().ri = 0; this.clearRunes(); }
+  if (!onRune && this.def.runeSeq && this.vars().ri) {
+    var top = Infinity; this.ents.forEach(function (o) { if (o.type === 'rune') top = Math.min(top, o.hy); });
+    if (S.y < top) S.flags['runes_' + this.rid] = true;   // 走到對面了：這條路記住、之後符文不再作用
+    else this.clearRunes();
+    this.vars().ri = 0;
+  }
   this.refresh();
 };
 GP.clearRunes = function () { for (var i = 0; i < this.ents.length; i++) if (this.ents[i].type === 'rune') delete this.ents[i].st.on; };
@@ -4864,6 +4918,7 @@ GP.tick = function () {
         game.refresh(); game.events.push({ t: 'warp', rid: room }); processEvents(); return true;
       },
       give: function (id) { game.give(id); updateHud(); },
+      fixedRunes: function (on) { game.fixedRunes = !!on; },
       run: function (fn) { game.run(fn); processEvents(); if (game.pending) startPending(); },
       menu: function (tab) { openMenu(tab); },
       flag: function (f, v) { game.set(f, v); updateHud(); },
