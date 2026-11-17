@@ -3819,7 +3819,7 @@ GP.tick = function () {
   var bounce = {}; // id → time
   var particles = [];
   var shake = 0, flash = null, trans = 0, transDir = 0, storm = 0, stormTarget = 0;
-  var FAST = false, NOTICK = false, lastTick = 0, bumpT = 0, needRelease = false, autosavePending = false;
+  var FAST = false, NOTICK = false, lastTick = 0, bumpT = 0, needRelease = false, autosavePending = false, tapDir = null;
   function snapAll() {
     P.x = game.S.x; P.y = game.S.y; P.path = [];
     follow.x = P.x; follow.y = P.y + 1; follow.trail = [];
@@ -4140,7 +4140,7 @@ GP.tick = function () {
   var held = {}, heldOrder = [];
   var KEYMAP = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
   function pressDir(d, on) {
-    if (on) { if (!held[d]) { held[d] = true; heldOrder.push(d); } }
+    if (on) { if (!held[d]) { held[d] = true; heldOrder.push(d); tapDir = d; } }
     else { held[d] = false; heldOrder = heldOrder.filter(function (x) { return x !== d; }); }
     if (!heldOrder.length) needRelease = false;
   }
@@ -4829,9 +4829,10 @@ GP.tick = function () {
         var moving = stepAnim(P, dt);
         for (var k in entAnim) stepAnim(entAnim[k], dt);
         if (!moving && !transDir && !game.busy() && !modalKind && !needRelease) {
-          var dir = curDir();
+          var dir = curDir() || tapDir;
+          tapDir = null;
           if (dir) tryMove(dir);
-        }
+        } else if (!moving && (game.busy() || modalKind)) tapDir = null;
         if (!NOTICK && !game.busy() && !modalKind && t - lastTick > 430) { lastTick = t; var before = game.pending; game.tick(); processEvents(); if (game.pending) startPending(); }
         if (autosavePending && !game.busy() && !modalKind) { autosavePending = false; game.save(); }
         weatherTick(dt, t);
