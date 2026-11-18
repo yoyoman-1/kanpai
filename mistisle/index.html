@@ -50,7 +50,7 @@ html,body{margin:0;height:100%;background:#0c0a14;color:var(--txt);font-family:"
 #choices{display:flex;flex-direction:column;gap:4px;margin-top:6px}
 #choices button,.mbtn{font:inherit;text-align:left;color:var(--txt);background:#0004;border:2px solid transparent;padding:6px 10px 6px 26px;cursor:pointer;position:relative;min-height:44px;line-height:1.4}
 #choices button.sel,.mbtn:focus-visible,.mbtn.sel{border-color:var(--gold);background:#f0c05022;outline:none}
-#choices button.sel::before,.mbtn.sel::before,.mbtn:focus-visible::before{content:"▶";position:absolute;left:8px;color:var(--gold);font-size:.8em;top:50%;transform:translateY(-50%)}
+#choices button.sel::before,.mbtn.sel::before,.mbtn:focus-visible::before{content:"";position:absolute;left:9px;width:8px;height:10px;background:var(--gold);clip-path:polygon(0 0,100% 50%,0 100%);top:50%;transform:translateY(-50%)}
 #modal{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0008;padding:10px}
 #modal .box{width:100%;max-width:560px;max-height:100%;overflow:auto;padding:14px 16px;font-size:var(--fs)}
 .box h2{margin:0 0 8px;font-size:1.15em;color:var(--gold);letter-spacing:.1em}
@@ -87,6 +87,7 @@ body.touch #pad{display:flex}
 .dpad{position:relative;width:150px;height:150px}
 .dpad button,.ab button{position:absolute;font:inherit;color:#f6efe0;background:#2c2444;border:3px solid #f2e2b8aa;box-shadow:0 4px 0 #000;font-size:20px;touch-action:none}
 .dpad button{width:52px;height:52px}
+.dpad button::before{content:"";position:absolute;left:50%;top:50%;width:20px;height:17px;background:currentColor;clip-path:polygon(50% 0,100% 100%,0 100%);transform:translate(-50%,-50%) rotate(var(--r,0deg))}.dpad .r{--r:90deg}.dpad .d{--r:180deg}.dpad .l{--r:270deg}
 .dpad .u{left:49px;top:0}.dpad .d{left:49px;bottom:0}.dpad .l{left:0;top:49px}.dpad .r{right:0;top:49px}
 .dpad .c{left:49px;top:49px;width:52px;height:52px;background:#1a1426;border-radius:0;pointer-events:none;position:absolute}
 .ab{position:relative;width:150px;height:130px}
@@ -107,7 +108,7 @@ body.touch #pad{display:flex}
     <div id="modal" hidden><div class="box frame" id="mbox"></div></div>
   </div>
   <div id="pad">
-    <div class="dpad"><div class="c"></div><button class="u" data-d="up" aria-label="上">▲</button><button class="l" data-d="left" aria-label="左">◀</button><button class="r" data-d="right" aria-label="右">▶</button><button class="d" data-d="down" aria-label="下">▼</button></div>
+    <div class="dpad"><div class="c"></div><button class="u" data-d="up" aria-label="上"></button><button class="l" data-d="left" aria-label="左"></button><button class="r" data-d="right" aria-label="右"></button><button class="d" data-d="down" aria-label="下"></button></div>
     <div class="ab"><button class="a" data-k="a" aria-label="調查／確定">A</button><button class="b" data-k="b" aria-label="選單／取消">B</button><span class="la">調查</span><span class="lb">選單</span></div>
   </div>
 </div>
