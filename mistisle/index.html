@@ -3901,6 +3901,7 @@ GP.tick = function () {
   function onWarp() {
     buildLayer(); snapAll();
     var def = game.def;
+    trackRoom();
     Sound.music(def.music);
     $('areaName').textContent = def.name;
     if (lastRoomSeen !== game.rid) showBanner(def.name, AREA_SUB[def.area] || '');
@@ -3914,12 +3915,43 @@ GP.tick = function () {
     var evs = game.events; game.events = [];
     for (var i = 0; i < evs.length; i++) {
       var ev = evs[i];
-      if (ev.t === 'sfx') { Sound.sfx(ev.n); if (ev.n === 'solve' || ev.n === 'secret') burst(P.x * TS + 8, P.y * TS, 24, ['#fff2b0', '#ffd870', '#ffffff'], { speed: 50, life: 1 }); }
+      if (ev.t === 'sfx') { Sound.sfx(ev.n); if (ev.n === 'solve') trackSolve(); if (ev.n === 'solve' || ev.n === 'secret') burst(P.x * TS + 8, P.y * TS, 24, ['#fff2b0', '#ffd870', '#ffffff'], { speed: 50, life: 1 }); }
       else if (ev.t === 'toast') toast(ev.text);
       else if (ev.t === 'tiles') { buildLayer(); }
       else if (ev.t === 'warp') onWarp();
       else if (ev.t === 'jump') { snapAll(); trans = RM ? 0 : 0.8; transDir = -1; }
     }
+    if (evs.length) trackItems();
+  }
+
+  /* ---------- 遊玩統計（Umami 事件；只在正式網址送，進度記在存檔 S.tk 避免重複） ---------- */
+  var TRACK = /\.github\.io$/.test(location.hostname);
+  var sessMs = 0, leaveAt = -1e9;
+  function track(name, data) { if (window.__rpgTrack) window.__rpgTrack.push([name, data]); if (!TRACK) return; try { if (window.umami && window.umami.track) window.umami.track(name, data); } catch (e) { } }
+  function tk() { var S = game.S; if (!S.tk) S.tk = { ms: 0, a: {}, r: {}, p: {}, i: {} }; return S.tk; }
+  function mins(ms) { return Math.round(ms / 6000) / 10; }
+  function trackRoom() {
+    if (!game.S || !game.def) return;
+    var t = tk(), d = game.def;
+    if (!(game.rid in t.r)) t.r[game.rid] = t.ms;
+    if (d.area && d.area !== 'indoor' && !t.a[d.area]) { t.a[d.area] = 1; track('rpg_area', { area: d.area, min: mins(t.ms) }); }
+  }
+  function trackSolve() {
+    if (!game.S) return;
+    var t = tk(), rid = game.rid; if (t.p[rid]) return; t.p[rid] = 1;
+    track('rpg_puzzle', { room: rid, name: game.def.name, min: mins(t.ms - (rid in t.r ? t.r[rid] : t.ms)), total: mins(t.ms) });
+  }
+  function trackItems() {
+    if (!game.S) return;
+    var t = tk();
+    ['rub1', 'rub2', 'rub3'].forEach(function (k) {
+      if (game.S.items[k] && !t.i[k]) { t.i[k] = 1; track('rpg_rubbing', { rubbing: k, count: Object.keys(t.i).length, min: mins(t.ms) }); }
+    });
+  }
+  function trackLeave() {
+    if (mode !== 'play' || !game.S || sessMs < 5000 || sessMs - leaveAt < 60000) return;
+    leaveAt = sessMs;
+    track('rpg_leave', { room: game.rid, name: game.def.name, session: mins(sessMs), total: mins(tk().ms) });
   }
   var toastT = null;
   function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { el.classList.remove('on'); }, 2200); }
@@ -4133,10 +4165,10 @@ GP.tick = function () {
     mode = 'title'; hideDialog(); $('hud').hidden = true; $('title').hidden = false;
     Sound.music('title');
     var m = $('titleMenu'); m.innerHTML = '';
-    if (game.hasSave()) m.appendChild(btn('繼續旅程', function () { if (game.loadSave()) startPlay(true); else toast('存檔讀取失敗'); }));
+    if (game.hasSave()) m.appendChild(btn('繼續旅程', function () { if (game.loadSave()) { track('rpg_start', { type: 'continue', device: touch ? 'touch' : 'desktop' }); startPlay(true); } else toast('存檔讀取失敗'); }));
     m.appendChild(btn('新的旅程', function () {
       if (game.hasSave()) { if (!confirmNew()) return; }
-      game.newGame(); startPlay(false);
+      game.newGame(); track('rpg_start', { type: 'new', device: touch ? 'touch' : 'desktop' }); startPlay(false);
     }));
     m.appendChild(btn('結局收藏（' + game.endings().length + '/4）', showCollection));
     m.appendChild(btn(Sound.isMuted() ? '聲音：關' : '聲音：開', function () { toggleMute(); toTitle(); }));
@@ -4171,7 +4203,9 @@ GP.tick = function () {
   var endingId = null;
   function showEnding(id) {
     endingId = id; mode = 'ending'; $('banner').classList.remove('on');
+    var first = game.endings().indexOf(id) < 0;
     var got = game.recordEnding(id);
+    if (game.S) track('rpg_ending', { ending: id, first: first ? 1 : 0, collected: got.length, trust: game.S.trust, rubbings: Object.keys(tk().i).length, min: mins(tk().ms) });
     Sound.music(ENDING_BGM[id] || 'ending_good'); Sound.sfx('ending');
     $('hud').hidden = true;
     var E = ENDINGS[id];
@@ -4877,6 +4911,7 @@ GP.tick = function () {
   var lastT = performance.now();
   function frame(t) {
     var dt = Math.min(0.05, (t - lastT) / 1000); lastT = t;
+    if (mode === 'play' && game.S) { tk().ms += dt * 1000; sessMs += dt * 1000; }
     try {
       if (mode === 'title') renderTitle(t);
       else if (mode === 'ending') renderEnding(t);
@@ -4938,8 +4973,8 @@ GP.tick = function () {
 
   window.addEventListener('resize', function () { layout(); });
   function saveNow() { if (mode === 'play' && !game.busy() && !modalKind) game.save(); }
-  window.addEventListener('pagehide', saveNow);
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') saveNow(); });
+  window.addEventListener('pagehide', function () { trackLeave(); saveNow(); });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { trackLeave(); saveNow(); } });
   layout();
   toTitle();
   requestAnimationFrame(frame);
