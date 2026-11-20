@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>剛好框｜框出剛好的數字</title>
-<meta name="description" content="拖曳框出數字加總剛好等於目標的長方形，找齊全部就過關。每日一題、免註冊、手機就能玩的數字小遊戲。">
+<meta name="description" content="拖曳框出數字加總剛好等於目標的長方形，找齊全部就過關。異形盤、細長盤、正負數、分數、快問快答，每日一題、免註冊、手機就能玩。">
 <meta property="og:title" content="剛好框｜一個框，剛剛好">
-<meta property="og:description" content="拖曳框出加總剛好等於目標的長方形，你能找齊幾個？每日一題，和朋友比秒數。">
+<meta property="og:description" content="拖曳框出加總剛好等於目標的長方形，你能找齊幾個？異形盤、正負數、分數、快問快答，每日一題和朋友比秒數。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://yoyoman-1.github.io/kanpai/box/">
 <meta name="theme-color" content="#fbf4e6">
@@ -20,7 +20,8 @@
 html,body{margin:0;background:var(--bg);color:var(--ink);
   font-family:"Huninn","jf open 粉圓","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
 body{min-height:100dvh;display:flex;flex-direction:column;align-items:center}
-button{font:inherit;color:inherit;cursor:pointer}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
 .wrap{width:100%;max-width:480px;padding:16px 16px 28px;flex:1;display:flex;flex-direction:column}
 header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:20px;letter-spacing:1px;background:none;border:0;padding:0}
@@ -35,8 +36,10 @@ header{display:flex;align-items:center;justify-content:space-between;margin-bott
 .hero h1{font-size:44px;margin:6px 0 4px;letter-spacing:4px}
 .hero h1 span{border:5px solid var(--accent);border-radius:16px;padding:0 8px;margin-left:4px}
 .hero p{color:var(--soft);margin:6px 0 0;font-size:15px;line-height:1.6}
-.demo{margin:16px auto 6px;width:180px}
-.modes{display:grid;gap:10px;margin-top:14px}
+.demo{display:block;margin:16px auto 6px;width:180px}
+.sec{margin:22px 0 2px;font-size:13px;color:var(--soft);letter-spacing:2px;font-weight:700}
+.modes{display:grid;gap:10px;margin-top:10px}
+.modes.two{grid-template-columns:1fr 1fr}
 .mode{display:flex;align-items:center;gap:12px;text-align:left;background:var(--paper);border:2px solid var(--line);
   border-radius:18px;padding:14px;transition:transform .12s,border-color .12s}
 .mode:active{transform:scale(.98)}
@@ -45,6 +48,9 @@ header{display:flex;align-items:center;justify-content:space-between;margin-bott
 .mode b{display:block;font-size:17px}
 .mode span{display:block;color:var(--soft);font-size:13px;margin-top:2px}
 .mode em{margin-left:auto;font-style:normal;font-size:12px;color:var(--soft);text-align:right;white-space:nowrap}
+.modes.two .mode{flex-direction:column;align-items:flex-start;gap:8px;padding:12px}
+.modes.two .mode .ic{width:40px;height:40px;font-size:19px}
+.modes.two .mode em{margin-left:0;text-align:left;min-height:15px}
 .mode.daily{border-color:var(--accent);background:#fff1ea}
 .rule{margin-top:16px;background:var(--paper);border:2px dashed var(--line);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.7;color:#5b4f45}
 .rule b{color:var(--ink)}
@@ -52,23 +58,28 @@ footer{text-align:center;color:var(--soft);font-size:12px;margin-top:18px;letter
 footer a{color:var(--soft)}
 
 /* game */
-.bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:4px 0 10px}
+.bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:4px 0 6px}
 .target{justify-self:center;text-align:center}
 .target small{display:block;font-size:12px;color:var(--soft);letter-spacing:2px}
 .target b{display:inline-block;font-size:38px;line-height:1;min-width:76px;padding:6px 12px;border:4px solid var(--accent);border-radius:16px;background:var(--paper)}
 .stat{font-size:14px;color:var(--soft)}
 .stat b{display:block;font-size:22px;color:var(--ink)}
 .stat.r{text-align:right}
+.tags{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;min-height:22px;margin-bottom:4px}
+.tag{font-size:12px;background:var(--paper);border:1.5px solid var(--line);border-radius:999px;padding:2px 9px;color:#5b4f45}
 .live{height:34px;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
 .pill{background:var(--paper);border:2px solid var(--line);border-radius:999px;padding:4px 14px;font-weight:700;font-size:16px;transition:all .12s}
 .pill.eq{border-color:var(--good);color:var(--good);transform:scale(1.08)}
 .pill.over{color:var(--bad);border-color:#f3b3b5}
-.board{position:relative;width:100%;aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;margin:0 auto}
+.board{position:relative;width:100%;touch-action:none;user-select:none;-webkit-user-select:none;margin:0 auto}
 .grid{position:absolute;inset:0;display:grid;gap:5px}
 .cell{background:var(--cell);border:2px solid var(--line);border-radius:12px;display:grid;place-items:center;font-weight:800;
-  font-size:var(--fs,26px);transition:background .1s}
+  font-size:var(--fs,26px);transition:background .1s;line-height:1;white-space:nowrap}
+.cell.neg{color:#2f6fdb}
+.cell.hole{background:transparent;border:2px dashed rgba(138,125,112,.18)}
 .cell.sel{background:#ffe2d8;border-color:#ffb39f}
 .cell.sel.eq{background:#d9f5e6;border-color:#8fd6b0}
+.cell.hole.sel{background:rgba(229,72,77,.12);border-color:#f3b3b5}
 .frames{position:absolute;inset:0;pointer-events:none}
 .frame{position:absolute;border:4px solid;border-radius:14px;animation:pop .35s ease-out}
 .frame.hint{border-style:dashed;opacity:.75}
@@ -85,6 +96,11 @@ footer a{color:var(--soft)}
 .btn{flex:1;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:11px 8px;font-weight:700;font-size:15px}
 .btn.main{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn:disabled{opacity:.45}
+.count-row{display:flex;gap:10px;margin-top:14px}
+.count-row input{flex:1;min-width:0;border:3px solid var(--line);border-radius:14px;padding:10px 12px;font-size:22px;font-weight:800;text-align:center;background:var(--paper)}
+.count-row input:focus{outline:none;border-color:var(--accent)}
+.count-row .btn{flex:none;padding:0 22px}
+.lives{text-align:center;margin-top:8px;font-size:14px;color:var(--soft)}
 .tip{color:var(--soft);font-size:13px;text-align:center;margin-top:10px;line-height:1.5}
 
 /* modal */
@@ -127,11 +143,14 @@ footer a{color:var(--soft)}
     </svg>
     <p class="tip" style="margin-top:0">目標 7：2＋5 ✓、1＋6 ✓、4＋3 ✓ … 還有嗎？</p>
 
-    <div class="modes" id="modes"></div>
+    <div class="modes" id="modes-main"></div>
+    <div class="sec">變化題</div>
+    <div class="modes two" id="modes-var"></div>
 
     <div class="rule">
       <b>怎麼玩</b>：在盤面上<b>拖曳</b>框出一個長方形（單一格也算），裡面的數字加起來<b>剛好等於目標</b>就算找到。<br>
-      把所有符合的長方形找齊就過關。卡住可以按「提示」，但會加 15 秒。
+      把所有符合的長方形找齊就過關。卡住可以按「提示」，但會加 15 秒。<br>
+      <b>異形盤</b>：虛線空格不能框進去。<b>正負數</b>：藍字是負數。<b>快問快答</b>：不用框，直接回答總共有幾個。
     </div>
     <footer>BOXED JUST RIGHT · <a href="../">乾杯遊戲機</a> 的小遊戲</footer>
   </section>
@@ -141,19 +160,30 @@ footer a{color:var(--soft)}
     <div class="bar">
       <div class="stat"><span id="mode-name">普通</span><b id="timer">0:00</b></div>
       <div class="target"><small>目標</small><b id="target">0</b></div>
-      <div class="stat r">已找到<b><span id="found">0</span> / <span id="total">0</span></b></div>
+      <div class="stat r" id="prog-box">已找到<b><span id="found">0</span> / <span id="total">0</span></b></div>
     </div>
+    <div class="tags" id="tags"></div>
     <div class="live"><div class="pill" id="live">拖曳框出數字</div></div>
     <div class="board" id="board">
       <div class="grid" id="grid"></div>
       <div class="frames" id="frames"></div>
     </div>
-    <div class="dots" id="dots"></div>
-    <div class="actions">
-      <button class="btn" id="hint-btn">💡 提示 (+15秒)</button>
-      <button class="btn" id="give-btn">🏳️ 看答案</button>
+    <div id="find-ui">
+      <div class="dots" id="dots"></div>
+      <div class="actions">
+        <button class="btn" id="hint-btn">💡 提示 (+15秒)</button>
+        <button class="btn" id="give-btn">🏳️ 看答案</button>
+      </div>
+      <p class="tip">從一格按住，拖到另一格放開。點一下單格＝框那一格。</p>
     </div>
-    <p class="tip">從一格按住，拖到另一格放開。點一下單格＝框那一格。</p>
+    <div id="count-ui" class="hidden">
+      <form class="count-row" id="count-form">
+        <input id="count-in" type="number" inputmode="numeric" min="0" max="999" placeholder="總共幾個框？" autocomplete="off">
+        <button class="btn main" type="submit">送出</button>
+      </form>
+      <div class="lives" id="lives"></div>
+      <p class="tip">拖曳可以試算框內合計（不會留下框），算好了直接輸入答案。</p>
+    </div>
   </section>
 </div>
 
@@ -178,12 +208,31 @@ const store = {
   set(k, v) { try { localStorage.setItem('box:' + k, JSON.stringify(v)); } catch (e) {} },
 };
 
+// ---------- 盤面形狀（# = 有格子，. = 空格） ----------
+const SHAPES = {
+  十字: ['..##..', '.####.', '######', '######', '.####.', '..##..'],
+  愛心: ['.##.##.', '#######', '#######', '.#####.', '..###..', '...#...'],
+  回字: ['######', '######', '##..##', '##..##', '######', '######'],
+  階梯: ['##....', '###...', '####..', '#####.', '######', '######'],
+  菱形: ['...#...', '..###..', '.#####.', '#######', '.#####.', '..###..', '...#...'],
+  凹字: ['##..##', '##..##', '######', '######', '######'],
+  雙島: ['###...', '###...', '######', '...###', '...###'],
+};
+const SHAPE_NAMES = Object.keys(SHAPES);
+
 // ---------- 題型 ----------
+// R×C 盤、數字 lo～hi、zero=出現 0 的機率、neg=出現負數的機率、half=½ 為單位、shape=形狀、range=答案數量範圍
 const MODES = {
-  daily: { name: '每日一題', desc: '全世界同一題，和朋友比秒數', icon: '📅', color: '#ffd9cc', n: 5, lo: 1, hi: 9, zero: 0, range: [7, 12] },
-  easy:  { name: '輕鬆',   desc: '4×4・數字 1～5',             icon: '4',  color: '#d9f5e6', n: 4, lo: 1, hi: 5, zero: 0, range: [4, 7] },
-  normal:{ name: '普通',   desc: '5×5・數字 1～9',             icon: '5',  color: '#dce6ff', n: 5, lo: 1, hi: 9, zero: 0, range: [6, 10] },
-  hard:  { name: '燒腦',   desc: '6×6・有 0 混在裡面，小心',     icon: '6',  color: '#f1defc', n: 6, lo: 1, hi: 9, zero: .14, range: [10, 16] },
+  easy:   { name: '輕鬆', desc: '4×4・數字 1～5', icon: '4', color: '#d9f5e6', R: 4, C: 4, lo: 1, hi: 5, range: [4, 7], par: 60 },
+  normal: { name: '普通', desc: '5×5・數字 1～9', icon: '5', color: '#dce6ff', R: 5, C: 5, lo: 1, hi: 9, range: [6, 10], par: 120 },
+  hard:   { name: '燒腦', desc: '6×6・有 0 混在裡面', icon: '6', color: '#f1defc', R: 6, C: 6, lo: 1, hi: 9, zero: .14, range: [10, 16], par: 240 },
+  shape:  { name: '異形盤', desc: '十字、愛心、回字…空格不能框', icon: '♡', color: '#ffe0e9', shape: 'random', lo: 1, hi: 9, range: [6, 12], par: 180, v: 1 },
+  long:   { name: '細長盤', desc: '3×8・又細又長', icon: '▯', color: '#e3f3ff', R: 8, C: 3, lo: 1, hi: 9, range: [6, 11], par: 150, v: 1 },
+  neg:    { name: '正負數', desc: '有負數，越框可能越小', icon: '±', color: '#dfeaff', R: 5, C: 5, lo: 1, hi: 9, neg: .3, nlo: 1, nhi: 5, range: [6, 12], par: 240, v: 1 },
+  half:   { name: '分數', desc: '½ 也來湊熱鬧', icon: '½', color: '#fff0c9', R: 5, C: 5, lo: 1, hi: 12, half: true, range: [6, 10], par: 200, v: 1 },
+  count:  { name: '快問快答', desc: '不用框，答出總共幾個', icon: '?', color: '#e6f7f1', R: 5, C: 5, lo: 1, hi: 9, range: [5, 9], par: 90, count: true, v: 1 },
+  mix:    { name: '大雜燴', desc: '形狀、數字全部隨機', icon: '🎲', color: '#f3eadf', mix: true, par: 240, v: 1 },
+  daily:  { name: '每日一題', desc: '全世界同一題，題型每天換', icon: '📅', color: '#ffd9cc', daily: true, par: 180 },
 };
 const COLORS = ['#ff6b4a', '#4a7dff', '#22a06b', '#d14bd8', '#f5a524', '#0fa3b1', '#e5484d', '#7a5af8', '#8a6a00', '#ff4f9a'];
 
@@ -191,33 +240,102 @@ const COLORS = ['#ff6b4a', '#4a7dff', '#22a06b', '#d14bd8', '#f5a524', '#0fa3b1'
 function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function hashStr(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const pick = (rnd, arr) => arr[Math.floor(rnd() * arr.length)];
 
-function allRects(g, n) {
-  const P = Array.from({ length: n + 1 }, () => new Array(n + 1).fill(0));
-  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) P[r + 1][c + 1] = g[r][c] + P[r][c + 1] + P[r + 1][c] - P[r][c];
+// 數字顯示：½ 與負號
+function fmtNum(v) {
+  const neg = v < 0, a = Math.abs(v), i = Math.floor(a), h = a - i > 0.25;
+  return (neg ? '−' : '') + (h ? (i ? i + '½' : '½') : String(i));
+}
+
+// 實際使用的參數（大雜燴、每日一題會先決定成具體題型）
+function resolveSpec(modeId, rnd) {
+  let m = MODES[modeId];
+  if (m.daily) {
+    const base = pick(rnd, ['normal', 'hard', 'shape', 'long', 'neg', 'half']);
+    return { ...resolveSpec(base, rnd), kind: base };
+  }
+  if (m.mix) {
+    const s = { lo: 1, hi: 9, range: [7, 13] };
+    const form = pick(rnd, ['shape', 'shape', 'long', 'square']);
+    if (form === 'shape') s.shape = pick(rnd, SHAPE_NAMES);
+    else if (form === 'long') { s.R = 8; s.C = 3; }
+    else { s.R = s.C = 5 + Math.floor(rnd() * 2); }
+    const num = pick(rnd, ['plain', 'neg', 'half', 'zero']);
+    if (num === 'neg') Object.assign(s, { neg: .28, nlo: 1, nhi: 5 });
+    if (num === 'half') Object.assign(s, { half: true, hi: 12 });
+    if (num === 'zero') s.zero = .14;
+    return s;
+  }
+  m = { ...m };
+  if (m.shape === 'random') m.shape = pick(rnd, SHAPE_NAMES);
+  return m;
+}
+
+function buildMask(s) {
+  if (s.shape) {
+    const rows = SHAPES[s.shape];
+    return rows.map(r => [...r].map(ch => ch === '#'));
+  }
+  return Array.from({ length: s.R }, () => new Array(s.C).fill(true));
+}
+
+function allRects(g, R, C) {
+  // g[r][c] = 數字或 null（空格）
+  const P = Array.from({ length: R + 1 }, () => new Array(C + 1).fill(0));
+  const H = Array.from({ length: R + 1 }, () => new Array(C + 1).fill(0));
+  for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+    const v = g[r][c];
+    P[r + 1][c + 1] = (v ?? 0) + P[r][c + 1] + P[r + 1][c] - P[r][c];
+    H[r + 1][c + 1] = (v == null ? 1 : 0) + H[r][c + 1] + H[r + 1][c] - H[r][c];
+  }
+  const q = (T, r1, r2, c1, c2) => T[r2 + 1][c2 + 1] - T[r1][c2 + 1] - T[r2 + 1][c1] + T[r1][c1];
   const out = [];
-  for (let r1 = 0; r1 < n; r1++) for (let r2 = r1; r2 < n; r2++) for (let c1 = 0; c1 < n; c1++) for (let c2 = c1; c2 < n; c2++)
-    out.push({ r1, r2, c1, c2, s: P[r2 + 1][c2 + 1] - P[r1][c2 + 1] - P[r2 + 1][c1] + P[r1][c1] });
+  for (let r1 = 0; r1 < R; r1++) for (let r2 = r1; r2 < R; r2++) for (let c1 = 0; c1 < C; c1++) for (let c2 = c1; c2 < C; c2++) {
+    if (q(H, r1, r2, c1, c2)) continue;
+    out.push({ r1, r2, c1, c2, s: Math.round(q(P, r1, r2, c1, c2) * 2) / 2 });
+  }
   return out;
 }
 
 function makePuzzle(modeId, rnd) {
-  const m = MODES[modeId];
-  for (let tries = 0; tries < 400; tries++) {
-    const g = Array.from({ length: m.n }, () => Array.from({ length: m.n }, () =>
-      rnd() < m.zero ? 0 : m.lo + Math.floor(rnd() * (m.hi - m.lo + 1))));
-    const rects = allRects(g, m.n);
-    const cnt = {};
-    for (const r of rects) (cnt[r.s] = cnt[r.s] || []).push(r);
-    // 目標至少 6 以上，答案要有大有小，不能全是單格
-    const ok = Object.keys(cnt).map(Number).filter(t => {
-      const L = cnt[t]; if (t < 6 || L.length < m.range[0] || L.length > m.range[1]) return false;
-      const areas = new Set(L.map(r => (r.r2 - r.r1 + 1) * (r.c2 - r.c1 + 1)));
-      return areas.size >= 3 && L.some(r => r.r2 > r.r1 && r.c2 > r.c1);
-    });
-    if (ok.length) {
-      const t = ok[Math.floor(rnd() * ok.length)];
-      return { g, n: m.n, target: t, answers: cnt[t].map(r => ({ ...r, key: `${r.r1},${r.c1},${r.r2},${r.c2}` })) };
+  for (let outer = 0; outer < 20; outer++) {
+    const s = resolveSpec(modeId, rnd);
+    const mask = buildMask(s);
+    const R = mask.length, C = mask[0].length;
+    const range = s.range || [7, 13];
+    for (let tries = 0; tries < 300; tries++) {
+      const g = mask.map(row => row.map(ok => {
+        if (!ok) return null;
+        if (s.zero && rnd() < s.zero) return 0;
+        if (s.neg && rnd() < s.neg) return -(s.nlo + Math.floor(rnd() * (s.nhi - s.nlo + 1)));
+        const k = s.lo + Math.floor(rnd() * (s.hi - s.lo + 1));
+        return s.half ? k / 2 : k;
+      }));
+      if (s.half && !g.flat().some(v => v != null && v % 1)) continue;
+      const rects = allRects(g, R, C);
+      const cnt = new Map();
+      for (const r of rects) { if (!cnt.has(r.s)) cnt.set(r.s, []); cnt.get(r.s).push(r); }
+      const ok = [...cnt.keys()].filter(t => {
+        const L = cnt.get(t);
+        if (L.length < range[0] || L.length > range[1]) return false;
+        if (s.neg ? Math.abs(t) < 3 : t < (s.half ? 4 : 6)) return false;
+        if (s.half && t % 1 === 0 && rnd() < .5) return false; // 分數題偏好 .5 的目標
+        const areas = new Set(L.map(r => (r.r2 - r.r1 + 1) * (r.c2 - r.c1 + 1)));
+        return areas.size >= 3 && L.some(r => r.r2 > r.r1 && r.c2 > r.c1);
+      });
+      if (ok.length) {
+        const t = ok[Math.floor(rnd() * ok.length)];
+        const tags = [];
+        if (s.shape) tags.push(s.shape + '盤');
+        else if (R !== C) tags.push(`細長盤`);
+        else tags.push(`${R}×${C}`);
+        if (s.neg) tags.push('有負數');
+        if (s.half) tags.push('有 ½');
+        if (s.zero) tags.push('有 0');
+        return { g, R, C, target: t, neg: !!s.neg, tags, kind: s.kind,
+          answers: cnt.get(t).map(r => ({ ...r, key: `${r.r1},${r.c1},${r.r2},${r.c2}` })) };
+      }
     }
   }
   throw new Error('puzzle gen failed');
@@ -225,16 +343,18 @@ function makePuzzle(modeId, rnd) {
 
 // ---------- 首頁 ----------
 const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+function modeCard(id, m, best, daily) {
+  let right = best[id] != null ? `最佳 ${fmt(best[id])}` : '';
+  if (id === 'daily') right = daily.date === today() ? `今天 ${fmt(daily.sec)} ✓` : '今日未挑戰';
+  return `<button class="mode ${id === 'daily' ? 'daily' : ''}" data-mode="${id}">
+    <div class="ic" style="background:${m.color}">${m.icon}</div>
+    <div><b>${m.name}</b><span>${m.desc}</span></div><em>${right}</em></button>`;
+}
 function renderHome() {
-  const best = store.get('best', {});
-  const daily = store.get('daily', {});
-  $('#modes').innerHTML = Object.entries(MODES).map(([id, m]) => {
-    let right = best[id] != null ? `最佳 ${fmt(best[id])}` : '';
-    if (id === 'daily') right = daily.date === today() ? `今天 ${fmt(daily.sec)} ✓` : '今日未挑戰';
-    return `<button class="mode ${id === 'daily' ? 'daily' : ''}" data-mode="${id}">
-      <div class="ic" style="background:${m.color}">${m.icon}</div>
-      <div><b>${m.name}</b><span>${m.desc}</span></div><em>${right}</em></button>`;
-  }).join('');
+  const best = store.get('best', {}), daily = store.get('daily', {});
+  const ent = Object.entries(MODES);
+  $('#modes-main').innerHTML = ['daily', 'easy', 'normal', 'hard'].map(id => modeCard(id, MODES[id], best, daily)).join('');
+  $('#modes-var').innerHTML = ent.filter(([, m]) => m.v).map(([id, m]) => modeCard(id, m, best, daily)).join('');
   document.querySelectorAll('.mode').forEach(b => b.onclick = () => start(b.dataset.mode));
 }
 function showHome() {
@@ -249,50 +369,76 @@ let G = null, timerId = 0;
 function stopTimer() { clearInterval(timerId); timerId = 0; }
 function elapsed() { return (performance.now() - G.t0) / 1000 + G.penalty; }
 
+function sizeBoard() {
+  if (!G) return;
+  const b = $('#board');
+  const wrapW = Math.min(448, document.documentElement.clientWidth - 32);
+  const maxH = Math.max(260, window.innerHeight * (G.count ? 0.5 : 0.56));
+  let w = wrapW, h = w * G.R / G.C;
+  if (h > maxH) { h = maxH; w = h * G.C / G.R; }
+  b.style.width = w + 'px'; b.style.height = h + 'px';
+  const cellPx = Math.min(w / G.C, h / G.R);
+  const longest = Math.max(...G.g.flat().filter(v => v != null).map(v => fmtNum(v).length));
+  $('#grid').style.setProperty('--fs', Math.max(13, Math.min(32, cellPx * (longest >= 3 ? .34 : longest === 2 ? .42 : .5))) + 'px');
+}
+window.addEventListener('resize', sizeBoard);
+
 function start(modeId) {
-  const rnd = modeId === 'daily' ? mulberry32(hashStr('box-' + today())) : Math.random;
+  const rnd = modeId === 'daily' ? mulberry32(hashStr('box2-' + today())) : Math.random;
   const P = makePuzzle(modeId, rnd);
-  G = { ...P, mode: modeId, found: new Map(), hints: 0, penalty: 0, t0: performance.now(), done: false };
+  const m = MODES[modeId];
+  G = { ...P, mode: modeId, count: !!m.count, found: new Map(), hints: 0, penalty: 0, lives: 3, guesses: [], t0: performance.now(), done: false };
   $('#home').classList.add('hidden'); $('#game').classList.remove('hidden'); $('#back-btn').classList.remove('hidden');
-  $('#mode-name').textContent = MODES[modeId].name;
-  $('#target').textContent = G.target;
-  $('#total').textContent = G.answers.length;
+  $('#mode-name').textContent = m.name;
+  $('#target').textContent = fmtNum(G.target);
+  $('#tags').innerHTML = G.tags.map(t => `<span class="tag">${t}</span>`).join('');
   const grid = $('#grid');
-  grid.style.gridTemplateColumns = `repeat(${G.n},1fr)`;
-  grid.style.setProperty('--fs', G.n >= 6 ? 'clamp(18px,6vw,26px)' : 'clamp(22px,7.5vw,32px)');
-  grid.innerHTML = G.g.flat().map((v, i) => `<div class="cell" data-i="${i}">${v}</div>`).join('');
-  $('#frames').innerHTML = ''; $('#hint-btn').disabled = false; $('#give-btn').disabled = false;
-  setLive(null); renderProgress();
+  grid.style.gridTemplateColumns = `repeat(${G.C},1fr)`;
+  grid.style.gridTemplateRows = `repeat(${G.R},1fr)`;
+  grid.innerHTML = G.g.flat().map((v, i) => v == null ? `<div class="cell hole" data-i="${i}"></div>`
+    : `<div class="cell${v < 0 ? ' neg' : ''}" data-i="${i}">${fmtNum(v)}</div>`).join('');
+  $('#frames').innerHTML = '';
+  $('#find-ui').classList.toggle('hidden', G.count);
+  $('#count-ui').classList.toggle('hidden', !G.count);
+  $('#prog-box').innerHTML = G.count ? `機會<b id="lives-n">●●●</b>` : `已找到<b><span id="found">0</span> / <span id="total">${G.answers.length}</span></b>`;
+  $('#hint-btn').disabled = false; $('#give-btn').disabled = false;
+  $('#count-in').value = ''; $('#count-in').disabled = false; $('#lives').textContent = '';
+  sizeBoard(); setLive(null); renderProgress();
   stopTimer(); timerId = setInterval(() => $('#timer').textContent = fmt(elapsed()), 250); $('#timer').textContent = '0:00';
-  track('box_start', { mode: modeId });
+  track('box_start', { mode: modeId, kind: G.kind || modeId });
   window.scrollTo(0, 0);
 }
 
 function renderProgress() {
+  if (G.count) { $('#lives-n').textContent = '●'.repeat(G.lives) + '○'.repeat(3 - G.lives); return; }
   $('#found').textContent = G.found.size;
   $('#dots').innerHTML = G.answers.map((a, i) => `<span class="dot" style="${i < G.found.size ? `background:${COLORS[i % COLORS.length]}` : ''}"></span>`).join('');
 }
 
-function addFrame(r, color, cls = '') {
-  const n = G.n, k = G.found.size;
+function addFrame(r, color, cls = '', k = G.found.size) {
   const inset = 2 + (k % 3) * 3;
   const f = document.createElement('div');
   f.className = 'frame ' + cls;
-  f.style.cssText = `left:calc(${r.c1 / n * 100}% + ${inset - 2}px);top:calc(${r.r1 / n * 100}% + ${inset - 2}px);` +
-    `width:calc(${(r.c2 - r.c1 + 1) / n * 100}% - ${inset * 2 - 6}px);height:calc(${(r.r2 - r.r1 + 1) / n * 100}% - ${inset * 2 - 6}px);border-color:${color}`;
+  f.style.cssText = `left:calc(${r.c1 / G.C * 100}% + ${inset - 2}px);top:calc(${r.r1 / G.R * 100}% + ${inset - 2}px);` +
+    `width:calc(${(r.c2 - r.c1 + 1) / G.C * 100}% - ${inset * 2 - 6}px);height:calc(${(r.r2 - r.r1 + 1) / G.R * 100}% - ${inset * 2 - 6}px);border-color:${color}`;
   $('#frames').appendChild(f);
 }
 
 let toastT = 0;
-function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1100); }
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1200); }
 function buzz(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+function shake() { const b = $('#board'); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
 
-function setLive(sum) {
+function setLive(sum, hole) {
   const el = $('#live');
   el.classList.remove('eq', 'over');
-  if (sum == null) { el.textContent = G && G.found.size ? `還差 ${G.answers.length - G.found.size} 個` : '拖曳框出數字'; return; }
-  el.textContent = `框內合計 ${sum}`;
-  if (sum === G.target) el.classList.add('eq'); else if (sum > G.target) el.classList.add('over');
+  if (hole) { el.textContent = '框到空格了'; el.classList.add('over'); return; }
+  if (sum == null) {
+    el.textContent = G.count ? '拖曳可以試算' : G.found.size ? `還差 ${G.answers.length - G.found.size} 個` : '拖曳框出數字';
+    return;
+  }
+  el.textContent = `框內合計 ${fmtNum(sum)}`;
+  if (sum === G.target) el.classList.add('eq'); else if (!G.neg && sum > G.target) el.classList.add('over');
 }
 
 // 拖曳選取
@@ -300,23 +446,24 @@ let sel = null;
 const board = $('#board');
 function cellAt(e) {
   const b = board.getBoundingClientRect();
-  const c = Math.floor((e.clientX - b.left) / b.width * G.n), r = Math.floor((e.clientY - b.top) / b.height * G.n);
-  return { r: Math.max(0, Math.min(G.n - 1, r)), c: Math.max(0, Math.min(G.n - 1, c)) };
+  const c = Math.floor((e.clientX - b.left) / b.width * G.C), r = Math.floor((e.clientY - b.top) / b.height * G.R);
+  return { r: Math.max(0, Math.min(G.R - 1, r)), c: Math.max(0, Math.min(G.C - 1, c)) };
 }
 function curRect() {
   const { a, b } = sel;
   return { r1: Math.min(a.r, b.r), r2: Math.max(a.r, b.r), c1: Math.min(a.c, b.c), c2: Math.max(a.c, b.c) };
 }
 function paintSel() {
-  const R = curRect(); let s = 0;
-  for (let r = R.r1; r <= R.r2; r++) for (let c = R.c1; c <= R.c2; c++) s += G.g[r][c];
-  const eq = s === G.target;
+  const R = curRect(); let s = 0, hole = false;
+  for (let r = R.r1; r <= R.r2; r++) for (let c = R.c1; c <= R.c2; c++) { const v = G.g[r][c]; if (v == null) hole = true; else s += v; }
+  s = Math.round(s * 2) / 2;
+  const eq = !hole && s === G.target;
   document.querySelectorAll('.cell').forEach(el => {
-    const i = +el.dataset.i, r = Math.floor(i / G.n), c = i % G.n;
+    const i = +el.dataset.i, r = Math.floor(i / G.C), c = i % G.C;
     const on = r >= R.r1 && r <= R.r2 && c >= R.c1 && c <= R.c2;
     el.classList.toggle('sel', on); el.classList.toggle('eq', on && eq);
   });
-  setLive(s); return { R, s };
+  setLive(s, hole); return { R, s, hole };
 }
 board.addEventListener('pointerdown', e => {
   if (!G || G.done) return;
@@ -329,12 +476,15 @@ board.addEventListener('pointermove', e => {
 });
 function endSel(e) {
   if (!sel || e.pointerId !== sel.id) return;
-  const { R, s } = paintSel(); sel = null;
+  const { R, s, hole } = paintSel(); sel = null;
   document.querySelectorAll('.cell.sel').forEach(el => el.classList.remove('sel', 'eq'));
+  if (G.count) { setTimeout(() => { if (!sel) setLive(null); }, 900); return; } // 快問快答：只試算
+  const single = R.r1 === R.r2 && R.c1 === R.c2;
+  if (hole) { setLive(null); if (!single) { toast('空格不能框進去'); shake(); buzz(30); } return; }
   const key = `${R.r1},${R.c1},${R.r2},${R.c2}`;
   if (s !== G.target) {
     setLive(null);
-    if (R.r1 !== R.r2 || R.c1 !== R.c2 || s > G.target) { toast(`合計 ${s}，不是 ${G.target}`); board.classList.remove('shake'); void board.offsetWidth; board.classList.add('shake'); buzz(30); }
+    if (!single || (!G.neg && s > G.target)) { toast(`合計 ${fmtNum(s)}，不是 ${fmtNum(G.target)}`); shake(); buzz(30); }
     return;
   }
   if (G.found.has(key)) { setLive(null); toast('這個找過了'); return; }
@@ -351,7 +501,6 @@ $('#hint-btn').onclick = () => {
   if (!G || G.done) return;
   const left = G.answers.filter(a => !G.found.has(a.key));
   if (!left.length) return;
-  // 先給大的（比較難找）
   left.sort((a, b) => (b.r2 - b.r1 + 1) * (b.c2 - b.c1 + 1) - (a.r2 - a.r1 + 1) * (a.c2 - a.c1 + 1));
   const a = left[0];
   G.found.set(a.key, 'hint'); G.hints++; G.penalty += 15;
@@ -360,46 +509,65 @@ $('#hint-btn').onclick = () => {
 };
 $('#give-btn').onclick = () => {
   if (!G || G.done) return;
-  G.answers.filter(a => !G.found.has(a.key)).forEach(a => { addFrame(a, '#e5484d', 'miss'); });
+  G.answers.filter(a => !G.found.has(a.key)).forEach((a, i) => addFrame(a, '#e5484d', 'miss', i));
   finish(true);
 };
+
+// 快問快答
+$('#count-form').onsubmit = e => {
+  e.preventDefault();
+  if (!G || G.done || !G.count) return;
+  const v = parseInt($('#count-in').value, 10);
+  if (!Number.isFinite(v)) return;
+  const n = G.answers.length;
+  G.guesses.push(v);
+  if (v === n) { buzz([15, 40, 15]); revealAll(); finish(false); return; }
+  G.lives--; G.penalty += 10; renderProgress(); buzz(40); shake();
+  $('#count-in').value = '';
+  if (G.lives <= 0) { revealAll(); finish(true); return; }
+  const msg = `${v} 個${v < n ? '太少' : '太多'}了（+10 秒）`;
+  $('#lives').textContent = msg; toast(msg);
+};
+function revealAll() { G.answers.forEach((a, i) => addFrame(a, COLORS[i % COLORS.length], '', i)); }
 
 function finish(gaveUp) {
   G.done = true; stopTimer();
   const sec = Math.round(elapsed());
   $('#timer').textContent = fmt(sec);
-  $('#hint-btn').disabled = true; $('#give-btn').disabled = true;
-  const mine = [...G.found.values()].filter(v => v === 'me').length;
-  const n = G.answers.length;
+  $('#hint-btn').disabled = true; $('#give-btn').disabled = true; $('#count-in').disabled = true;
+  const m = MODES[G.mode], n = G.answers.length;
+  const mine = G.count ? (gaveUp ? 0 : n) : [...G.found.values()].filter(v => v === 'me').length;
   let stars = 0, title;
-  if (gaveUp) { title = mine ? `找到 ${mine} / ${n}` : '下次再戰'; }
+  G.record = false;
+  if (gaveUp) { title = G.count ? `答案是 ${n} 個` : mine ? `找到 ${mine} / ${n}` : '下次再戰'; }
   else {
-    const par = { easy: 60, normal: 120, hard: 240, daily: 150 }[G.mode];
-    stars = G.hints ? 1 : sec <= par ? 3 : 2;
+    const used = G.count ? 3 - G.lives : G.hints;
+    stars = G.count ? (used === 0 ? (sec <= m.par ? 3 : 2) : used === 1 ? 2 : 1) : used ? 1 : sec <= m.par ? 3 : 2;
     title = ['', '過關！', '很不錯！', '剛剛好！'][stars];
     const best = store.get('best', {});
-    let record = false;
-    if (!G.hints && (best[G.mode] == null || sec < best[G.mode])) { best[G.mode] = sec; store.set('best', best); record = true; }
-    G.record = record;
+    if (!used && (best[G.mode] == null || sec < best[G.mode])) { best[G.mode] = sec; store.set('best', best); G.record = true; }
   }
-  if (G.mode === 'daily') {
+  if (G.mode === 'daily' && !gaveUp) {
     const d = store.get('daily', {});
-    if (d.date !== today() && !gaveUp) store.set('daily', { date: today(), sec, hints: G.hints, stars });
+    if (d.date !== today()) store.set('daily', { date: today(), sec, hints: G.hints, stars });
   }
-  track('box_clear', { mode: G.mode, sec, hints: G.hints, gaveUp: gaveUp ? 1 : 0, found: mine, total: n });
+  track('box_clear', { mode: G.mode, kind: G.kind || G.mode, sec, hints: G.hints, gaveUp: gaveUp ? 1 : 0, found: mine, total: n });
 
-  const emo = G.answers.map(a => { const v = G.found.get(a.key); return v === 'me' ? '🟧' : v === 'hint' ? '⬜' : '⬛'; }).join('');
-  const label = G.mode === 'daily' ? `每日 ${today().slice(5).replace('-', '/')}` : MODES[G.mode].name;
-  const shareText = `剛好框｜${label} 目標 ${G.target}\n${gaveUp ? `找到 ${mine}/${n}` : `⏱ ${fmt(sec)}${G.hints ? ` 💡${G.hints}` : ''} ${'⭐'.repeat(stars)}`}\n${emo}\n${SITE}`;
+  const emo = G.count
+    ? G.guesses.map(v => v === n ? '🟩' : v < n ? '🔽' : '🔼').join('')
+    : G.answers.map(a => { const v = G.found.get(a.key); return v === 'me' ? '🟧' : v === 'hint' ? '⬜' : '⬛'; }).join('');
+  const label = (G.mode === 'daily' ? `每日 ${today().slice(5).replace('-', '/')}` : m.name) + `・${G.tags[0]}`;
+  const shareText = `剛好框｜${label} 目標 ${fmtNum(G.target)}\n${gaveUp ? (G.count ? '沒猜到' : `找到 ${mine}/${n}`) : `⏱ ${fmt(sec)}${G.hints ? ` 💡${G.hints}` : ''} ${'⭐'.repeat(stars)}`}\n${emo}\n${SITE}`;
 
   setTimeout(() => {
     $('#result-card').innerHTML = `
       <h2>${title}</h2>
       ${gaveUp ? '' : `<div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>`}
-      <div class="big">${gaveUp ? `${mine} / ${n}` : fmt(sec)}</div>
-      <p>${label}・目標 ${G.target}・共 ${n} 個框${G.hints ? `・用了 ${G.hints} 次提示` : ''}</p>
+      <div class="big">${gaveUp ? (G.count ? n + ' 個' : `${mine} / ${n}`) : fmt(sec)}</div>
+      <p>${label}・目標 ${fmtNum(G.target)}・共 ${n} 個框${G.hints ? `・用了 ${G.hints} 次提示` : ''}</p>
+      ${G.count ? `<p>你的回答：${G.guesses.join('、')}</p>` : ''}
       ${G.record ? '<p style="color:var(--accent);font-weight:700">🎉 新紀錄！</p>' : ''}
-      ${gaveUp ? '<p>紅色虛線是沒找到的答案。</p>' : ''}
+      ${gaveUp && !G.count ? '<p>紅色虛線是沒找到的答案。</p>' : ''}
       <p style="font-size:20px;letter-spacing:2px;word-break:break-all">${emo}</p>
       <div class="actions">
         <button class="btn main" id="share-btn">分享成績</button>
@@ -411,7 +579,7 @@ function finish(gaveUp) {
     $('#share-btn').onclick = async () => {
       track('box_share', { mode: G.mode });
       try { if (navigator.share) { await navigator.share({ text: shareText }); return; } } catch (e) { if (e.name === 'AbortError') return; }
-      try { await navigator.clipboard.writeText(shareText); toast('已複製，貼給朋友吧'); } catch (e) { prompt('複製這段分享：', shareText); }
+      try { await navigator.clipboard.writeText(shareText); toast('已複製，貼給朋友吧'); } catch (e) { toast('複製失敗，請截圖分享'); }
     };
     const again = $('#again-btn'); if (again) again.onclick = () => { $('#result').classList.add('hidden'); start(G.mode); };
     $('#look-btn').onclick = () => $('#result').classList.add('hidden');
@@ -420,7 +588,7 @@ function finish(gaveUp) {
 }
 
 renderHome();
-// 網址 ?m=daily 直接開題
+// 網址 ?m=shape 直接開題
 const qm = new URLSearchParams(location.search).get('m');
 if (qm && MODES[qm]) start(qm);
 </script>
