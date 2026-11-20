@@ -19,7 +19,9 @@
 <style>
 :root{--ink:#1a1420;--panel:#221c34;--panel2:#2c2444;--line:#f2e2b8;--line2:#7a5a3a;--txt:#f6efe0;--dim:#b8aec8;--gold:#f0c050;--acc:#7ad0e8;--bad:#e8705a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:#0c0a14;color:var(--txt);font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC","Heiti TC",sans-serif;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
+html,body{margin:0;height:100%;background:#0c0a14;color:var(--txt);font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC","Heiti TC",sans-serif;overflow:hidden;overscroll-behavior:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body{position:fixed;inset:0;width:100%}
+#modal .box{touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #app{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 #stage{position:relative;line-height:0;box-shadow:0 0 0 3px #000,0 0 0 6px #3a3050,0 10px 40px #000a;background:#000;flex:none}
 #cv{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
@@ -82,7 +84,7 @@ html,body{margin:0;height:100%;background:#0c0a14;color:var(--txt);font-family:"
 #title .menu{pointer-events:auto;width:min(300px,100%);padding:10px;font-size:var(--fs)}
 #title .menu .mbtn{text-align:center;padding-left:10px}
 #title .ver{font-size:.7em;color:#fff6;line-height:1}
-#pad{display:none;width:100%;max-width:520px;box-sizing:border-box;justify-content:space-between;align-items:center;padding:4px 10px 8px;user-select:none;-webkit-user-select:none;touch-action:none;flex:none}
+#pad{display:none;width:100%;max-width:520px;box-sizing:border-box;justify-content:space-between;align-items:center;padding:4px 22px 8px;user-select:none;-webkit-user-select:none;touch-action:none;flex:none}
 body.touch #pad{display:flex}
 .dpad{position:relative;width:168px;height:168px;touch-action:none}
 .dpad button,.ab button{position:absolute;font:inherit;color:#f6efe0;background:#2c2444;border:3px solid #f2e2b8aa;box-shadow:0 4px 0 #000;font-size:22px;touch-action:none}
@@ -4337,6 +4339,19 @@ GP.tick = function () {
   window.addEventListener('keyup', function (e) { if (KEYMAP[e.key]) pressDir(KEYMAP[e.key], false); });
   window.addEventListener('blur', function () { held = {}; heldOrder = []; });
   document.addEventListener('pointerdown', firstGesture, { passive: true });
+  // 手機：擋掉瀏覽器自己的滑動（下拉重新整理、整頁回彈、Threads/IG 內建瀏覽器往下滑關閉、雙指縮放）
+  // 只有選單內容真的超出高度時才讓它捲動
+  function canScroll(t) {
+    var box = t && t.closest ? t.closest('#modal .box') : null;
+    return !!box && box.scrollHeight > box.clientHeight + 1;
+  }
+  document.addEventListener('touchmove', function (e) {
+    if (e.touches.length > 1 || !canScroll(e.target)) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchstart', function (e) {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+  ['gesturestart', 'gesturechange', 'dblclick'].forEach(function (ev) { document.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false }); });
   // 虛擬按鍵
   function buzz(ms) { try { if (touch && navigator.vibrate) navigator.vibrate(ms); } catch (e) { } }
   // 十字鍵：整塊一起判斷方向，手指按住滑動就能換方向
