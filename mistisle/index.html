@@ -4091,7 +4091,7 @@ GP.tick = function () {
     modalKind = kind; modalOnClose = onClose || null; mbox.innerHTML = ''; modal.className = 'k-' + kind; build(mbox); modal.hidden = false;
     var f = mbox.querySelector('.mbtn:not(.tabbtn), .wheel'); focusFirst();
   }
-  function focusFirst() { var b = modal.querySelectorAll('.mbtn'); var pick = null; for (var i = 0; i < b.length; i++) if (!b[i].classList.contains('tabbtn')) { pick = b[i]; break; } if (pick && !touch) pick.focus({ preventScroll: true }); }
+  function focusFirst() { var b = modal.querySelectorAll('.mbtn'); var pick = null; for (var i = 0; i < b.length; i++) if (!b[i].classList.contains('tabbtn')) { pick = b[i]; break; } if (pick && !touch) pick.focus({ preventScroll: true }); if (pick && touch) pick.classList.add('sel'); }
   function closeModal() { modal.hidden = true; var k = modalKind, cb = modalOnClose; modalKind = null; modalOnClose = null; if (cb) cb(k); }
   function iconCanvas(id) { var c = el('canvas'); c.width = 16; c.height = 16; var s = iconSprite(id); if (s) c.getContext('2d').drawImage(s, 0, 0); return c; }
 
@@ -4218,7 +4218,7 @@ GP.tick = function () {
   }
   var newArmed = 0;
   function confirmNew() { if (Date.now() - newArmed < 4000) return true; newArmed = Date.now(); toast('會覆蓋目前的存檔，再按一次確認'); return false; }
-  function focusFirst2(m) { var b = m.querySelector('.mbtn'); if (b && !touch) b.focus({ preventScroll: true }); }
+  function focusFirst2(m) { var b = m.querySelector('.mbtn'); if (b && !touch) b.focus({ preventScroll: true }); if (b && touch) b.classList.add('sel'); }
   function showCollection() {
     openModal('coll', function (b) {
       b.appendChild(el('h2', null, '結局收藏'));
@@ -4292,17 +4292,20 @@ GP.tick = function () {
     }
     var root = modalKind ? modal : $('titleMenu');
     var bs = Array.prototype.slice.call(root.querySelectorAll('.mbtn')), i = bs.indexOf(document.activeElement);
+    if (i < 0) i = bs.findIndex(function (b) { return b.classList.contains('sel'); });
     if (modalKind === 'menu' && (d === 'left' || d === 'right')) {
       var order = ['items', 'journal', 'system'], k = order.indexOf(menuTab);
       menuTab = order[(k + (d === 'left' ? 2 : 1)) % 3]; buildMenu(mbox); focusFirst(); Sound.sfx('select'); return;
     }
     if (!bs.length) return;
     if (d === 'up' || d === 'left') i = i <= 0 ? bs.length - 1 : i - 1; else i = (i + 1) % bs.length;
-    bs[i].focus(); bs[i].scrollIntoView({ block: 'nearest' }); Sound.sfx('select');
+    // 手機上用程式 focus() 不會觸發 :focus-visible，看不到選到哪個 → 另外加 .sel 外框
+    bs.forEach(function (b, j) { b.classList.toggle('sel', j === i); });
+    bs[i].focus({ preventScroll: true }); bs[i].scrollIntoView({ block: 'nearest' }); Sound.sfx('select');
   }
   function confirmKey() {
     if (modalKind === 'code') { ui.codeSubmit(true); return; }
-    if (modalKind || mode === 'title') { var a = document.activeElement; if (a && a.classList && a.classList.contains('mbtn')) a.click(); else { var b = (modalKind ? modal : $('titleMenu')).querySelector('.mbtn:not(.tabbtn)'); if (b) b.click(); } return; }
+    if (modalKind || mode === 'title') { var a = document.activeElement; if (!(a && a.classList && a.classList.contains('mbtn'))) a = (modalKind ? modal : $('titleMenu')).querySelector('.mbtn.sel'); if (a) a.click(); else { var b = (modalKind ? modal : $('titleMenu')).querySelector('.mbtn:not(.tabbtn)'); if (b) b.click(); } return; }
     if (mode !== 'play') return;
     if (game.pending) { if (ui.kind === 'say' || ui.kind === 'choice') confirmDialog(); return; }
     if (P.path.length) return;
