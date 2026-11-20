@@ -458,6 +458,7 @@ const CONFIG = {
   threadsUrl: 'https://www.threads.com/@nc_tim', // 「脆私訊作者」，空白就不顯示
   scratchUrl: 'scratch/', // 小遊戲《刮到一億》，空白就不顯示
   mistisleUrl: 'mistisle/', // 小遊戲《霧嶼守燈人》，空白就不顯示
+  boxUrl: 'box/', // 小遊戲《剛好框》，空白就不顯示
 };
 // 轉換事件：沒設定 Umami 時什麼都不做
 const track = (name, data) => { try { window.umami && window.umami.track(name, data); } catch (e) {} };
@@ -484,6 +485,7 @@ const legal = () => `
     <a href="business/">店家合作</a>
     ${CONFIG.scratchUrl ? `<a href="${esc(CONFIG.scratchUrl)}" target="_blank" rel="noopener" id="scratch-btn">小遊戲：刮到一億</a>` : ''}
     ${CONFIG.mistisleUrl ? `<a href="${esc(CONFIG.mistisleUrl)}" target="_blank" rel="noopener" id="mistisle-btn">小遊戲：霧嶼守燈人</a>` : ''}
+    ${CONFIG.boxUrl ? `<a href="${esc(CONFIG.boxUrl)}" target="_blank" rel="noopener" id="box-btn">小遊戲：剛好框</a>` : ''}
     ${CONFIG.supportUrl ? `<a href="${esc(CONFIG.supportUrl)}" target="_blank" rel="noopener" id="support-btn">請作者喝一杯</a>` : ''}
     ${CONFIG.feedbackEmail || CONFIG.threadsUrl ? `<button type="button" id="feedback-btn" aria-expanded="false" aria-controls="feedback-menu">給作者意見</button>` : ''}
   </div>
@@ -506,6 +508,8 @@ function bindLegal() {
   if (sc) sc.onclick = () => track('scratch_click');
   const mi = $('#mistisle-btn');
   if (mi) mi.onclick = () => track('mistisle_click');
+  const bx = $('#box-btn');
+  if (bx) bx.onclick = () => track('box_click');
   // 「給作者意見」點開後才顯示寄信、脆私訊兩個選項
   const fb = $('#feedback-btn'), menu = $('#feedback-menu');
   if (fb) fb.onclick = () => { menu.hidden = !menu.hidden; fb.setAttribute('aria-expanded', !menu.hidden); if (!menu.hidden) track('feedback_click'); };
