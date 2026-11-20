@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2a1f3d">
 <link rel="icon" href="data:,">
-<meta name="ml-build" content="20261120-224117">
+<meta name="ml-build" content="20261120-231610">
 <title>彈珠傳說</title>
 </head>
 <body>
@@ -14,7 +14,7 @@
 /* ===== 彈珠傳說：用戶端樣式（①b）。Q 版像素風：粗外框（box-shadow 階梯缺角）、鮮豔主題色、粗體描邊字 ===== */
 :root{
   --ink:#2a1840;--ink2:#46306a;--cream:#fff7e6;--cream2:#f3dcae;--edge:36px;
-  --hud:52px;--fire:96px;--bar:52px;
+  --hud:52px;--fire:96px;--bar:76px;
   --theme:#5fd068;--theme2:#2d7a3a;--theme3:#173f20;
   --font:"Microsoft JhengHei","PingFang TC","Noto Sans TC","Heiti TC",sans-serif;
   --o3:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink);
@@ -22,9 +22,9 @@
   --tw:2px 0 0 var(--ink),-2px 0 0 var(--ink),0 2px 0 var(--ink),0 -2px 0 var(--ink),2px 2px 0 var(--ink),-2px 2px 0 var(--ink),2px -2px 0 var(--ink),-2px -2px 0 var(--ink),0 4px 0 var(--ink);
   --tw1:1px 0 0 var(--ink),-1px 0 0 var(--ink),0 1px 0 var(--ink),0 -1px 0 var(--ink),1px 1px 0 var(--ink),-1px 1px 0 var(--ink),1px -1px 0 var(--ink),-1px -1px 0 var(--ink),0 2px 0 var(--ink)
 }
-@media (max-height:780px){:root{--fire:88px;--bar:48px}}
-@media (max-height:700px){:root{--fire:72px;--bar:42px;--hud:46px}}
-@media (hover:hover) and (pointer:fine){:root{--fire:74px;--bar:42px;--hud:48px}}
+@media (max-height:780px){:root{--fire:88px;--bar:68px}}
+@media (max-height:700px){:root{--fire:72px;--bar:60px;--hud:46px}}
+@media (hover:hover) and (pointer:fine){:root{--fire:74px;--bar:60px;--hud:48px}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#1a1030;color:#fff;font-family:var(--font);font-weight:700;line-height:1.35;
@@ -86,18 +86,22 @@ img{-webkit-user-drag:none;user-select:none}
 #controls{flex:none;position:relative;z-index:3;padding:8px var(--edge) 10px;display:flex;flex-direction:column;gap:8px;
   background:linear-gradient(var(--theme3),#150b28);box-shadow:0 -3px 0 0 var(--ink),inset 0 3px 0 0 #ffffff1c}
 #aimBar{position:relative;height:var(--bar);touch-action:none;cursor:pointer;-webkit-touch-callout:none}
-#aimTrack{position:absolute;left:0;right:0;top:50%;height:20px;margin-top:-10px;overflow:hidden;
+#aimTrack{position:absolute;left:0;right:0;top:50%;height:28px;margin-top:-14px;overflow:hidden;
   background:repeating-linear-gradient(90deg,#ffffff00 0 10%,#ffffff2e 10% calc(10% + 3px)),linear-gradient(#0c0619,#2b1d4a);box-shadow:var(--o3),inset 0 4px 0 0 #0009,inset 0 -3px 0 0 #ffffff26}
 #aimFill{display:none}
-#aimHint{position:absolute;left:-30px;right:-30px;top:50%;margin-top:-10px;height:20px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;font-size:15px;line-height:20px;color:#fff6a0;text-shadow:0 2px 0 var(--ink),2px 0 0 var(--ink),-2px 0 0 var(--ink);animation:hintNudge .8s ease-in-out infinite}
+#aimHint{position:absolute;left:-32px;right:-32px;top:50%;margin-top:-10px;height:20px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;font-size:15px;line-height:20px;color:#fff6a0;text-shadow:0 2px 0 var(--ink),2px 0 0 var(--ink),-2px 0 0 var(--ink);animation:hintNudge .8s ease-in-out infinite}
 #aimHint i{font-style:normal}
 @keyframes hintNudge{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.18)}}
-#aimKnob{position:absolute;left:0;top:50%;width:44px;height:44px;margin-top:-22px;pointer-events:none;will-change:transform;
+#aimKnob{position:absolute;left:0;top:50%;width:88px;height:calc(var(--bar) - 8px);margin-top:calc(var(--bar) / -2 + 4px);pointer-events:none;will-change:transform;display:flex;align-items:flex-end;justify-content:center;
   background:#ffcf3f;box-shadow:inset 0 -6px 0 0 #d6890e,inset 0 4px 0 0 #fff9,var(--o3),0 5px 0 0 #0006}
 #aimKnob::before{content:"";position:absolute;left:50%;top:9px;width:18px;height:12px;margin-left:-9px;background:var(--ink);clip-path:polygon(0 0,100% 0,50% 100%)}
 #aimKnob::after{content:"";position:absolute;left:50%;bottom:10px;width:14px;height:6px;margin-left:-7px;background:#0003}
-#aimBar.on #aimKnob{background:#fff06a;box-shadow:inset 0 -6px 0 0 #e6a51c,inset 0 4px 0 0 #fff,var(--o3),0 0 0 7px #fff3,0 0 18px 4px #ffe06699}
-#fireRow{position:relative;display:flex;justify-content:center;align-items:center;height:calc(var(--fire) + 10px)}
+#knobTxt{font-size:18px;font-weight:900;color:#fff;text-shadow:var(--tw);letter-spacing:.06em;line-height:1;margin-bottom:9px;white-space:nowrap;pointer-events:none}
+#knobTxt.sm{font-size:14px}
+#aimBar.empty #aimKnob{background:#cfc8dc;box-shadow:inset 0 -6px 0 0 #8d84a3,inset 0 4px 0 0 #fff9,var(--o3),0 5px 0 0 #0006}
+#aimBar.on #aimKnob{transform-origin:50% 100%;background:#fff06a;box-shadow:inset 0 -6px 0 0 #e6a51c,inset 0 4px 0 0 #fff,var(--o3),0 0 0 7px #fff3,0 0 18px 4px #ffe06699}
+#fireRow{display:none!important}
+#fireRowOld{position:relative;display:flex;justify-content:center;align-items:center;height:calc(var(--fire) + 10px)}
 #btnFire{position:relative;width:var(--fire);height:var(--fire);border-radius:50%;border:0;padding:0;margin:0 0 6px;cursor:pointer;touch-action:none;-webkit-touch-callout:none;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
   background:radial-gradient(circle at 36% 30%,#fffbd2 0 8%,#ffe066 24%,#ffb01f 62%,#ff8614 100%);
@@ -314,9 +318,9 @@ img{-webkit-user-drag:none;user-select:none}
     <div id="coreMsg" hidden></div>
   </main>
   <footer id="controls" hidden>
-    <div id="aimBar" role="slider" aria-label="掉落點（拖曳左右移動）" aria-valuemin="14" aria-valuemax="346" aria-valuenow="180">
+    <div id="aimBar" role="slider" aria-label="按住發射，左右拖曳移動掉落點" aria-valuemin="14" aria-valuemax="346" aria-valuenow="180">
       <div id="aimTrack"><i id="aimFill"></i></div>
-      <div id="aimKnob"><span id="aimHint" aria-hidden="true"><i>◀</i><i>▶</i></span></div>
+      <div id="aimKnob"><span id="aimHint" aria-hidden="true"><i>◀</i><i>▶</i></span><b id="knobTxt">發射</b></div>
     </div>
     <div id="fireRow">
       <span id="fireSide"></span>
@@ -404,7 +408,7 @@ img{-webkit-user-drag:none;user-select:none}
     </div>
   </section>
 </div>
-<script>window.ML_BUILD="20261120-224117";</script>
+<script>window.ML_BUILD="20261120-231610";</script>
 <script>/* art/sprites.js */
 /* 彈珠傳說 像素美術資料 window.MARBLE_ART（由 art/gen/build.js 產生，請改產生器後重新產生，不要手改）
    格式：sprite = { w, h, palette, frames:[ [字串列...] ... ], fps?, loop?, weak? }，字元對照 palettes[palette]，"." 透明。
@@ -10808,7 +10812,7 @@ root.MARBLE_ART =
   'use strict';
 
   /* ================= 常數 ================= */
-  var W = 360, H = 600, FLOOR_DEF = 586, AIM_MIN = 14, AIM_MAX = 346, KNOB_W = 44;
+  var W = 360, H = 600, FLOOR_DEF = 586, AIM_MIN = 14, AIM_MAX = 346, KNOB_W = 88;
   var INK = '#2a1840';
   var FONT = '"Microsoft JhengHei","PingFang TC","Noto Sans TC","Heiti TC",sans-serif';
   var SAVE_KEY = 'marble_legend_v1';
@@ -10989,7 +10993,7 @@ root.MARBLE_ART =
   /* ================= DOM ================= */
   var E = {};
   ('app hud hudLevel hudTheme hudMarbleRow hudMarbles hudRefill btnPause stage game banner toast coreMsg controls aimBar aimTrack aimFill aimHint aimKnob ' +
-    'btnFire fireText fireSide fireQueue titleScreen logo logoCv btnStart btnChapters bestRecord bestText titleSound titleVibe keyHelp buildTag ' +
+    'btnFire fireText fireSide fireQueue knobTxt titleScreen logo logoCv btnStart btnChapters bestRecord bestText titleSound titleVibe keyHelp buildTag ' +
     'chapterPanel chapterList btnChapterBack talentPanel talentTitle talentSub talentCards btnReroll rerollText pausePanel btnResume optSound optVibe ' +
     'btnRestart btnHome pauseTalents overPanel overTitle overNew overLevel overTime overDamage overCombo overKills overBest overBestLabel ' +
     'btnRetry btnOverChapters btnOverHome').split(' ').forEach(function (id) { E[id] = $(id); });
@@ -11598,8 +11602,9 @@ root.MARBLE_ART =
     var empty = (st.marbles | 0) <= 0;
     if (empty !== fc.empty) {
       fc.empty = empty;
-      if (empty) { E.btnFire.classList.add('empty'); E.fireText.textContent = '沒彈珠'; }
-      else { E.btnFire.classList.remove('empty'); E.fireText.textContent = '發射'; }
+      if (empty) { E.btnFire.classList.add('empty'); E.aimBar.classList.add('empty'); E.fireText.textContent = '沒彈珠'; }
+      else { E.btnFire.classList.remove('empty'); E.aimBar.classList.remove('empty'); E.fireText.textContent = '發射'; }
+      fc.side = null;
     }
     var hint = !!(st.stats && st.stats.fired === 0 && st.phase === 'play');
     if (hint !== fc.hint) {
@@ -11607,7 +11612,10 @@ root.MARBLE_ART =
       if (hint) E.btnFire.classList.add('hint'); else E.btnFire.classList.remove('hint');
       E.fireSide.textContent = hint ? (finePointer ? '按住空白鍵\n或按住按鈕連發' : '按住\n連發') : '';
       E.fireSide.style.whiteSpace = 'pre-line';
+      fc.side = null;
     }
+    var kt = empty ? '沒彈珠' : (hint && !finePointer ? '按住拖曳' : '發射');
+    if (kt !== fc.side) { fc.side = kt; E.knobTxt.textContent = kt; E.knobTxt.className = kt.length > 2 ? 'sm' : ''; }
     var q = st.queue | 0;
     if (q !== fc.q) { fc.q = q; E.fireQueue.textContent = q > 0 ? ('排隊 +' + q) : ''; }
   }
@@ -11690,6 +11698,7 @@ root.MARBLE_ART =
     E.aimBar.classList.add('on');
     E.aimHint.hidden = true;
     aimFromClientX(e.clientX);
+    if (firePid === null) { firePid = e.pointerId; syncFiring(); updateFireBtn(sim.state); }   // 橫條＝發射：按住就連發，拖曳移動掉落點
   });
   E.aimBar.addEventListener('pointermove', function (e) {
     if (e.pointerId !== aimPid) return;
@@ -11700,6 +11709,7 @@ root.MARBLE_ART =
     if (e.pointerId !== aimPid) return;
     aimPid = null;
     E.aimBar.classList.remove('on');
+    if (firePid === e.pointerId) { firePid = null; syncFiring(); if (sim && sim.state) updateFireBtn(sim.state); }
   }
   E.aimBar.addEventListener('pointerup', aimUp);
   E.aimBar.addEventListener('pointercancel', aimUp);
