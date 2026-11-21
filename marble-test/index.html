@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2a1f3d">
 <link rel="icon" href="data:,">
-<meta name="ml-build" content="20261122-012122">
+<meta name="ml-build" content="20261122-033300">
 <title>彈珠傳說</title>
 </head>
 <body>
@@ -63,6 +63,10 @@ img{-webkit-user-drag:none;user-select:none}
 #stage{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;background:var(--theme)}
 #game{position:absolute;left:0;top:0;display:block;image-rendering:auto;touch-action:none;-webkit-touch-callout:none}
 #game.crisp{image-rendering:crisp-edges;image-rendering:pixelated}
+/* 小鋼珠（feat/pachinko）：機台外框（金屬框＋跑馬燈泡，canvas 蓋在舞台上、不吃觸控）、大當全螢幕演出圖層 */
+#frame{position:absolute;left:0;top:0;z-index:1;pointer-events:none;display:block}
+#jpLayer{position:absolute;inset:0;z-index:9;touch-action:none;-webkit-touch-callout:none;overflow:hidden;cursor:pointer;background:transparent}
+#jpCv{position:absolute;left:0;top:0;width:100%;height:100%;display:block;image-rendering:pixelated;touch-action:none}
 
 /* 關卡橫幅與小提示 */
 #banner{position:absolute;left:0;right:0;top:27%;z-index:5;pointer-events:none;text-align:center;transform:translateY(-50%);opacity:0}
@@ -352,6 +356,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
   </header>
   <main id="stage">
     <canvas id="game" width="360" height="600"></canvas>
+    <canvas id="frame" aria-hidden="true"></canvas>
     <div id="banner" aria-live="polite"><i class="stripe"></i><span class="bt"></span><span class="bs"></span><i class="stripe"></i></div>
     <div id="toast"></div>
     <div id="coreMsg" hidden></div>
@@ -370,6 +375,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
     </div>
   </footer>
 
+<div id="jpLayer" hidden aria-live="assertive" aria-label="大当り！中大獎了！（點一下跳過）"><canvas id="jpCv"></canvas></div>
   <section id="titleScreen" class="overlay">
     <div class="tTop">
       <h1 id="logo"><canvas id="logoCv" aria-hidden="true"></canvas><span class="logoTxt">彈珠傳說</span></h1>
@@ -466,12 +472,12 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
     </div>
   </section>
 </div>
-<script>window.ML_BUILD="20261122-012122";</script>
+<script>window.ML_BUILD="20261122-033300";</script>
 <script>/* art/sprites.js */
 /* 彈珠傳說 像素美術資料 window.MARBLE_ART（由 art/gen/build.js 產生，請改產生器後重新產生，不要手改）
    格式：sprite = { w, h, palette, frames:[ [字串列...] ... ], fps?, loop?, weak? }，字元對照 palettes[palette]，"." 透明。
    keep[色盤]＝換色變體時不轉色相的字元（描邊、眼睛、腮紅…）；bg.c1～c5 為 RLE 背景（由 MarbleArt.background 解碼）。
-   共 101 個 sprite、187 幀。 */
+   共 101 個 sprite、188 幀。 */
 (function (root) {
 root.MARBLE_ART =
 {
@@ -501,8 +507,8 @@ root.MARBLE_ART =
 "m_c5_n3":{"0":"#a45a1c","1":"#f0d8ff","2":"#b88ef0","3":"#8a5ad6","4":"#6440ac","5":"#462c82","6":"#fffbd0","7":"#ffe066","8":"#ffbf2e","9":"#d98a1e",".":"transparent","o":"#2b1a3c","k":"#24152e","e":"#5d5ccc","w":"#ffffff","b":"#ff7fae","B":"#ffc0d6","m":"#7a1f3d","n":"#ff6f91","W":"#fff8ee","s":"#6fc2f0","S":"#e8f9ff","A":"#fffcf4","C":"#fff4e0","D":"#f2e2c4","E":"#d4bc98","F":"#a8906c","G":"#ffffff","H":"#c8fbff","I":"#62e4f4","J":"#2eaad8","L":"#2a70b0","M":"#ffd0d8","N":"#ff6a7a","P":"#e2304a","Q":"#ae1e44","R":"#7a1640"},
 "m_c5_elite":{"0":"#7c1a40","1":"#ffffff","2":"#e2eaf6","3":"#b4c2da","4":"#8494b4","5":"#5c6a8e","6":"#ffd0d8","7":"#ff7a8a","8":"#e83c5a","9":"#b42448",".":"transparent","o":"#2b1a3c","k":"#24152e","e":"#5d5ccc","w":"#ffffff","b":"#ff7fae","B":"#ffc0d6","m":"#7a1f3d","n":"#ff6f91","W":"#fff8ee","s":"#6fc2f0","S":"#e8f9ff","A":"#fffbd0","C":"#ffe066","D":"#ffbf2e","E":"#d98a1e","F":"#a45a1c","G":"#c8e8ff","H":"#5aa8f0","I":"#3a78d8","J":"#2a54a8","L":"#1e3a7c","M":"#3a3456","N":"#2c2744","P":"#221d36","Q":"#1a1629","R":"#120f1e","c":"#fff4b0","d":"#ffd84a"},
 "m_c5_boss":{"0":"#6c1232","1":"#f0d8ff","2":"#b88ae8","3":"#8a58c8","4":"#6640a2","5":"#462c7c","6":"#ffd0d8","7":"#ff5a6e","8":"#d8263e","9":"#a01a3a",".":"transparent","o":"#2b1a3c","k":"#24152e","e":"#5d5ccc","w":"#ffffff","b":"#ff7fae","B":"#ffc0d6","m":"#7a1f3d","n":"#ff6f91","W":"#fff8ee","s":"#6fc2f0","S":"#e8f9ff","A":"#fff4e0","C":"#f2dcb8","D":"#d8b88e","E":"#a88866","F":"#7a6050","G":"#fffbd0","H":"#ffe066","I":"#ffbf2e","J":"#d98a1e","L":"#a45a1c","M":"#c8a0e8","N":"#7a4aa8","P":"#542e80","Q":"#3e2060","R":"#2a1644","T":"#ffffff","U":"#c8fbff","V":"#62e4f4","X":"#2eaad8","Y":"#2a70b0"},
-"peg":{"0":"#a24c16","1":"#ffd6d6","2":"#ff7c7c","3":"#ec3a4c","4":"#b22446","5":"#741a3e","6":"#fff8c8","7":"#ffe24a","8":"#ffb81a","9":"#e07e18",".":"transparent","o":"#2b1a3c","w":"#ffffff","k":"#24152e","A":"#e2ffd2","C":"#8cf07c","D":"#3ecf5a","E":"#249a4e","F":"#1a6a42","G":"#fff0c8","H":"#ffb85a","I":"#ff7c22","J":"#d8501e","K":"#9e341e","M":"#ffffff","N":"#c4f8ff","P":"#5ee0f8","Q":"#2ca6dc","R":"#2a6cb6","T":"#a8a2c4","U":"#6c668a","V":"#433d5c","X":"#2e2944","Y":"#1e1a2e","g":"#e2ecff","h":"#8cb4ff","i":"#4c7cff","j":"#3454d0","l":"#28389c","p":"#ffffff","q":"#e0e0ee","r":"#aeaec8","s":"#7c7c9a","t":"#55556e","y":"#fff6b0","z":"#8a6a4a","Z":"#c49a6a"},
-"ball":{"0":"#a8302e","1":"#ffffff","2":"#eef2ff","3":"#c2cdf0","4":"#8a96c4","5":"#5e6898","6":"#fffbd0","7":"#ffd860","8":"#ff8a2a","9":"#e2482a",".":"transparent","o":"#2b1a3c","w":"#ffffff","A":"#ffffff","C":"#d8fcff","D":"#7ee6fa","E":"#3aaee6","F":"#2e74c0","G":"#fff0fa","H":"#ff9ad6","I":"#f04aa8","J":"#b82e86","K":"#7e1e66","M":"#fffbe4","N":"#ffe680","P":"#ffc23a","Q":"#d8861e","R":"#9a5a1a"},
+"peg":{"0":"#a24c16","1":"#ffd6d6","2":"#ff7c7c","3":"#ec3a4c","4":"#b22446","5":"#741a3e","6":"#fff8c8","7":"#ffe24a","8":"#ffb81a","9":"#e07e18",".":"transparent","o":"#2b1a3c","w":"#ffffff","k":"#24152e","A":"#e2ffd2","C":"#8cf07c","D":"#3ecf5a","E":"#249a4e","F":"#1a6a42","G":"#fff0c8","H":"#ffb85a","I":"#ff7c22","J":"#d8501e","K":"#9e341e","M":"#ffffff","N":"#c4f8ff","P":"#5ee0f8","Q":"#2ca6dc","R":"#2a6cb6","T":"#a8a2c4","U":"#6c668a","V":"#433d5c","X":"#2e2944","Y":"#1e1a2e","g":"#e2ecff","h":"#8cb4ff","i":"#4c7cff","j":"#3454d0","l":"#28389c","p":"#fffbe0","q":"#ffe08a","r":"#e0a93a","s":"#a8701e","t":"#6a4412","y":"#fff6b0","z":"#8a6a4a","Z":"#c49a6a"},
+"ball":{"0":"#a8302e","1":"#ffffff","2":"#e4e8ef","3":"#aab2c0","4":"#6d7586","5":"#3d4352","6":"#fffbd0","7":"#ffd860","8":"#ff8a2a","9":"#e2482a",".":"transparent","o":"#2b1a3c","w":"#ffffff","A":"#ffffff","C":"#d8fcff","D":"#7ee6fa","E":"#3aaee6","F":"#2e74c0","G":"#fff0fa","H":"#ff9ad6","I":"#f04aa8","J":"#b82e86","K":"#7e1e66","M":"#fffbe4","N":"#ffe680","P":"#ffc23a","Q":"#d8861e","R":"#9a5a1a"},
 "fx":{"0":"#b4302e","1":"#ffe0ee","2":"#ff8ec2","3":"#ff4a9a","4":"#d62a7c","5":"#94205e","6":"#fffbd0","7":"#ffe066","8":"#ffa030","9":"#ee5a2a",".":"transparent","o":"#2b1a3c","w":"#ffffff","k":"#24152e","A":"#ffffff","C":"#d8fcff","D":"#7ee6fa","E":"#3aaee6","F":"#2e74c0","G":"#f4f0fa","H":"#cfc6e0","I":"#a296ba","J":"#786c94","K":"#54496e","M":"#fffbe4","N":"#fff2a0","P":"#ffd84a","Q":"#f0a830","R":"#b06a1e"},
 "icon":{"0":"#741a3e","1":"#ffffff","2":"#eef2ff","3":"#c2cdf0","4":"#8a96c4","5":"#5e6898","6":"#ffd6d6","7":"#ff7c7c","8":"#ec3a4c","9":"#b22446",".":"transparent","o":"#2b1a3c","w":"#ffffff","k":"#24152e","A":"#fffbe0","C":"#ffe680","D":"#ffc23a","E":"#d8861e","F":"#9a5a1a","G":"#e6ffd6","H":"#94ee7c","I":"#44cc5c","J":"#26984e","L":"#1a6a42","M":"#e2ecff","N":"#8cb4ff","P":"#4c7cff","Q":"#3454d0","R":"#28389c","T":"#ffffff","U":"#c8f8ff","V":"#62e0f8","X":"#2ca6dc","Y":"#2a6cb6","a":"#fff0c8","c":"#ffb85a","d":"#ff7c22","f":"#d8501e","g":"#9e341e","h":"#f0dcff","i":"#c494f4","j":"#9258dc","l":"#6a3eb0","m":"#4a2a84","p":"#ffe0ee","q":"#ff8ec2","r":"#ff4a9a","s":"#d62a7c","t":"#94205e","u":"#f6dcb0","v":"#d6a468","x":"#b07a44","y":"#865632","z":"#5e3a26","B":"#a8a2c4","K":"#6c668a","O":"#433d5c","S":"#2e2944","Z":"#1e1a2e","b":"#fff0e0","e":"#ffd8b8","n":"#f4b48c"},
 "bg1":{".":"transparent","a":"#5ec0ee","b":"#74caf0","c":"#8ad3f2","d":"#a0dbf4","e":"#b4e3f5","f":"#c8eaf5","g":"#ffffff","h":"#eef8fd","i":"#cfe8f4","j":"#bfe5f6","k":"#a4c4e6","l":"#8eb0da","m":"#e6f2fa","n":"#8ed2b0","o":"#78c09c","p":"#7cd06a","q":"#62b85a","r":"#4c9e52","s":"#a8e47a","t":"#4aa452","u":"#38884a","v":"#6cc464","w":"#9c6a46","x":"#7a4e36","y":"#c08a5c","z":"#5cbc58","A":"#449a4c","B":"#86d870","C":"#88dc5c","D":"#6cc04c","E":"#b4784a","F":"#925c3c","G":"#d0a06c","H":"#6e4430","I":"#ff9cc4","J":"#ffe066","K":"#ffffff","L":"#ff7a8a","M":"#c8a8ff","N":"#2b1a3c"},
@@ -5743,14 +5749,23 @@ root.MARBLE_ART =
 "..oo.."]]}
 },
 "balls":{
-"normal":{"w":8,"h":8,"palette":"ball","frames":[
+"normal":{"w":8,"h":8,"palette":"ball","fps":8,"frames":[
 [
 "..oooo..",
-".o3334o.",
+".o3w34o.",
 "o3w1335o",
 "o312334o",
-"o333334o",
-"o433345o",
+"o354334o",
+"o433215o",
+".o5445o.",
+"..oooo.."],
+[
+"..oooo..",
+".o3w34o.",
+"o3w1335o",
+"o312334o",
+"o354334o",
+"o433215o",
 ".o5445o.",
 "..oooo.."]]},
 "fire":{"w":8,"h":8,"palette":"ball","fps":8,"frames":[
@@ -7718,6 +7733,62 @@ root.MARBLE_ART =
     { inst: P_('p25', 0.002, 0.12, 0.3, 0.06), data: 'A6:1 F#6:1 D6:1 A5:3' },
     { inst: P_('tri', 0.002, 0.2, 0.5, 0.08, { slide: -7 }), vol: 0.7, data: 'D4:6' } ] });
 
+  // ---- 小鋼珠機制（feat/pachinko；全部原創，不取材任何真實機台的音效或旋律）
+  defSfx('pocket', { label: '入賞（叮咚）', group: 'reward', step: 0.03, vol: 0.30, gap: 0.08, pri: 2, max: 2, tracks: [
+    { inst: P_('p25', 0.001, 0.08, 0, 0.03), data: 'A5:1 E6:2' },
+    { inst: P_('tri', 0.002, 0.12, 0, 0.05), vol: 0.6, echo: { time: 0.07, fb: 0.3, mix: 0.3 }, data: '-:1 A6:2' } ] });
+  defSfx('hold_up', { label: '保留變色（啾）', group: 'reward', step: 0.025, vol: 0.26, gap: 0.12, pri: 2, max: 1, tracks: [
+    { inst: P_('p12', 0.001, 0.06, 0, 0.02, { slide: 12, slideTime: 0.06 }), data: 'C6:1 G6:2' },
+    { inst: N_('hp', 0, 0.002, 0.04, 0, 0.02), vol: 0.2, data: '-:2 C8:1' } ] });
+  defSfx('spin_start', { label: '液晶開始轉（嗡）', group: 'reward', step: 0.02, vol: 0.16, gap: 0.2, pri: 1, max: 1, tracks: [
+    { inst: P_('p50', 0.004, 0.08, 0.2, 0.03, { slide: 7, slideTime: 0.12 }), data: 'C4:6' },
+    { inst: N_('bp', 2, 0.01, 0.1, 0, 0.03), vol: 0.3, data: 'C6:4' } ] });
+  defSfx('reel_stop', { label: '數字停下（喀）', group: 'reward', step: 0.02, vol: 0.24, rand: 0.3, gap: 0.05, pri: 2, max: 2, tracks: [
+    { inst: P_('p25', 0.001, 0.04, 0, 0.01), data: 'E5:1 B5:1' },
+    { inst: N_('bp', 3, 0.001, 0.03, 0, 0.01), vol: 0.45, data: 'C6:1' } ] });
+  defSfx('reach', { label: 'リーチ（聽牌警報）', group: 'alert', step: 0.06, vol: 0.36, gap: 0.8, pri: 3, max: 1, duck: 0.5, tracks: [
+    { inst: P_('p25', 0.002, 0.1, 0.5, 0.04), data: 'E6:1 B5:1 E6:1 B5:1 G6:2 -:1 G6:1 A6:4' },
+    { inst: P_('tri', 0.002, 0.2, 0.7, 0.06), vol: 0.8, data: 'E3:2 E3:2 C3:2 -:1 D3:1 E3:4' },
+    { inst: 'drums', vol: 0.5, data: 's:1 s:1 s:1 s:1 t1:2 -:1 t2:1 c:4' } ] });
+  defSfx('reach_hot', { label: '激アツ（紅色警報）', group: 'alert', step: 0.05, vol: 0.38, gap: 0.8, pri: 3, max: 1, duck: 0.4, tracks: [
+    { inst: P_('p50', 0.002, 0.08, 0.6, 0.04, { vib: { depth: 25, rate: 9, delay: 0 } }), data: 'A5:2 E6:2 A5:2 E6:2 A6:6' },
+    { inst: P_('tri', 0.002, 0.2, 0.8, 0.06), vol: 0.85, data: 'A2:2 A3:2 A2:2 A3:2 A2:6' },
+    { inst: 'drums', vol: 0.55, data: 'k:1 s:1 k:1 s:1 k:1 s:1 k:1 s:1 t1:1 t2:1 t3:1 c:3' } ] });
+  defSfx('reach_push', { label: '小怪物推數字（咚嘿）', group: 'reward', step: 0.03, vol: 0.32, gap: 0.3, pri: 3, max: 1, tracks: [
+    { inst: P_('tri', 0.001, 0.08, 0, 0.03, { slide: -12, slideTime: 0.05 }), data: 'G4:2' },
+    { inst: P_('p25', 0.002, 0.06, 0, 0.02, { slide: 12, slideTime: 0.06 }), vol: 0.6, data: '-:2 C6:1 G6:2' },
+    { inst: N_('lp', 0, 0.001, 0.05, 0, 0.02), vol: 0.5, data: 'C5:1' } ] });
+  defSfx('reach_miss', { label: '聽牌沒中（咻～）', group: 'reward', step: 0.06, vol: 0.24, gap: 0.5, pri: 2, max: 1, tracks: [
+    { inst: P_('tri', 0.003, 0.3, 0.4, 0.1, { slide: -12, slideTime: 0.4 }), data: 'E5:6' },
+    { inst: P_('p25', 0.002, 0.08, 0, 0.03), vol: 0.4, data: '-:4 C5:1 A4:2' } ] });
+  // 大当り 專屬短 jingle（約 1.7 秒；原創旋律：上行琶音 → 跳躍 → 長音收尾）
+  defSfx('jackpot', { label: '大当り（專屬 jingle）', group: 'reward', step: 0.075, vol: 0.42, gap: 1, pri: 3, max: 1, duck: 0.2, tracks: [
+    { inst: P_('p25', 0.002, 0.14, 0.55, 0.06), data: 'G5:1 C6:1 E6:1 G6:1 C7:2 G6:1 A6:1 B6:1 C7:1 D7:1 E7:2 -:1 C7:1 G7:7' },
+    { inst: P_('p50', 0.003, 0.2, 0.6, 0.08), vol: 0.5, data: 'E5:2 G5:2 C6:2 E6:2 F6:2 G6:2 -:1 E6:1 E6:6' },
+    { inst: P_('tri', 0.002, 0.2, 0.85, 0.08), vol: 0.9, data: 'C3:2 G3:2 C4:2 G3:2 F3:2 G3:2 C3:1 G3:1 C4:6' },
+    { inst: { wave: 'p12', a: 0.004, d: 0.6, s: 0.5, r: 0.2, gate: 1, arpRate: 0.03 }, vol: 0.28, data: '-:12 C6/E6/G6/C7:10' },
+    { inst: N_('hp', 0, 0.002, 0.05, 0, 0.02), vol: 0.28, data: 'C8:1 -:1 C8:1 -:1 C8:1 -:1 C8:1 -:1 C8:1 C8:1 C8:1 C8:1 -:2 C8:1' },
+    { inst: 'drums', vol: 0.6, data: 'k:1 s:1 k:1 s:1 k:1 s:1 k:1 s:1 t1:1 t2:1 t3:1 k:1 c:10' } ] });
+  defSfx('kakuhen', { label: '確変突入', group: 'reward', step: 0.06, vol: 0.36, gap: 0.8, pri: 3, max: 1, duck: 0.4, tracks: [
+    { inst: P_('p25', 0.002, 0.12, 0.5, 0.05), data: 'D6:1 F#6:1 A6:1 D7:1 -:1 A6:1 D7:4' },
+    { inst: P_('tri', 0.002, 0.2, 0.8, 0.06), vol: 0.8, data: 'D3:2 A3:2 D4:6' },
+    { inst: 'drums', vol: 0.45, data: 't1:1 t2:1 t3:1 k:1 -:1 s:1 c:4' } ] });
+  defSfx('kakuhen_end', { label: '確変終了', group: 'reward', step: 0.07, vol: 0.24, gap: 0.8, pri: 2, max: 1, tracks: [
+    { inst: P_('p25', 0.002, 0.12, 0.3, 0.05), data: 'A6:1 F6:1 D6:1 A5:3' } ] });
+  defSfx('attacker_open', { label: '大入賞口打開（喀啦）', group: 'reward', step: 0.04, vol: 0.32, gap: 0.5, pri: 3, max: 1, tracks: [
+    { inst: N_('bp', 2, 0.002, 0.08, 0, 0.03, { slide: 12 }), vol: 0.5, data: 'C5:2 C6:2' },
+    { inst: P_('p25', 0.002, 0.08, 0.3, 0.03), data: '-:1 C6:1 E6:1 G6:1 C7:3' } ] });
+  defSfx('attacker_in', { label: '打進大入賞口（鏘）', group: 'reward', step: 0.02, vol: 0.26, rand: 0.4, gap: 0.05, pri: 2, max: 2, tracks: [
+    { inst: P_('p12', 0.001, 0.07, 0, 0.03), data: 'B6:1 E7:2' },
+    { inst: P_('tri', 0.001, 0.1, 0, 0.04), vol: 0.5, data: 'E6:2' } ] });
+  defSfx('attacker_close', { label: '大入賞口關上', group: 'reward', step: 0.04, vol: 0.22, gap: 0.5, pri: 2, max: 1, tracks: [
+    { inst: N_('bp', 2, 0.002, 0.06, 0, 0.02, { slide: -12 }), vol: 0.5, data: 'C6:2' },
+    { inst: P_('p25', 0.002, 0.06, 0, 0.02), data: 'G6:1 C6:2' } ] });
+  defSfx('sure_hold', { label: '金保留（必中）', group: 'reward', step: 0.05, vol: 0.34, gap: 0.8, pri: 3, max: 1, duck: 0.5, tracks: [
+    { inst: P_('tri', 0.002, 0.3, 0, 0.12), echo: { time: 0.09, fb: 0.4, mix: 0.4 }, data: 'G6 B6 D7 G7:5' },
+    { inst: { wave: 'p12', a: 0.004, d: 0.4, s: 0.4, r: 0.2, gate: 1, arpRate: 0.035 }, vol: 0.3, data: '-:1 G5/B5/D6/G6:8' },
+    { inst: P_('tri', 0.004, 0.3, 0.7, 0.12), vol: 0.7, data: 'G3:3 D4:5' } ] });
+
   // ---- 登場警示
   defSfx('boss_appear', { label: '魔王登場', group: 'alert', step: 0.09, vol: 0.40, gap: 1, pri: 3, max: 1, duck: 0.4, tracks: [
     { inst: P_('p50', 0.02, 0.5, 0.7, 0.2), vol: 0.45, data: 'C3:6 C#3:6 C3:8' },
@@ -8490,17 +8561,59 @@ root.MARBLE_ART =
 
     // ---------- 狂熱模式（feat/fever）：命中累積能量，集滿自動啟動 ----------
     // 能量 0～1；狂熱期間不累積，結束後歸零。能量跨關保留（換關不清空）。
-    FEVER_HIT: 0.0045,           // 彈珠打到怪物（含打在護盾上）+能量（整合平衡：0.0016→0.0045，第 1 章一般玩家約每 2 關一次）
-    FEVER_WEAK: 0.011,           // 打中弱點（取代 FEVER_HIT）
-    FEVER_BOMB: 0.0015,          // 爆炸波及每隻怪（打在護盾上也算）
-    FEVER_BREAK: 0.05,           // 打破護盾額外 +能量（整合定案；一樣受每秒上限限制）
+    FEVER_HIT: 0.0032,           // 彈珠打到怪物（含打在護盾上）+能量（整合平衡：0.0016→0.0045；小鋼珠：集滿改送必中抽獎、另有抽獎大當，×0.71→0.0032）
+    FEVER_WEAK: 0.0079,          // 打中弱點（取代 FEVER_HIT）（小鋼珠 ×0.71：0.011→0.0079）
+    FEVER_BOMB: 0.0011,          // 爆炸波及每隻怪（小鋼珠 ×0.71）（打在護盾上也算）
+    FEVER_BREAK: 0.036,          // 打破護盾額外 +能量（整合定案；一樣受每秒上限限制）（小鋼珠 ×0.71）
     FEVER_GAIN_CAP: 0.04,        // 每秒最多累積 0.04（＝最快 25 秒集滿）；可預存 FEVER_GAIN_BURST 秒的額度
     FEVER_GAIN_BURST: 3,
     FEVER_COMBO_AT: 25, FEVER_COMBO_MULT: 1.5, // 連擊 ≥25 時能量 ×1.5（鼓勵持續命中）
     FEVER_READY: 0.8,            // 能量 ≥0.8 發 feverReady（用戶端能量條開始發光）
     FEVER_DUR: 5,                // 持續秒數（只在 play 倒數；過關／選天賦時暫停）
     FEVER_DMG: 2,                // 狂熱彈珠傷害 ×2（含爆炸與燒傷施加量；和黃金 ×5 相乘＝×10）
-    FEVER_RATE: 0.5              // 狂熱期間發射間隔 ×0.5（不受 FIRE_RATE_MAX 限制，但仍受場上 50 顆限制）
+    FEVER_RATE: 0.5,             // 狂熱期間發射間隔 ×0.5（不受 FIRE_RATE_MAX 限制，但仍受場上 50 顆限制）
+
+    // ---------- 小鋼珠機制（feat/pachinko）：入賞口 → 液晶轉 3 個數字 → 聽牌／大當／確變 → 大入賞口 ----------
+    // 只是演出風格：沒有押注、付費或兌換。PACHINKO:false＝完全關掉（回到舊版：能量條集滿直接狂熱、盤面從 y=64 開始；autoplay 對照用）
+    PACHINKO: true,
+    PACHI_PEG_Y_MIN: 98,         // 開啟時釘子區從 y=98 開始（上方 61～92 是液晶帶，魔王血條在 25～56）
+    PACHI_LCD: { x: 180, y: 61, w: 88, h: 31 },    // 液晶（世界座標：中心 x、上緣 y），只畫不碰撞
+    // 入賞口：每盤重排時跟著換位置（x 在盤面中間 ±POCKET_X_SPREAD、y 在釘子區 POCKET_Y 比例），兩側各一根黃銅柱（固定釘）
+    POCKET_X_SPREAD: 62, POCKET_Y: [0.52, 0.66],
+    POCKET_POST_DX: 16,          // 兩根柱子離中心的距離（柱子 r＝PIN_R 5；彈珠中心在 ±4 內才不碰柱子直接穿過）
+    POCKET_HW: 6,                // 彈珠中心在 ±6 內、往下穿過入賞口那條線＝入賞（一般玩家入賞率約 6%）
+    POCKET_CLEAR: 46,            // 入賞口周圍這個距離內不放技能釘／一般固定釘
+    // 入賞後彈珠怎麼辦（autoplay 比較過）：收走＋退 2 顆＝每局多 +600 顆、一局中位 +1.5 分；收走＋退 1 顆＝不扣彈珠但多出時間（中位 +0.5 分）
+    // → 定案「通過型」：彈珠穿過入賞口照常往下打怪（不收走、不扣、不退），獎勵就是那一次抽獎（不懲罰也不改變彈珠經濟）
+    POCKET_KEEP: true, POCKET_GIVE: 0, // POCKET_KEEP:false 時改成收走並退 POCKET_GIVE 顆
+    // 抽獎（入賞當下就決定結果，保留燈的顏色依結果預告）。轉一次約 1.7 秒＋間隔 0.5 秒 → 保留滿的時候每 2.2 秒抽一次，
+    // 所以中獎率要壓低（舊值 1/34 會讓第 2 章以後每關大當好幾次、彈珠滾雪球）；大當主要來源仍是能量條的必中（約 2/3）
+    PACHI_P: 0.009,              // 一般中獎率（約 1/111）
+    PACHI_REACH_LOSE: 0.12,      // 沒中時出現聽牌（假聽牌）的機率 → 聽牌比大當常出現（一般玩家約每 20 秒一次）
+    PACHI_PRANK: 0.5,            // 聽牌時「本章小怪物跑出來推數字」演出的機率（中：把差一格的數字推進來；沒中：把對上的數字推走）
+    PACHI_KAKUHEN_DIGITS: [3, 7],// 中的是 3 或 7 → 確變（下一輪中獎率大幅提高，可以連莊）
+    PACHI_KAKUHEN_RATE: 0.4,     // 中獎時落在確變數字的機率
+    PACHI_KAKUHEN_P: 1 / 6,      // 確變中每次抽獎的中獎率（能量條的必中不算次數）
+    PACHI_KAKUHEN_SPINS: 5,      // 確變持續幾次抽獎（中了就重來；沒中完就「確変終了」）→ 連莊機率約 1−(5/6)^5≈60%
+    PACHI_HOLD_MAX: 4,           // 保留最多 4 顆（超過的入賞照樣退彈珠，但不抽獎）
+    // 保留燈預告：依「結果」抽顏色（藍→綠→紅→金，越後面越可能中；金色保留幾乎必中）
+    PACHI_HOLD_COLORS: ['blue', 'green', 'red', 'gold'],
+    PACHI_COLOR_WIN: [0.06, 0.14, 0.34, 0.46], PACHI_COLOR_REACH: [0.52, 0.33, 0.145, 0.005], PACHI_COLOR_LOSE: [0.9, 0.1, 0, 0],
+    PACHI_HOLD_UP: [0.5, 1.4], PACHI_HOLD_STEP: 0.4, // 保留先亮藍色，0.5～1.4 秒後每 0.4 秒升一級到最終顏色（holdUp 事件）
+    // 轉動時間（sim 秒，只在 play 倒數；遊戲照常進行）：一般 1.7 秒；聽牌 3.4 秒（最後一格慢慢轉）＋小怪物推數字 0.5 秒
+    PACHI_STOPS: [0.7, 1.1, 1.5], PACHI_SPIN_T: 1.7,
+    PACHI_REACH_STOP: 3.1, PACHI_REACH_T: 3.4, PACHI_PUSH_AT: 3.3, PACHI_PUSH_DUR: 0.35, PACHI_PRANK_T: 3.9,
+    PACHI_GAP: 0.5,              // 一輪轉完到下一顆保留開始轉的間隔
+    PACHI_SHOW: 1.8,             // 大當全螢幕演出秒數（用戶端暫停 sim；點一下可跳過）
+    // 能量條（原狂熱能量）集滿 → 不再直接狂熱，改成插入一顆「金色保留」，轉出來必定大當
+    // 大入賞口（アタッカー）：大當後在釘子區下緣打開（避開怪物最多的位置），掉進去的彈珠收走換成彈珠回饋（仍受上限限制）
+    ATTACKER_T: 8,               // 開幾秒（sim 秒，只在 play 倒數）
+    ATTACKER_MAX: 8,             // 最多收幾顆（收滿就關）
+    ATTACKER_W: 74,              // 開口寬度（世界單位）
+    ATTACKER_DY: 16,             // 在釘子區下緣往下幾格
+    // 每顆回饋＝max(ATTACKER_GIVE_MIN, ceil(上限×ATTACKER_GIVE_CAP))。第 2 章起是彈珠消耗戰，回饋多一點一局就會變長很多
+    //   （autoplay：每顆 5～8 顆時一般玩家中位 12 分、2 成打到第 3～4 章）→ 定案每顆 2 顆（淨 +1），一次大當最多 +16
+    ATTACKER_GIVE_MIN: 2, ATTACKER_GIVE_CAP: 0
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -8808,8 +8921,23 @@ root.MARBLE_ART =
                pegs: 0, boards: 0, misses: 0, shields: 0, fevers: 0 },
       // 狂熱模式（feat/fever）：energy 0～1；active 時 energy＝剩餘比例 t/dur；count＝本局觸發次數
       fever: { energy: 0, active: false, t: 0, dur: C.FEVER_DUR, count: 0, ready: false },
+      // 小鋼珠（feat/pachinko）：用戶端唯讀，見 ARCHITECTURE.md「小鋼珠機制」
+      pachi: {
+        on: !!C.PACHINKO,
+        lcd: C.PACHI_LCD,
+        pocket: null,                 // { x, y, hw, postDx }：入賞口（每盤重排）
+        spin: null,                   // 轉動中的一輪（時間軸，用戶端依 t 畫數字）
+        holds: [],                    // 保留 [{ color: 'blue'|'green'|'red'|'gold'（目前亮的顏色）, sure }]，最多 PACHI_HOLD_MAX
+        last: [7, 1, 3],              // 液晶閒置時顯示的上一輪結果
+        kakuhen: false, kakuhenLeft: 0,
+        chain: 0, maxChain: 0,        // 連莊：確變中又中＝chain+1
+        attacker: { open: false, x: 180, y: 0, w: C.ATTACKER_W, t: 0, dur: C.ATTACKER_T, count: 0, max: C.ATTACKER_MAX, give: 2 },
+        gap: 0
+      },
       over: null
     };
+    S.stats.entries = 0; S.stats.spins = 0; S.stats.reaches = 0; S.stats.jackpots = 0; S.stats.kakuhens = 0;
+    S.stats.maxChain = 0; S.stats.sures = 0; S.stats.attackerBalls = 0;
     var M = {};                       // 天賦加成（sim.mods）
 
     // ---------------- 內部狀態 ----------------
@@ -9066,6 +9194,7 @@ root.MARBLE_ART =
       zoneY1 = Math.min(top - C.PEG_GAP_ABOVE_MONSTER, hopTop - C.PEG_GAP_ABOVE_MONSTER + 16);
       monsterTopY = Math.min(top, hopTop) - 6;
       genBoard();
+      if (S.pachi.attacker.open) { S.pachi.attacker.y = zoneY1 + C.ATTACKER_DY; S.pachi.attacker.x = attackerX(); }
       S.phase = 'play';
       if (refillNext) {               // 魔王後補滿到新上限
         refillNext = false;
@@ -9283,7 +9412,7 @@ root.MARBLE_ART =
       var L = S.level;
       var r = mulberry32(mix(mix(seed ^ 0xA5A5A5, L.index), boardNo));
       boardNo++;
-      var Z = { x0: C.PEG_X_MIN, x1: C.PEG_X_MAX, y0: C.PEG_Y_MIN, y1: zoneY1 };
+      var Z = { x0: C.PEG_X_MIN, x1: C.PEG_X_MAX, y0: S.pachi.on ? C.PACHI_PEG_Y_MIN : C.PEG_Y_MIN, y1: zoneY1 };
       Z.w = Z.x1 - Z.x0; Z.h = Z.y1 - Z.y0; Z.cx = (Z.x0 + Z.x1) / 2; Z.cy = (Z.y0 + Z.y1) / 2;
       var hs = Z.h / C.PEG_REF_H;
       var n = Math.max(6, Math.round(C.PEG_COUNT * hs)) + M.pegPlus;
@@ -9301,6 +9430,15 @@ root.MARBLE_ART =
       var hi = Math.round(n * 1.2), lo = Math.round(n * 0.85);
       while (pts.length > hi) pts.splice(Math.floor(r() * pts.length), 1);
       if (pts.length < lo) poissonFill(r, Z, pts, lo, C.PEG_MIN_DIST + 4, null);
+      // 小鋼珠：入賞口（自己一條亂數，關掉時盤面跟舊版完全一樣）；周圍清空、兩側放黃銅柱
+      var pk = S.pachi.on ? placePocket(Z) : null, posts = [];
+      S.pachi.pocket = pk;
+      if (pk) {
+        var keep = [];
+        for (i = 0; i < pts.length; i++) { var ddx = pts[i].x - pk.x, ddy = pts[i].y - pk.y; if (ddx * ddx + ddy * ddy >= C.POCKET_CLEAR * C.POCKET_CLEAR) keep.push(pts[i]); }
+        pts = keep;
+        posts.push({ x: round1(pk.x - pk.postDx), y: round1(pk.y - 2) }, { x: round1(pk.x + pk.postDx), y: round1(pk.y - 2) });
+      }
       // 種類：保底＋權重隨機
       // 本關清盤獎勵用完後重排的盤面不再放補彈釘（長時間的魔王戰不會靠清盤無限補彈）
       var kinds = [], g = C.PEG_GUARANTEE, noRefill = boardNo > 1 && boardBonusLeft <= 0;
@@ -9316,7 +9454,8 @@ root.MARBLE_ART =
       var pinN = Math.max(4, Math.round(C.PIN_COUNT * hs));
       var okPin = function (p) {
         return p.x >= PZ.x0 && p.x <= PZ.x1 && p.y >= PZ.y0 && p.y <= PZ.y1 &&
-          farFrom(pins, p, C.PIN_MIN_DIST) && farFrom(pts, p, C.PIN_SKILL_MIN);
+          farFrom(pins, p, C.PIN_MIN_DIST) && farFrom(pts, p, C.PIN_SKILL_MIN) &&
+          (!pk || farFrom([pk], p, C.POCKET_CLEAR));
       };
       var hints = res.pins || [];
       for (i = 0; i < hints.length && pins.length < pinN; i++) if (okPin(hints[i])) pins.push(hints[i]);
@@ -9327,6 +9466,7 @@ root.MARBLE_ART =
       var pegs = [];
       for (i = 0; i < pts.length; i++) pegs.push({ id: uid++, kind: kinds[i], x: round1(pts[i].x), y: round1(pts[i].y), r: C.PEG_R, alive: true, regrowT: 0 });
       for (i = 0; i < pins.length; i++) pegs.push({ id: uid++, kind: 'pin', x: round1(pins[i].x), y: round1(pins[i].y), r: C.PIN_R, alive: true, regrowT: 0 });
+      for (i = 0; i < posts.length; i++) pegs.push({ id: uid++, kind: 'pin', post: true, x: posts[i].x, y: posts[i].y, r: C.PIN_R, alive: true, regrowT: 0 });
       S.pegs = pegs;
       boardPattern = name; lastPattern = name;
       buildGrid();
@@ -9463,10 +9603,12 @@ root.MARBLE_ART =
         var move = Math.sqrt(v2) * dt;
         var sub = move > C.MAX_MOVE ? Math.ceil(move / C.MAX_MOVE) : 1, h = dt / sub;
         for (var s = 0; s < sub; s++) {
+          var py = b.y;
           b.x += b.vx * h; b.y += b.vy * h;
           collideWalls(b);
           collidePegs(b);
           if (b._dead) break;
+          if (pachiCatch(b, py)) break;     // 小鋼珠：入賞口、大入賞口
           if (collideMonsters(b)) break;
           if (b.y >= FLOOR_Y - b.r) { missBall(b); break; }
         }
@@ -9706,7 +9848,7 @@ root.MARBLE_ART =
       b.x = clamp(b.x, C.AIM_MIN, C.AIM_MAX); b.y = C.SPAWN_Y;
       b.vx = (rng() * 2 - 1) * C.SPAWN_VX; b.vy = C.SPAWN_VY;
       b.dmg = M.baseDmg; b.mult = 1; b.fire = false; b.ice = false;   // 只保留黃金與狂熱
-      b.age = 0; b._life = 0; b._stuck = 0; b._cpT = 0; b._cpY = b.y;
+      b.age = 0; b._life = 0; b._stuck = 0; b._cpT = 0; b._cpY = b.y; b._pk = false;
       emit({ t: 'weakBack', x: x1, y: y1, x2: b.x, y2: b.y, ballId: b.id });
     }
 
@@ -9896,16 +10038,16 @@ root.MARBLE_ART =
       feverBudget -= v;
       F.energy = Math.min(1, F.energy + v);
       if (!F.ready && F.energy >= C.FEVER_READY) { F.ready = true; emit({ t: 'feverReady', energy: F.energy }); }
-      if (F.energy >= 1) feverStart();
+      if (F.energy >= 1) { if (S.pachi.on && pachiForce !== 'lock') sureHold(); else feverStart(); }   // 小鋼珠：集滿改成送一次必中抽獎
     }
-    function feverStart() {
+    function feverStart(src) {
       var F = S.fever;
       if (F.active) return;
       F.active = true; F.t = F.dur = C.FEVER_DUR; F.energy = 1; F.ready = true; F.count++;
       S.stats.fevers++;
       var iv = fireIntervalNow();
       if (fireCd > iv) fireCd = iv;    // 立刻進入快速連發
-      emit({ t: 'feverStart', dur: F.dur, n: F.count, x: S.aimX, y: C.SPAWN_Y });
+      emit({ t: 'feverStart', dur: F.dur, n: F.count, x: S.aimX, y: C.SPAWN_Y, src: src || 'energy' });
     }
     function feverEnd() {
       var F = S.fever;
@@ -9923,6 +10065,185 @@ root.MARBLE_ART =
     }
     function fireIntervalNow() { return M.fireInterval * (S.fever.active ? C.FEVER_RATE : 1); }
 
+    // ---------------- 小鋼珠機制（feat/pachinko） ----------------
+    // 入賞口（每盤重排）→ 抽獎（入賞當下決定結果；保留燈顏色依結果預告）→ 液晶轉 3 個數字（時間軸在 S.pachi.spin，用戶端照 t 畫）
+    // → 前兩個一樣＝聽牌（最後一格慢轉，可能有本章小怪物推數字）→ 三個一樣＝大當：發 jackpot、啟動狂熱、打開大入賞口
+    // → 中 3／7＝確變（之後 PACHI_KAKUHEN_SPINS 次抽獎中獎率 PACHI_KAKUHEN_P，中了＝連莊）。能量條集滿＝插入金色必中保留。
+    var PA = S.pachi, pachiForce = null;      // pachiForce：debug.lottery('win'|'lose'|'reach')，之後每次抽獎都照這個
+    var COLORS = C.PACHI_HOLD_COLORS;
+    var prng = mulberry32(mix(seed, 0x9AC1));  // 抽獎專用亂數（不影響物理與盤面的亂數流）
+    function placePocket(Z) {
+      var r = mulberry32(mix(mix(seed ^ 0x7C0C7E7, S.level.index), boardNo));
+      var x = clamp(Z.cx + (r() * 2 - 1) * C.POCKET_X_SPREAD, Z.x0 + C.POCKET_CLEAR, Z.x1 - C.POCKET_CLEAR);
+      var y = Z.y0 + Z.h * (C.POCKET_Y[0] + r() * (C.POCKET_Y[1] - C.POCKET_Y[0]));
+      return { x: round1(x), y: round1(y), hw: C.POCKET_HW, postDx: C.POCKET_POST_DX };
+    }
+    function pickW(ws) {
+      var sum = 0, i; for (i = 0; i < ws.length; i++) sum += ws[i];
+      var u = prng() * sum;
+      for (i = 0; i < ws.length - 1; i++) { u -= ws[i]; if (u < 0) return i; }
+      return ws.length - 1;
+    }
+    function rndDigit(not) { var d; do { d = 1 + Math.floor(prng() * 9); } while (not && not.indexOf(d) >= 0); return d; }
+    function winDigit() {
+      var K = C.PACHI_KAKUHEN_DIGITS;
+      if (prng() < C.PACHI_KAKUHEN_RATE) return K[Math.floor(prng() * K.length)];
+      return rndDigit(K);
+    }
+    function wrap9(d) { return ((d - 1) % 9 + 9) % 9 + 1; }
+    // 抽一次：回傳保留（含結果）。sure＝金色必中（能量條）
+    function draw(sure) {
+      var kak = PA.kakuhenLeft > 0, p = kak ? C.PACHI_KAKUHEN_P : C.PACHI_P;
+      if (kak && !sure) PA.kakuhenLeft--;       // 能量條的必中不算確變次數
+      var noWin = pachiForce === 'lose' || pachiForce === 'lock' || pachiForce === 'reach';
+      var win = sure || (pachiForce === 'win') || (!noWin && prng() < p);
+      var reach = win || pachiForce === 'reach' || (pachiForce !== 'lose' && pachiForce !== 'lock' && prng() < C.PACHI_REACH_LOSE);
+      var a, fin, col;
+      if (win) { a = winDigit(); fin = [a, a, a]; col = sure ? 3 : pickW(C.PACHI_COLOR_WIN); }
+      else if (reach) { a = rndDigit(); fin = [a, a, wrap9(a + (prng() < 0.5 ? 1 : -1) * (prng() < 0.75 ? 1 : 2))]; col = pickW(C.PACHI_COLOR_REACH); }
+      else { a = rndDigit(); var b2 = rndDigit([a]); fin = [a, b2, rndDigit()]; col = pickW(C.PACHI_COLOR_LOSE); }
+      if (kak && !win) col = Math.max(col, 1);   // 確變中保留至少綠色（高機率感）
+      return { win: win, reach: reach, final: fin, color: COLORS[col], ci: col, sure: !!sure, kak: kak, endK: kak && !sure && PA.kakuhenLeft === 0,
+               prank: reach && prng() < C.PACHI_PRANK, shown: 0, upT: sure ? 0 : C.PACHI_HOLD_UP[0] + prng() * (C.PACHI_HOLD_UP[1] - C.PACHI_HOLD_UP[0]) };
+    }
+    function pubHold(h) { return { color: COLORS[h.shown], sure: h.sure, _h: h }; }
+    function addHold(h) {
+      if (PA.holds.length >= C.PACHI_HOLD_MAX) return -1;
+      if (h.sure) h.shown = 3;
+      PA.holds.push(pubHold(h));
+      emit({ t: 'holdAdd', n: PA.holds.length, color: COLORS[h.shown], sure: h.sure });
+      return PA.holds.length - 1;
+    }
+    // 入賞：彈珠收走、退 POCKET_GIVE 顆；沒在轉就直接開始轉，在轉就存成保留（滿了只退彈珠）
+    function pocketIn(b) {
+      // POCKET_KEEP：通過型入賞口（彈珠穿過去照常往下掉，不收走、不退彈珠）；false＝收走並退 POCKET_GIVE 顆
+      if (C.POCKET_KEEP) b._pk = true; else b._dead = true;
+      S.stats.entries++;
+      var pk = PA.pocket, held = -2;
+      if (!PA.spin && !PA.holds.length && PA.gap <= 0) { startSpin(draw(false)); held = -1; }
+      else if (PA.holds.length < C.PACHI_HOLD_MAX) held = addHold(draw(false));
+      var e = emit({ t: 'pocket', x: pk.x, y: pk.y, give: 0, hold: held, holds: PA.holds.length });
+      if (!C.POCKET_KEEP && C.POCKET_GIVE > 0) e.give = addMarbles(C.POCKET_GIVE, 'pocket');
+    }
+    function sureHold() {
+      var F = S.fever;
+      F.energy = 0; F.ready = false;
+      S.stats.sures++;
+      var h = draw(true);
+      emit({ t: 'sureHold' });
+      if (!PA.spin && !PA.holds.length && PA.gap <= 0) { startSpin(h); return; }
+      if (PA.holds.length >= C.PACHI_HOLD_MAX) PA.holds.pop();   // 滿了：最後一顆換成金色必中
+      addHold(h);
+    }
+    function startSpin(h) {
+      var reach = h.reach, stops = C.PACHI_STOPS.slice(), dur = C.PACHI_SPIN_T, fake = null, pushT = 0;
+      if (reach) {
+        stops[2] = C.PACHI_REACH_STOP; dur = C.PACHI_REACH_T;
+        if (h.prank) {   // 小怪物推數字：中＝停在差一格、被推進來；沒中＝停在對上的數字、被推走
+          fake = h.win ? wrap9(h.final[0] - 1) : h.final[0];
+          if (!h.win) h.final[2] = wrap9(h.final[0] + 1);
+          pushT = C.PACHI_PUSH_AT; dur = C.PACHI_PRANK_T;
+        }
+      }
+      S.stats.spins++;
+      if (reach) S.stats.reaches++;
+      PA.spin = { t: 0, dur: dur, stops: stops, final: h.final.slice(), reach: reach, prank: !!(reach && h.prank), fake: fake, pushT: pushT, pushDur: C.PACHI_PUSH_DUR,
+                  win: h.win, color: COLORS[Math.max(h.ci, h.shown)], hot: reach && (h.ci >= 2 || h.kak), sure: h.sure, kakuhen: h.kak,
+                  stopped: 0, reachOn: false, pushed: false, endK: h.endK };
+      emit({ t: 'spinStart', color: PA.spin.color, sure: h.sure, kakuhen: h.kak });
+    }
+    function finishSpin() {
+      var sp = PA.spin;
+      PA.spin = null; PA.gap = C.PACHI_GAP;
+      PA.last = sp.final.slice();
+      emit({ t: 'spinEnd', win: sp.win, final: sp.final.slice(), reach: sp.reach });
+      if (sp.win) jackpot(sp.final[0], sp.sure);
+      else if (sp.endK && PA.kakuhen && PA.kakuhenLeft <= 0) { PA.kakuhen = false; emit({ t: 'kakuhenEnd', chain: PA.chain }); }
+    }
+    function jackpot(digit, sure) {
+      var kakNow = PA.kakuhen;
+      PA.chain = kakNow ? PA.chain + 1 : 1;
+      if (PA.chain > PA.maxChain) PA.maxChain = PA.chain;
+      if (PA.chain > S.stats.maxChain) S.stats.maxChain = PA.chain;
+      S.stats.jackpots++;
+      var kak = C.PACHI_KAKUHEN_DIGITS.indexOf(digit) >= 0;
+      if (kak) { PA.kakuhen = true; PA.kakuhenLeft = C.PACHI_KAKUHEN_SPINS; S.stats.kakuhens++; }
+      else { PA.kakuhen = false; PA.kakuhenLeft = 0; }
+      emit({ t: 'jackpot', digit: digit, kakuhen: kak, chain: PA.chain, n: S.stats.jackpots, sure: !!sure, renew: kakNow });
+      // 狂熱（沿用現有：傷害 ×2、連發加速）；已經在狂熱就重新計時
+      var F = S.fever;
+      if (F.active) { F.t = F.dur = C.FEVER_DUR; F.count++; S.stats.fevers++; emit({ t: 'feverStart', dur: F.dur, n: F.count, x: S.aimX, y: C.SPAWN_Y, src: 'jackpot', renew: true }); }
+      else { F.energy = 1; feverStart('jackpot'); }
+      if (kak) emit({ t: 'kakuhenStart', chain: PA.chain, spins: PA.kakuhenLeft });
+      else if (kakNow) emit({ t: 'kakuhenEnd', chain: PA.chain });
+      openAttacker();
+      // 一般大當：連莊數保留到下一次大當才重算（下一次不在確變中＝從 1 開始）
+    }
+    // 大入賞口：放在釘子區下緣，x 選怪物擋最少的位置（不跟打怪搶同一個點）
+    function attackerX() {
+      var cand = [90, 180, 270], best = 180, bestV = 1e9;
+      for (var i = 0; i < cand.length; i++) {
+        var v = 0;
+        for (var j = 0; j < S.monsters.length; j++) { var m = S.monsters[j]; if (m.alive) v += Math.max(0, m.w / 2 + 40 - Math.abs(m.x - cand[i])) * (m.kind === 'boss' ? 2 : 1); }
+        if (v < bestV - 1e-6) { bestV = v; best = cand[i]; }
+      }
+      return best;
+    }
+    function attackerGive() { return Math.max(C.ATTACKER_GIVE_MIN, Math.ceil(S.cap * C.ATTACKER_GIVE_CAP)); }
+    function openAttacker() {
+      var A = PA.attacker;
+      A.open = true; A.t = A.dur = C.ATTACKER_T; A.count = 0; A.max = C.ATTACKER_MAX; A.w = C.ATTACKER_W;
+      A.x = attackerX(); A.y = zoneY1 + C.ATTACKER_DY; A.give = attackerGive();
+      emit({ t: 'attackerOpen', x: A.x, y: A.y, w: A.w, dur: A.dur, max: A.max, give: A.give });
+    }
+    function closeAttacker() {
+      var A = PA.attacker;
+      if (!A.open) return;
+      A.open = false; A.t = 0;
+      emit({ t: 'attackerClose', x: A.x, y: A.y, count: A.count });
+    }
+    // 彈珠穿過入賞口／大入賞口那條線（py＝這一子步之前的 y）→ 收走
+    function pachiCatch(b, py) {
+      if (!PA.on) return false;
+      var pk = PA.pocket;
+      if (pk && !b._pk && py < pk.y && b.y >= pk.y && b.vy > 0 && Math.abs(b.x - pk.x) < pk.hw) { pocketIn(b); if (b._dead) return true; }
+      var A = PA.attacker;
+      if (A.open && py < A.y && b.y >= A.y && b.vy > 0 && Math.abs(b.x - A.x) < A.w / 2) {
+        b._dead = true; A.count++; S.stats.attackerBalls++;
+        var e = emit({ t: 'attackerIn', x: b.x, y: A.y, give: 0, count: A.count, max: A.max });
+        e.give = addMarbles(A.give, 'attacker');
+        if (A.count >= A.max) closeAttacker();
+        return true;
+      }
+      return false;
+    }
+    function pachiTick(dt) {
+      if (!PA.on) return;
+      var i, A = PA.attacker;
+      if (A.open) { A.t -= dt; if (A.t <= 0) closeAttacker(); }
+      // 保留燈升級（藍→…→最終顏色）
+      for (i = 0; i < PA.holds.length; i++) {
+        var ph = PA.holds[i], h = ph._h;
+        if (h.shown >= h.ci) continue;
+        h.upT -= dt;
+        if (h.upT <= 0) { h.shown++; h.upT = C.PACHI_HOLD_STEP; ph.color = COLORS[h.shown]; emit({ t: 'holdUp', i: i, color: ph.color }); }
+      }
+      var sp = PA.spin;
+      if (sp) {
+        sp.t += dt;
+        while (sp.stopped < 3 && sp.t >= sp.stops[sp.stopped]) {
+          var k = sp.stopped++;
+          emit({ t: 'reelStop', i: k, v: k === 2 && sp.fake != null ? sp.fake : sp.final[k], reach: sp.reach });
+          if (k === 1 && sp.reach && !sp.reachOn) { sp.reachOn = true; emit({ t: 'reach', digit: sp.final[0], hot: sp.hot, prank: sp.prank, kakuhen: sp.kakuhen }); }
+        }
+        if (sp.prank && !sp.pushed && sp.t >= sp.pushT) { sp.pushed = true; emit({ t: 'reachPush', win: sp.win, from: sp.fake, to: sp.final[2] }); }
+        if (sp.t >= sp.dur) finishSpin();
+        return;
+      }
+      if (PA.gap > 0) { PA.gap -= dt; if (PA.gap > 0) return; }
+      if (PA.holds.length) { var nx = PA.holds.shift(); startSpin(nx._h); }
+    }
+
     // ---------------- 每一步 ----------------
     function tickPlay(dt) {
       S.time += dt;
@@ -9936,6 +10257,7 @@ root.MARBLE_ART =
       // 連擊計時
       if (S.combo.n > 0) { S.combo.t -= dt; if (S.combo.t <= 0) { S.combo.n = 0; S.combo.t = 0; comboMs = 0; } }
       feverTick(dt);
+      pachiTick(dt);
 
       updateMonsters(dt);
       updatePegs(dt);
@@ -10177,6 +10499,7 @@ root.MARBLE_ART =
           pegs.push({ id: uid++, kind: q.kind, x: q.x, y: q.y, r: pin ? C.PIN_R : C.PEG_R, alive: true, regrowT: 0 });
         }
         S.pegs = pegs; boardClearT = -1; boardPattern = 'custom';
+        S.pachi.pocket = null;          // 自訂盤面沒有入賞口（要入賞口用 newBoard）
         buildGrid();
       },
       // 狂熱模式：fever() 立刻啟動（能量直接集滿）；feverEnd() 立刻結束；setFever(e) 設定能量 0～1（不會自動啟動以外的副作用）
@@ -10186,10 +10509,56 @@ root.MARBLE_ART =
         e = clamp(Number(e) || 0, 0, 1);
         if (S.fever.active) return false;
         S.fever.energy = e; S.fever.ready = e >= C.FEVER_READY;
-        if (e >= 1 && S.phase === 'play') feverStart();
+        if (e >= 1 && S.phase === 'play') { if (PA.on && pachiForce !== 'lock') sureHold(); else feverStart(); }   // 小鋼珠：集滿＝送必中保留
         return true;
       },
       newBoard: function (pattern) { if (!S.level) return false; genBoard(pattern); return true; },
+      // 小鋼珠：pachinko(on) 開關（關＝舊版：能量條集滿直接狂熱；下一盤起盤面從 y=64 開始）
+      pachinko: function (on) { PA.on = !!on; if (!PA.on) { PA.spin = null; PA.holds.length = 0; PA.pocket = null; closeAttacker(); } return PA.on; },
+      // lottery('win'|'lose'|'reach'|null)：之後每次抽獎都強制這個結果（測試用）
+      // 'lock'＝不中也不聽牌，而且能量條集滿照舊直接狂熱（給計時型的舊測試用，不會跳出大當演出）
+      lottery: function (mode) { pachiForce = mode === 'win' || mode === 'lose' || mode === 'reach' || mode === 'lock' ? mode : null; return pachiForce; },
+      // jackpot(digit, instant)：instant＝直接大當（跳過轉動）；否則立刻開始一輪必中（含聽牌）的轉動。digit 省略＝隨機
+      jackpot: function (digit, instant) {
+        if (!PA.on || S.phase !== 'play') return false;
+        var d = digit >= 1 && digit <= 9 ? Math.floor(digit) : winDigit();
+        if (instant) { PA.spin = null; PA.last = [d, d, d]; jackpot(d, false); return true; }
+        var h = draw(true); h.final = [d, d, d]; h.prank = false; h.ci = 2; h.shown = 2; h.sure = false;
+        PA.spin = null; startSpin(h); return true;
+      },
+      // reach(win, prank)：立刻開始一輪聽牌（win＝中不中，prank＝小怪物推數字）
+      reach: function (win, prank) {
+        if (!PA.on || S.phase !== 'play') return false;
+        var save = pachiForce; pachiForce = win ? 'win' : 'reach';
+        var h = draw(false); pachiForce = save;
+        h.prank = !!prank; h.sure = false;
+        PA.spin = null; startSpin(h); return true;
+      },
+      // setHold(['blue','green','red','gold'])：直接設定保留（gold＝必中、其他＝沒中）；顏色立刻亮到最終色
+      setHold: function (list) {
+        PA.holds.length = 0;
+        for (var i = 0; i < (list || []).length && i < C.PACHI_HOLD_MAX; i++) {
+          var ci = Math.max(0, COLORS.indexOf(list[i])), save = pachiForce;
+          pachiForce = ci === 3 ? 'win' : 'lose';
+          var h = draw(false); pachiForce = save;
+          h.ci = ci; h.shown = ci; h.sure = ci === 3;
+          PA.holds.push(pubHold(h));
+        }
+        return PA.holds.length;
+      },
+      // entry()：模擬一顆彈珠進入賞口（走正常流程）
+      entry: function () {
+        if (!PA.on || !PA.pocket || S.phase !== 'play') return false;
+        var b = newBall(PA.pocket.x, PA.pocket.y - 1, 0, 100, null);
+        pocketIn(b); return true;
+      },
+      attacker: function () { if (!PA.on || S.phase !== 'play') return false; openAttacker(); return true; },
+      kakuhen: function (on) { PA.kakuhen = !!on; PA.kakuhenLeft = on ? C.PACHI_KAKUHEN_SPINS : 0; return PA.kakuhen; },
+      pachi: function () {
+        return { on: PA.on, pocket: PA.pocket && copyObj(PA.pocket), spin: PA.spin && { t: PA.spin.t, dur: PA.spin.dur, reach: PA.spin.reach, win: PA.spin.win, final: PA.spin.final.slice(), prank: PA.spin.prank },
+                 holds: PA.holds.map(function (h) { return h.color; }), kakuhen: PA.kakuhen, kakuhenLeft: PA.kakuhenLeft, chain: PA.chain, maxChain: PA.maxChain,
+                 attacker: copyObj(PA.attacker), force: pachiForce };
+      },
       // 怪物花樣：之後的關卡每隻普通／精英怪都帶這些 trait（boss:true 連魔王也帶）；null 取消。搭配 gotoLevel 截圖／測試用
       forceTraits: function (list, opt) { forcedTraits = list ? { list: [].concat(list), boss: !!(opt && opt.boss) } : null; return true; },
       info: function () {
@@ -11113,12 +11482,51 @@ root.MARBLE_ART =
     SCR.flash = Math.max(SCR.flash, 0.4); SCR.flashCol = '#fff2b0'; SCR.flashDecay = 2.4;
     addShake(0.35, 0.5);
     vib(40, 80);
-    S.sfx('fever_start');
+    if (e.src !== 'jackpot') S.sfx('fever_start');   // 小鋼珠：大當啟動的狂熱由 jackpot 專屬 jingle 負責出聲
   };
   HANDLERS.feverEnd = function () {
     for (var i = 0; i < 12; i++) P(K_SPARK, rr(20, W - 20), rr(40, 120), rr(-20, 20), rr(10, 60), 60, 1, rr(0.4, 0.7), 2, pick(FEVER_COL));
     S.sfx('fever_end');
   };
+  // ---- 小鋼珠機制（feat/pachinko）：液晶、聽牌、大當全螢幕演出由用戶端畫；Juice 負責入賞／大入賞口的粒子、音效、震動
+  HANDLERS.pocket = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 300);
+    burst(x, y, budget(10), ['#ffe24a', '#fff6b0', '#ff7a90'], 60, 160, 260, 0.3, 0.55, [2, 2, 4], 0.6, K_SPARK);
+    if (e.give > 0) labelFx('入賞 +' + e.give, 'gold', 13, x, y - 18, 0.7, -50, 1.2);
+    S.sfx('pocket', { pitch: e.hold >= 0 ? e.hold * 2 : 0 });
+    vib(12, 120);
+  };
+  HANDLERS.holdUp = function (e) { S.sfx('hold_up', { pitch: e.color === 'gold' ? 7 : e.color === 'red' ? 4 : 2 }); };
+  HANDLERS.spinStart = function () { S.sfx('spin_start'); };
+  HANDLERS.reelStop = function (e) { S.sfx('reel_stop', { pitch: (num(e.i, 0)) * 3 }); };
+  HANDLERS.reach = function (e) { S.sfx(e.hot ? 'reach_hot' : 'reach'); vib(25, 120); };
+  HANDLERS.reachPush = function (e) { S.sfx('reach_push', { pitch: e.win ? 3 : -2 }); addShake(0.2, 0.3); };
+  HANDLERS.spinEnd = function (e) { if (e.reach && !e.win) S.sfx('reach_miss'); };
+  HANDLERS.jackpot = function () {
+    S.sfx('jackpot');
+    SCR.flash = Math.max(SCR.flash, 0.6); SCR.flashCol = '#fff2b0'; SCR.flashDecay = 2;
+    addShake(0.5, 0.7);
+    vib(60, 80);
+  };
+  HANDLERS.kakuhenStart = function () { S.sfx('kakuhen'); SCR.edge = Math.max(SCR.edge, 1); SCR.edgeCol = '#ff4a6a'; };
+  HANDLERS.kakuhenEnd = function () { S.sfx('kakuhen_end'); };
+  HANDLERS.sureHold = function () {
+    S.sfx('sure_hold');
+    for (var i = 0; i < 16; i++) P(K_STAR, rr(150, 270), rr(60, 95), rr(-60, 60), rr(-80, 10), 120, 1, rr(0.5, 0.9), 2, pick(['#ffe24a', '#fff6b0']), true);
+  };
+  HANDLERS.attackerOpen = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 480);
+    ring(0, x, y, 6, 70, 0.4, '#ffd23f', 3);
+    burst(x, y, budget(18), ['#ffe24a', '#ff5a6e', '#ffffff'], 80, 220, 300, 0.4, 0.8, [2, 4], 0.8, K_SPARK, true);
+    S.sfx('attacker_open');
+  };
+  HANDLERS.attackerIn = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 480);
+    burst(x, y, budget(5), ['#ffe24a', '#fff6b0'], 40, 120, 260, 0.25, 0.45, [2], 0.9, K_SPARK);
+    if (e.give > 0) infoNum(x, y - 8, '+' + e.give, 'gold', 2, 0.6, -60);
+    S.sfx('attacker_in', { pitch: Math.min(10, num(e.count, 0) * 0.6) });
+  };
+  HANDLERS.attackerClose = function () { S.sfx('attacker_close'); };
   // talentOffer / reroll / talentPick / gameOver：音效由用戶端負責，Juice 不出聲
 
   var inited = false;
@@ -11823,7 +12231,8 @@ root.MARBLE_ART =
     if (sw < 20 || sh < 20) return;
     var dpr = clamp(window.devicePixelRatio || 1, 1, 2);
     if (!force && Math.abs(sw - L.sw) < 0.5 && Math.abs(sh - L.sh) < 0.5 && dpr === L.dpr) { refreshRects(); layoutTitleScene(); return; }
-    var sMax = Math.min(sw / W, sh / H), s = sMax, crisp = false;
+    var fm = (pachiOn() ? FRAME_MIN : 0) * 2;   // 小鋼珠：外框至少留 5px（canvas 不會為了外框縮太多）
+    var sMax = Math.min((sw - fm) / W, (sh - fm) / H), s = sMax, crisp = false;
     var nIdeal = 2 * sMax * dpr, nc = Math.floor(nIdeal + 1e-4);
     if (nc >= 1 && nc / nIdeal >= 0.95) { s = nc / (2 * dpr); crisp = true; }   // 縮小最多 5% 換取每個美術像素＝整數個裝置像素
     var N = crisp ? nc : Math.ceil(nIdeal - 1e-4);
@@ -11839,6 +12248,7 @@ root.MARBLE_ART =
     L.s = cssW / W; L.N = N; L.k = N / 2; L.cssW = cssW; L.cssH = cssH; L.offX = offX; L.offY = offY; L.crisp = crisp; L.sw = sw; L.sh = sh; L.dpr = dpr;
     backdropKey = '';
     updateBackdrop();
+    frameLayout();
     refreshRects();
     sizeLogo();
     knobX = -1;
@@ -12181,6 +12591,7 @@ root.MARBLE_ART =
     E.talentPanel.classList.remove('closing'); talentClosing = false;
     Jz.call('reset');
     feverHide();
+    resetPachiFx();
     var lv = sim.state.level || DEF_LEVEL;
     setTheme(lv.theme || themeIdx(lv.chapter), lv.variant | 0);
     setScreen(sim.state.phase === 'talent' ? 'talent' : 'play');
@@ -12206,6 +12617,7 @@ root.MARBLE_ART =
   }
   function onEvent(ev) {
     shareTrack(ev);   // 分享圖：記錄最強戰果
+    onPachiEvent(ev);
     switch (ev.t) {
       case 'levelStart': onLevelStart(ev); break;
       case 'fire': firePulse(); break;
@@ -12217,7 +12629,7 @@ root.MARBLE_ART =
         showBanner('clear', '過關！', ev.refund > 0 ? ('場上彈珠退回 +' + ev.refund) : '');
         break;
       case 'boardClear': showToast('清盤！+' + (ev.bonus != null ? ev.bonus : 10)); break;
-      case 'feverStart': feverShow(); break;
+      case 'feverStart': if (JP.on) JP.feverPending = true; else feverShow(); break;
       case 'feverEnd': feverHide(); break;
       case 'talentOffer': talentSig = ''; break;
       case 'reroll': talentSig = ''; break;
@@ -12557,6 +12969,7 @@ root.MARBLE_ART =
     gesture();
     if (isSpace(e) && e.repeat) e.preventDefault();   // 按住空白鍵的重複按鍵不能觸發剛出現的按鈕
     if (screen === 'play') {
+      if (JP.on) { if (!e.repeat && (isSpace(e) || e.key === 'Enter' || isPause(e))) { e.preventDefault(); endShow(); } else if (isSpace(e) || isPause(e)) e.preventDefault(); return; }
       if (isLeft(e)) { keys.left = true; e.preventDefault(); return; }
       if (isRight(e)) { keys.right = true; e.preventDefault(); return; }
       if (isSpace(e)) { e.preventDefault(); if (!keyFire) { keyFire = true; syncFiring(); if (sim) updateFireBtn(sim.state); } return; }
@@ -12594,6 +13007,7 @@ root.MARBLE_ART =
   /* ================= 暫停 ================= */
   function pauseGame(silent) {
     if (screen !== 'play' || !sim) return;
+    if (JP.on) endShow(true);
     releaseInputs();
     renderPauseTalents();
     setScreen('pause');
@@ -13202,7 +13616,10 @@ root.MARBLE_ART =
     worldXf(sx, sy);
     drawBackground(th, va);
     ctx.save(); Jz.call('drawUnder', ctx); ctx.restore(); resetCtx(); worldXf(sx, sy);
+    drawLcd(st, animT);
     drawPegs(st.pegs, animT);
+    drawPocket(st, animT);
+    drawAttacker(st, animT);
     drawMoveMarks(st.monsters, animT, st.FLOOR_Y || FLOOR_DEF);
     if (st.fever) drawFeverGauge(st, animT);
     drawMonsters(st.monsters, animT, va, st.FLOOR_Y || FLOOR_DEF);
@@ -13212,11 +13629,469 @@ root.MARBLE_ART =
     var bar = hasBigBar(st.monsters);
     if (st.phase === 'play' || st.phase === 'clear') drawAim(st.aimX, animT, bar);
     drawBigBars(st.monsters, animT);
+    drawReachDim(st);
     drawBalls(st.balls, animT);
-    ctx.save(); Jz.call('drawWorld', ctx); ctx.restore(); resetCtx();
+    drawReachView(st, animT);
+    ctx.save(); Jz.call('drawWorld', ctx); ctx.restore(); resetCtx(); worldXf(sx, sy);
+    drawCaptions();
+    drawGlass();
+    resetCtx();
     var f = cv.width / L.cssW;
     ctx.setTransform(f, 0, 0, f, 0, 0);
     ctx.save(); Jz.call('drawScreen', ctx, L.cssW, L.cssH); ctx.restore(); resetCtx();
+  }
+
+  /* ================= 小鋼珠（feat/pachinko）：機台外框、液晶、入賞口、大入賞口、聽牌／大當演出 ================= */
+  // 只是演出風格（沒有押注、付費或兌換）。演出大字用日文，下方同時出中文字幕；字一律用本機字型畫成點陣（pxText），不載外部字型。
+  var FONT_JP = '"Yu Gothic UI","Yu Gothic","YuGothic","Meiryo","MS Gothic","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP",' + FONT;
+  var HOLD_COL = { blue: ['#7cc0ff', '#2a5fc0', '#c9e6ff'], green: ['#6dff96', '#1f9a48', '#d6ffe2'], red: ['#ff6a5a', '#b0202e', '#ffd0c8'], gold: ['#ffe14a', '#c07a10', '#fff8c8'] };
+  var GOLD_BANDS = ['#fffcd6', '#fff07a', '#ffd640', '#ffb822', '#ff8c16'];
+  var RED_BANDS = ['#ffe0e0', '#ff8a8a', '#ff4b4b', '#d81e3a'];
+  // 5×7 點陣數字（液晶與大當演出用，自製）
+  var DIG5 = {
+    0: ['01110', '10001', '10011', '10101', '11001', '10001', '01110'], 1: ['00100', '01100', '00100', '00100', '00100', '00100', '01110'],
+    2: ['01110', '10001', '00001', '00110', '01000', '10000', '11111'], 3: ['11110', '00001', '00001', '01110', '00001', '00001', '11110'],
+    4: ['00010', '00110', '01010', '10010', '11111', '00010', '00010'], 5: ['11111', '10000', '11110', '00001', '00001', '10001', '01110'],
+    6: ['00110', '01000', '10000', '11110', '10001', '10001', '01110'], 7: ['11111', '00001', '00010', '00100', '01000', '01000', '01000'],
+    8: ['01110', '10001', '10001', '01110', '10001', '10001', '01110'], 9: ['01110', '10001', '10001', '01111', '00001', '00010', '01100']
+  };
+  function wrap9(d) { return ((d - 1) % 9 + 9) % 9 + 1; }
+  // 在 g 上畫一個點陣數字（左上角 x,y；s＝每格大小）；描邊 ink（null＝不描）
+  function digit5(g, d, x, y, s, col, ink) {
+    var rows = DIG5[d] || DIG5[0], r, c;
+    if (ink) { g.fillStyle = ink; for (r = 0; r < 7; r++) for (c = 0; c < 5; c++) if (rows[r].charAt(c) === '1') g.fillRect(x + c * s - s * 0.5, y + r * s - s * 0.5, s * 2, s * 2); }
+    g.fillStyle = col;
+    for (r = 0; r < 7; r++) for (c = 0; c < 5; c++) if (rows[r].charAt(c) === '1') g.fillRect(x + c * s, y + r * s, s, s);
+  }
+  function pachiState(st) { return st && st.pachi && st.pachi.on ? st.pachi : null; }
+  function pachiOn() { var C = window.ML_CONFIG; return !C || C.PACHINKO !== false; }
+  var PCFG = function (k, d) { var C = window.ML_CONFIG; return C && C[k] != null ? C[k] : d; };
+
+  // ---- 轉輪位置：sim 的 spin 時間軸 → 每一格目前的「連續位置」（整數＝停在那個數字） ----
+  // 一般轉輪等速 16 格／秒、停點剛好落在目標；聽牌的最後一格越轉越慢（f＝1.6τ＋2.2τ²）；小怪物推數字＝停點之後再滑 1 格
+  function reelPos(sp, i) {
+    var stop = sp.stops[i], fin = sp.final[i];
+    if (i === 2 && sp.fake != null) {
+      if (sp.t >= sp.pushT) { var u = clamp((sp.t - sp.pushT) / (sp.pushDur || 0.35), 0, 1); u = 1 - (1 - u) * (1 - u); return sp.fake + u; }
+      fin = sp.fake;
+    }
+    if (sp.t >= stop) return fin;
+    var tau = stop - sp.t, f = (i === 2 && sp.reach) ? 1.6 * tau + 2.2 * tau * tau : 16 * tau;
+    return fin - f;
+  }
+  // 畫一格轉輪（世界座標；x,y 左上；w,h 視窗大小；s＝數字格大小）
+  function drawReel(pos, x, y, w, h, s, col, spinning) {
+    var base = Math.floor(pos + 1e-6), frac = pos - base, dh = 7 * s, gap = h;   // 數字往上捲（下一個從下面進來）
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    var dx = x + Math.round((w - 5 * s) / 2), dy = y + Math.round((h - dh) / 2);
+    for (var k = 0; k < 2; k++) {
+      var d = wrap9(base + k), oy = dy + (k - frac) * gap;
+      if (oy > y + h || oy + dh < y) continue;
+      digit5(ctx, d, dx, oy, s, spinning ? '#cfd8ff' : col, null);
+    }
+    if (spinning) { ctx.fillStyle = 'rgba(160,190,255,0.10)'; ctx.fillRect(x, y, w, h); }
+    ctx.restore();
+  }
+  function lcdDigits(pa) {
+    var sp = pa.spin, out = [];
+    for (var i = 0; i < 3; i++) out.push(sp ? reelPos(sp, i) : (pa.last ? pa.last[i] : 7));
+    return out;
+  }
+  // 液晶本體（cx＝中心 x、y＝上緣、sc＝放大倍率）
+  function drawLcdBox(pa, cx, y, sc, t, big) {
+    var L0 = pa.lcd || { w: 88, h: 31 }, w = L0.w * sc, h = L0.h * sc, x = Math.round(cx - w / 2);
+    var sp = pa.spin, pos = lcdDigits(pa), reachOn = !!(sp && sp.reach && sp.t >= sp.stops[1]), hot = !!(sp && sp.hot && reachOn);
+    // 外框：金屬＋金邊（確變中紅色呼吸燈）
+    var rim = pa.kakuhen ? (Math.sin(t * 6) > 0 ? '#ff5a6e' : '#ffb0b8') : '#ffd76a';
+    ctx.fillStyle = INK; ctx.fillRect(x - 3 * sc, y - 3 * sc, w + 6 * sc, h + 6 * sc);
+    ctx.fillStyle = rim; ctx.fillRect(x - 2 * sc, y - 2 * sc, w + 4 * sc, h + 4 * sc);
+    ctx.fillStyle = '#8a5a14'; ctx.fillRect(x - 2 * sc, y + h, w + 4 * sc, 2 * sc);
+    ctx.fillStyle = '#0a0e2a'; ctx.fillRect(x, y, w, h);
+    // 液晶背景：掃描線＋聽牌時紅色脈動
+    ctx.fillStyle = hot ? 'rgba(255,60,80,' + (0.18 + 0.14 * Math.sin(t * 12)).toFixed(3) + ')' : (reachOn ? 'rgba(255,200,60,0.10)' : 'rgba(80,110,255,0.10)');
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    for (var yy = 1; yy < h; yy += 2 * sc) ctx.fillRect(x, y + yy, w, sc * 0.5);
+    var rw = 24 * sc, rh = h - 6 * sc, gx = (w - rw * 3) / 4, s = 3 * sc;
+    for (var i = 0; i < 3; i++) {
+      var rx = x + gx + i * (rw + gx), ry = y + 3 * sc;
+      var spinning = !!sp && Math.abs(pos[i] - Math.round(pos[i])) > 1e-3;
+      var col = '#ffffff';
+      if (sp && reachOn && i < 2) col = hot ? '#ff7a7a' : '#ffe14a';
+      if (!sp && pa.last && pa.last[0] === pa.last[1] && pa.last[1] === pa.last[2]) col = '#ffe14a';
+      ctx.fillStyle = '#141a44'; ctx.fillRect(rx, ry, rw, rh);
+      drawReel(pos[i], rx, ry, rw, rh, s, col, spinning);
+      if (big && reachOn && i === 2 && spinning) {     // 聽牌：最後一格外圈閃光
+        ctx.strokeStyle = Math.floor(t * 10) % 2 ? '#ffe14a' : '#ff5a5a'; ctx.lineWidth = 2 * sc;
+        ctx.strokeRect(rx - sc, ry - sc, rw + 2 * sc, rh + 2 * sc);
+      }
+    }
+    return { x: x, y: y, w: w, h: h, rw: rw, gx: gx };
+  }
+  // 保留燈（4 顆）＋確變燈
+  function drawHolds(pa, t) {
+    var L0 = pa.lcd, x0 = L0.x + L0.w / 2 + 9, y = L0.y + L0.h / 2 + 3, n = PCFG('PACHI_HOLD_MAX', 4);
+    var lab = pxText('保留', 9, '#ffffff', { font: FONT_JP });
+    ctx.drawImage(lab, x0 - 2, L0.y - 1, lab.width, lab.height);
+    for (var i = 0; i < n; i++) {
+      var h = pa.holds[i], cx = x0 + 4 + i * 11;
+      ctx.fillStyle = INK; circle(cx, y, 5);
+      if (h) {
+        var c = HOLD_COL[h.color] || HOLD_COL.blue, pulse = h.color === 'gold' || h.color === 'red' ? 0.5 + 0.5 * Math.sin(t * 9 + i) : 0;
+        if (pulse > 0) { ctx.globalAlpha = 0.35 * pulse; ctx.fillStyle = c[0]; circle(cx, y, 8); ctx.globalAlpha = 1; }
+        ctx.fillStyle = c[1]; circle(cx, y, 4); ctx.fillStyle = c[0]; circle(cx - 0.5, y - 0.5, 3); ctx.fillStyle = c[2]; ctx.fillRect(cx - 2, y - 2.5, 1.5, 1.5);
+      } else { ctx.fillStyle = '#2a2440'; circle(cx, y, 3.6); }
+    }
+    // 確變中：左側紅色「確変」＋剩餘次數
+    if (pa.kakuhen) {
+      var kx = L0.x - L0.w / 2 - 10, on = Math.floor(t * 4) % 2 === 0;
+      var kl = pxText('確変', 11, on ? '#ff6a7a' : '#ffd0d6', { font: FONT_JP });
+      ctx.drawImage(kl, Math.round(kx - kl.width), L0.y + 2, kl.width, kl.height);
+      if (pa.chain >= 1) { var cl = pxText('連' + pa.chain, 10, '#ffe14a', { font: FONT_JP }); ctx.drawImage(cl, Math.round(kx - cl.width), L0.y + 18, cl.width, cl.height); }
+    }
+  }
+  function drawLcd(st, t) {
+    var pa = pachiState(st);
+    if (!pa || !pa.lcd) return;
+    drawLcdBox(pa, pa.lcd.x, pa.lcd.y, 1, t, false);
+    drawHolds(pa, t);
+  }
+  // 入賞口：兩根黃銅柱中間的鬱金香杯（進珠時亮一下）
+  var pocketFlashT = -9;
+  function drawPocket(st, t) {
+    var pa = pachiState(st), pk = pa && pa.pocket;
+    if (!pk) return;
+    var x = pk.x, y = pk.y, hw = pk.postDx - 5, flash = clamp(1 - (animT - pocketFlashT) / 0.35, 0, 1);
+    if (flash > 0) { ctx.globalAlpha = 0.55 * flash; ctx.drawImage(glow('gold'), x - 30, y - 26, 60, 60); ctx.globalAlpha = 1; }
+    ctx.fillStyle = INK; ctx.fillRect(x - hw - 2, y - 3, hw * 2 + 4, 13);
+    ctx.fillStyle = '#7a1028'; ctx.fillRect(x - hw, y - 1, hw * 2, 9);
+    ctx.fillStyle = flash > 0 ? '#fff2a0' : (Math.floor(t * 3) % 2 ? '#ff4a6a' : '#ff7a90'); ctx.fillRect(x - hw + 2, y + 1, hw * 2 - 4, 4);
+    ctx.fillStyle = '#ffd76a'; ctx.fillRect(x - hw - 2, y - 3, 3, 13); ctx.fillRect(x + hw - 1, y - 3, 3, 13); ctx.fillRect(x - hw - 2, y + 8, hw * 2 + 4, 2);
+    ctx.fillStyle = '#fff6c8'; ctx.fillRect(x - hw - 1, y - 3, 1, 10);
+    // 杯口上方往下的小箭頭（提示「從這裡進」）
+    var ay = y - 12 + Math.round(Math.sin(t * 5) * 1.5);
+    ctx.fillStyle = 'rgba(255,230,120,0.75)'; ctx.fillRect(x - 3, ay, 6, 2); ctx.fillRect(x - 2, ay + 2, 4, 2); ctx.fillRect(x - 1, ay + 4, 2, 2);
+    var lab = pxText('入賞', 9, '#ffffff', { font: FONT_JP });
+    ctx.drawImage(lab, Math.round(x - lab.width / 2), y + 11, lab.width, lab.height);
+  }
+  // 大入賞口（開著才畫）：兩片黃銅蓋往外打開，裡面紅金色閃爍，旁邊剩餘顆數與時間條
+  function drawAttacker(st, t) {
+    var pa = pachiState(st), A = pa && pa.attacker;
+    if (!A || !A.open) return;
+    var x0 = Math.round(A.x - A.w / 2), x1 = Math.round(A.x + A.w / 2), y = A.y;
+    ctx.globalAlpha = 0.45 + 0.25 * Math.sin(t * 10); ctx.drawImage(glow('red'), A.x - A.w * 0.8, y - 34, A.w * 1.6, 60); ctx.globalAlpha = 1;
+    ctx.fillStyle = INK; ctx.fillRect(x0 - 3, y - 3, A.w + 6, 11);
+    ctx.fillStyle = Math.floor(t * 8) % 2 ? '#ff3a5a' : '#ffd23f'; ctx.fillRect(x0, y - 1, A.w, 7);
+    ctx.fillStyle = '#2a0a18'; ctx.fillRect(x0 + 3, y + 1, A.w - 6, 3);
+    // 打開的蓋子（斜斜往上張開）
+    ctx.strokeStyle = INK; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x0, y - 1); ctx.lineTo(x0 - 10, y - 15); ctx.moveTo(x1, y - 1); ctx.lineTo(x1 + 10, y - 15); ctx.stroke();
+    ctx.strokeStyle = '#ffd76a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x0, y - 1); ctx.lineTo(x0 - 10, y - 15); ctx.moveTo(x1, y - 1); ctx.lineTo(x1 + 10, y - 15); ctx.stroke();
+    // 剩餘顆數（點陣數字）＋時間條
+    var left = Math.max(0, (A.max | 0) - (A.count | 0)), str = String(left), s = 2, tw = str.length * 6 * s;
+    var lx = Math.round(A.x - tw / 2);
+    for (var i = 0; i < str.length; i++) digit5(ctx, +str.charAt(i), lx + i * 6 * s, y + 11, s, '#ffe14a', INK);
+    var fr = clamp(A.t / (A.dur || 1), 0, 1);
+    ctx.fillStyle = INK; ctx.fillRect(x0, y + 28, A.w, 4); ctx.fillStyle = '#ff9a2a'; ctx.fillRect(x0 + 1, y + 29, (A.w - 2) * fr, 2);
+  }
+
+  // ---- 演出字幕：日文大字＋中文小字（同一時間一組，排隊） ----
+  var CAPS = [], capCur = null;
+  var CAP_STYLE = { gold: GOLD_BANDS, red: RED_BANDS, blue: ['#e0f4ff', '#8fd0ff', '#4aa0ff', '#2a6ad8'], gray: ['#ffffff', '#d0cce0', '#a09ab8'] };
+  function caption(jp, zh, style, dur) {
+    CAPS.push({ jp: jp, zh: zh, style: style || 'gold', dur: dur || 1.6, t: 0 });
+    while (CAPS.length > 4) CAPS.shift();
+  }
+  function capCanvas(jp, style) { return pxText(jp, 18, CAP_STYLE[style] || GOLD_BANDS, { font: FONT_JP, ring: '#ffffff' }); }
+  function subCanvas(zh) { return pxText(zh, 14, '#ffffff', { font: FONT }); }
+  // 在世界座標 (cx, cy) 畫一組日文大字＋中文字幕；k＝大字每格幾個世界單位；pop＝0～1 彈出
+  function drawCapPair(jp, zh, style, cx, cy, k, pop, alpha) {
+    var a = capCanvas(jp, style), b = zh ? subCanvas(zh) : null;
+    var kk = k * (pop < 1 ? 0.6 + 0.4 * pop + 0.12 * Math.sin(pop * Math.PI) : 1);
+    var maxW = W - 24; if (a.width * kk > maxW) kk = maxW / a.width;
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(a, Math.round(cx - a.width * kk / 2), Math.round(cy - a.height * kk / 2), a.width * kk, a.height * kk);
+    if (b) { var kb = Math.min(1.5, (W - 30) / b.width); ctx.drawImage(b, Math.round(cx - b.width * kb / 2), Math.round(cy + a.height * kk / 2 + 2), b.width * kb, b.height * kb); }
+    ctx.globalAlpha = 1;
+  }
+  function updateCaptions(dt) {
+    if (JP.on) return;
+    if (!capCur && CAPS.length) capCur = CAPS.shift();
+    if (capCur) { capCur.t += dt; if (capCur.t >= capCur.dur) capCur = null; }
+  }
+  function drawCaptions() {
+    var c = capCur;
+    if (!c) return;
+    var pop = clamp(c.t / 0.18, 0, 1), fade = clamp((c.dur - c.t) / 0.25, 0, 1);
+    var y = 150;
+    ctx.fillStyle = 'rgba(16,8,36,' + (0.45 * fade).toFixed(3) + ')'; ctx.fillRect(0, y - 26, W, 58);
+    drawCapPair(c.jp, c.zh, c.style, W / 2, y - 4, 2, pop, fade);
+  }
+
+  // ---- 聽牌演出：盤面變暗、液晶放大到盤面中間、最後一格慢慢轉；可能有本章小怪物跑出來推數字 ----
+  function reachAmt(sp) {
+    if (!sp || !sp.reach || sp.t < sp.stops[1]) return 0;
+    return clamp((sp.t - sp.stops[1]) / 0.25, 0, 1) * clamp((sp.dur - sp.t) / 0.2, 0, 1);
+  }
+  function drawReachDim(st) {
+    var pa = pachiState(st), a = pa ? reachAmt(pa.spin) : 0;
+    if (a <= 0) return;
+    ctx.fillStyle = 'rgba(8,4,24,' + (0.55 * a).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H);
+  }
+  function drawReachView(st, t) {
+    var pa = pachiState(st), sp = pa && pa.spin, a = reachAmt(sp);
+    if (a <= 0) return;
+    var cy = 236, box;
+    ctx.globalAlpha = a;
+    box = drawLcdBox(pa, W / 2, cy - 31, 2, t, true);
+    ctx.globalAlpha = 1;
+    // 大字：リーチ！（激アツ＝紅色＋超有機會！）
+    var hot = sp.hot, jp = hot ? '激アツ！' : 'リーチ！', zh = hot ? '超有機會！' : '聽牌！';
+    var pop = clamp((sp.t - sp.stops[1]) / 0.2, 0, 1);
+    drawCapPair(jp, zh, hot ? 'red' : 'gold', W / 2, cy - 108, hot ? 2.4 : 2.2, pop, a);
+    if (sp.kakuhen && !hot) { var kc = pxText('確変中', 10, '#ff8a9a', { font: FONT_JP }); ctx.drawImage(kc, Math.round(W / 2 - kc.width), cy + 40, kc.width * 2, kc.height * 2); }
+    // 小怪物搗亂：從右邊跑進來把最後一格推一格，再跑走
+    if (sp.prank) {
+      var t0 = sp.pushT - 0.3, u = sp.t - t0;
+      if (u > 0) {
+        var lv = st.level || DEF_LEVEL, th = lv.theme || themeIdx(lv.chapter), va = lv.variant | 0;
+        var rx = box.x + box.gx + 2 * (box.rw + box.gx) + box.rw / 2, tx = rx + box.rw / 2 + 22, sx = W + 40, x, hurt = false;
+        if (u < 0.3) x = sx + (tx - sx) * (u / 0.3);
+        else if (u < 0.65) { x = tx - 8 * Math.sin(clamp((u - 0.3) / 0.35, 0, 1) * Math.PI); hurt = true; }
+        else x = tx + (sx - tx) * clamp((u - 0.65) / 0.3, 0, 1);
+        var e = sprEntry(monPath('c' + th + '_n1', hurt && sp.win)) || sprEntry(monPath('c' + th + '_n1', false));
+        var c = e ? sprCanvas(e, frameOf(e, t), va, null) : null, hop = Math.abs(Math.sin(u * 18)) * 5;
+        if (c) ctx.drawImage(c, Math.round(x - e.w * 0.75), Math.round(cy + 12 - e.h * 1.5 - hop), e.w * 1.5, e.h * 1.5);
+        else { ctx.fillStyle = '#6fdc6f'; ellipse(x, cy - 10 - hop, 22, 20); }
+        if (u >= 0.3 && u < 0.75) {
+          var bang = pxText(sp.win ? 'えいっ！' : 'ぷいっ！', 10, '#ffffff', { font: FONT_JP });
+          ctx.drawImage(bang, Math.round(x - bang.width), Math.round(cy - 58), bang.width * 2, bang.height * 2);
+          var sz = pxText(sp.win ? '推進來了！' : '數字被推走了！', 9, '#ffe14a', { font: FONT });
+          ctx.drawImage(sz, Math.round(W / 2 - sz.width), Math.round(cy + 44), sz.width * 2, sz.height * 2);
+        }
+      }
+    }
+  }
+
+  // ---- 玻璃反光（整個盤面上一層很淡的斜光） ----
+  var glassGrad = null;
+  function drawGlass() {
+    if (!glassGrad) {
+      glassGrad = ctx.createLinearGradient(0, 0, W, H);
+      glassGrad.addColorStop(0, 'rgba(255,255,255,0.13)'); glassGrad.addColorStop(0.16, 'rgba(255,255,255,0.04)'); glassGrad.addColorStop(0.17, 'rgba(255,255,255,0)');
+      glassGrad.addColorStop(0.5, 'rgba(255,255,255,0)'); glassGrad.addColorStop(0.51, 'rgba(255,255,255,0.06)'); glassGrad.addColorStop(0.545, 'rgba(255,255,255,0.02)');
+      glassGrad.addColorStop(0.55, 'rgba(255,255,255,0)'); glassGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    }
+    ctx.fillStyle = glassGrad; ctx.fillRect(0, 0, W, H);
+  }
+
+  // ---- 機台外框（#frame canvas 蓋在舞台上，不吃觸控）：金屬框＋跑馬燈泡 ----
+  // 每一邊的厚度＝canvas 到舞台邊的空白（最多 FRAME_MAX）；夠厚（≥11px）才畫完整燈泡，窄手機只畫細框＋小 LED
+  var FRAME_MIN = 5, FRAME_MAX = 24;
+  var frameCv = $('frame'), fctx = frameCv ? frameCv.getContext('2d') : null;
+  var FR = { key: '', bulbs: [], mode: '', step: -1, dpr: 1, sides: null };
+  function frameLayout() {
+    if (!frameCv) return;
+    var dpr = L.dpr || 1, w = Math.round(L.sw), h = Math.round(L.sh);
+    if (frameCv.width !== Math.round(w * dpr)) frameCv.width = Math.round(w * dpr);
+    if (frameCv.height !== Math.round(h * dpr)) frameCv.height = Math.round(h * dpr);
+    frameCv.style.width = w + 'px'; frameCv.style.height = h + 'px';
+    var x0 = L.offX, y0 = L.offY, x1 = L.offX + L.cssW, y1 = L.offY + L.cssH;
+    var sd = { l: Math.min(FRAME_MAX, x0), r: Math.min(FRAME_MAX, w - x1), t: Math.min(FRAME_MAX, y0), b: Math.min(FRAME_MAX, h - y1) };
+    FR.sides = sd; FR.dpr = dpr; FR.rect = { x0: x0, y0: y0, x1: x1, y1: y1 };
+    // 燈泡沿著外框順時針排（上→右→下→左），每一邊依厚度決定大小
+    var bl = [];
+    var addSide = function (ax, ay, bx, by, th) {
+      if (th < 3.5) return;
+      var full = th >= 11, gap = full ? 17 : 10, len = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.floor(len / gap));
+      for (var i = 0; i < n; i++) { var f = (i + 0.5) / n; bl.push({ x: ax + (bx - ax) * f, y: ay + (by - ay) * f, r: full ? Math.min(4.6, th * 0.27) : Math.max(1.1, Math.min(1.8, th * 0.28)), full: full }); }
+    };
+    addSide(x0 - sd.l, y0 - sd.t / 2, x1 + sd.r, y0 - sd.t / 2, sd.t);
+    addSide(x1 + sd.r / 2, y0, x1 + sd.r / 2, y1, sd.r);
+    addSide(x1 + sd.r, y1 + sd.b / 2, x0 - sd.l, y1 + sd.b / 2, sd.b);
+    addSide(x0 - sd.l / 2, y1, x0 - sd.l / 2, y0, sd.l);
+    FR.bulbs = bl; FR.step = -1; FR.mode = '';
+  }
+  var RAINBOW = ['#ff5a5a', '#ffa23a', '#ffe14a', '#6dff96', '#5ad0ff', '#a98bff'];
+  function frameMode(st) {
+    if (JP.on) return 'jackpot';
+    var pa = pachiState(st);
+    if (pa && pa.spin && pa.spin.reach && pa.spin.t >= pa.spin.stops[1]) return pa.spin.hot ? 'hot' : 'reach';
+    if (st && st.fever && st.fever.active) return 'fever';
+    if (pa && pa.kakuhen) return 'kakuhen';
+    return 'idle';
+  }
+  var FRAME_RATE = { idle: 4, fever: 12, reach: 16, hot: 22, kakuhen: 5, jackpot: 10 };
+  function drawFrame(st, t) {
+    if (!fctx || !FR.sides) return;
+    var mode = frameMode(st), step = Math.floor(t * (FRAME_RATE[mode] || 4));
+    if (mode === FR.mode && step === FR.step) return;
+    FR.mode = mode; FR.step = step;
+    var g = fctx, d = FR.dpr, sd = FR.sides, R = FR.rect;
+    g.setTransform(d, 0, 0, d, 0, 0);
+    g.clearRect(0, 0, L.sw, L.sh);
+    var ox0 = R.x0 - sd.l, oy0 = R.y0 - sd.t, ox1 = R.x1 + sd.r, oy1 = R.y1 + sd.b;
+    // 金屬框（鍍鉻漸層）：上下左右四條
+    var gv = g.createLinearGradient(0, oy0, 0, oy1);
+    gv.addColorStop(0, '#f6f8fc'); gv.addColorStop(0.08, '#aab2c4'); gv.addColorStop(0.5, '#6c7488'); gv.addColorStop(0.92, '#b8c0d0'); gv.addColorStop(1, '#5a6276');
+    var gh = g.createLinearGradient(ox0, 0, ox1, 0);
+    gh.addColorStop(0, '#5a6276'); gh.addColorStop(0.04, '#e8ecf4'); gh.addColorStop(0.5, '#8a92a6'); gh.addColorStop(0.96, '#e8ecf4'); gh.addColorStop(1, '#5a6276');
+    g.fillStyle = gh; g.fillRect(ox0, oy0, ox1 - ox0, sd.t); g.fillRect(ox0, R.y1, ox1 - ox0, sd.b);
+    g.fillStyle = gv; g.fillRect(ox0, R.y0, sd.l, R.y1 - R.y0); g.fillRect(R.x1, R.y0, sd.r, R.y1 - R.y0);
+    // 金色內緣＋深色外緣
+    g.fillStyle = mode === 'kakuhen' ? '#ff5a6e' : '#e8b33a';
+    if (sd.t >= 3) g.fillRect(R.x0 - 2, R.y0 - 2, R.x1 - R.x0 + 4, 2);
+    if (sd.b >= 3) g.fillRect(R.x0 - 2, R.y1, R.x1 - R.x0 + 4, 2);
+    if (sd.l >= 3) g.fillRect(R.x0 - 2, R.y0 - 2, 2, R.y1 - R.y0 + 4);
+    if (sd.r >= 3) g.fillRect(R.x1, R.y0 - 2, 2, R.y1 - R.y0 + 4);
+    g.fillStyle = INK;
+    if (sd.t >= 1) g.fillRect(ox0, oy0, ox1 - ox0, 1);
+    if (sd.b >= 1) g.fillRect(ox0, oy1 - 1, ox1 - ox0, 1);
+    // 燈泡
+    var bl = FR.bulbs, n = bl.length;
+    for (var i = 0; i < n; i++) {
+      var b = bl[i], on = false, col = '#fff3c0';
+      if (mode === 'idle') { on = (i + step) % 6 === 0 || (i + step + 3) % 12 === 0; col = (i % 2) ? '#fff3c0' : '#ffd76a'; }
+      else if (mode === 'fever') { on = (i + step) % 3 !== 2; col = RAINBOW[(i + step) % 6]; }
+      else if (mode === 'reach') { on = (i + step) % 3 === 0; col = (i % 2) ? '#ffe14a' : '#ff5a5a'; }
+      else if (mode === 'hot') { on = (i + step) % 2 === 0; col = '#ff4a4a'; }
+      else if (mode === 'kakuhen') { on = ((i >> 2) + step) % 2 === 0; col = '#ff6a7a'; }
+      else if (mode === 'jackpot') { on = true; col = step % 2 ? RAINBOW[(i + step) % 6] : '#ffffff'; }
+      if (b.full) {
+        g.fillStyle = INK; g.beginPath(); g.arc(b.x, b.y, b.r + 1.2, 0, 6.2832); g.fill();
+        if (on) { g.globalAlpha = 0.45; g.fillStyle = col; g.beginPath(); g.arc(b.x, b.y, b.r * 2.1, 0, 6.2832); g.fill(); g.globalAlpha = 1; }
+        g.fillStyle = on ? col : '#5c5468'; g.beginPath(); g.arc(b.x, b.y, b.r, 0, 6.2832); g.fill();
+        g.fillStyle = on ? '#ffffff' : '#8a8298'; g.fillRect(b.x - b.r * 0.45, b.y - b.r * 0.5, Math.max(1, b.r * 0.4), Math.max(1, b.r * 0.4));
+      } else {
+        g.fillStyle = on ? col : '#3e3850'; g.beginPath(); g.arc(b.x, b.y, b.r, 0, 6.2832); g.fill();
+      }
+    }
+    g.globalAlpha = 1;
+  }
+
+  // ---- 大当り 全螢幕演出（#jpLayer：蓋住整個 #app；遊戲暫停、點一下跳過；結束直接進入狂熱＋大入賞口） ----
+  var JP = { on: false, t: 0, dur: 1.8, digit: 7, kak: false, chain: 1, balls: [], feverPending: false, sure: false, w: 0, h: 0 };
+  var jpLayer = $('jpLayer'), jpCv = $('jpCv'), jctx = jpCv ? jpCv.getContext('2d') : null;
+  function startShow(ev) {
+    if (!jpLayer || !jctx) return;
+    releaseInputs();
+    JP.on = true; JP.t = 0; JP.dur = PCFG('PACHI_SHOW', 1.8); JP.digit = ev.digit | 0 || 7; JP.kak = !!ev.kakuhen; JP.chain = ev.chain | 0 || 1; JP.sure = !!ev.sure;
+    jpLayer.hidden = false;
+    var r = E.app.getBoundingClientRect(), d = clamp(window.devicePixelRatio || 1, 1, 2);
+    JP.w = Math.max(1, Math.round(r.width)); JP.h = Math.max(1, Math.round(r.height)); JP.d = d;
+    jpCv.width = Math.round(JP.w * d); jpCv.height = Math.round(JP.h * d);
+    JP.balls.length = 0;
+    for (var i = 0; i < 70; i++) {
+      var a = -Math.PI / 2 + (Math.random() - 0.5) * 1.9, v = 380 + Math.random() * 620;
+      JP.balls.push({ x: JP.w / 2 + (Math.random() - 0.5) * 40, y: JP.h + 10, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 4 + Math.random() * 4, dl: Math.random() * 0.5 });
+    }
+    Au.duck(0.25, JP.dur);
+    vibrate(60);
+  }
+  function endShow(silent) {
+    if (!JP.on) return;
+    JP.on = false;
+    if (jpLayer) jpLayer.hidden = true;
+    if (JP.feverPending) { JP.feverPending = false; feverShow(); }
+    if (!silent) Au.sfx('ui_tap', { volume: 0.4 });
+  }
+  function renderShow(dt) {
+    if (!JP.on) return;
+    JP.t += dt;
+    if (JP.t >= JP.dur) { endShow(true); return; }
+    var g = jctx, w = JP.w, h = JP.h, t = JP.t, i;
+    g.setTransform(JP.d, 0, 0, JP.d, 0, 0); g.imageSmoothingEnabled = false;
+    var inA = clamp(t / 0.12, 0, 1), outA = clamp((JP.dur - t) / 0.2, 0, 1);
+    g.clearRect(0, 0, w, h);
+    g.globalAlpha = inA * outA;
+    g.fillStyle = 'rgba(14,6,30,0.9)'; g.fillRect(0, 0, w, h);
+    // 放射光（旋轉）
+    var cx = w / 2, cy = h * 0.44, R = Math.hypot(w, h);
+    g.save(); g.translate(cx, cy); g.rotate(t * 0.9);
+    for (i = 0; i < 16; i++) {
+      g.fillStyle = i % 2 ? (JP.kak ? 'rgba(255,70,90,0.22)' : 'rgba(255,210,60,0.22)') : 'rgba(255,255,255,0.05)';
+      g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, R, i * Math.PI / 8, (i + 1) * Math.PI / 8); g.closePath(); g.fill();
+    }
+    g.restore();
+    // 外圈燈泡全亮狂閃
+    var step = Math.floor(t * 12), per = 2 * (w + h), gap = 22, nb = Math.floor(per / gap);
+    for (i = 0; i < nb; i++) {
+      var p = i * gap, bx, by;
+      if (p < w) { bx = p; by = 8; } else if (p < w + h) { bx = w - 8; by = p - w; } else if (p < 2 * w + h) { bx = w - (p - w - h); by = h - 8; } else { bx = 8; by = h - (p - 2 * w - h); }
+      g.fillStyle = step % 2 ? RAINBOW[(i + step) % 6] : '#ffffff';
+      g.beginPath(); g.arc(bx, by, 5, 0, 6.2832); g.fill();
+    }
+    // 鋼珠噴發
+    for (i = 0; i < JP.balls.length; i++) {
+      var b = JP.balls[i];
+      if (t < b.dl) continue;
+      b.vy += 900 * dt; b.x += b.vx * dt; b.y += b.vy * dt;
+      if (b.y > h + 20) continue;
+      g.fillStyle = INK; g.beginPath(); g.arc(b.x, b.y, b.r + 1, 0, 6.2832); g.fill();
+      g.fillStyle = '#aab2c0'; g.beginPath(); g.arc(b.x, b.y, b.r, 0, 6.2832); g.fill();
+      g.fillStyle = '#eef2f8'; g.beginPath(); g.arc(b.x - b.r * 0.3, b.y - b.r * 0.3, b.r * 0.5, 0, 6.2832); g.fill();
+      g.fillStyle = '#ffffff'; g.fillRect(b.x - b.r * 0.5, b.y - b.r * 0.6, 2, 2);
+    }
+    // 三個數字（點陣大字）
+    var ds = Math.max(4, Math.floor(Math.min(w * 0.17, h * 0.13) / 7)), dw = 5 * ds, gx = ds * 3, tot = dw * 3 + gx * 2, dy = Math.round(h * 0.2);
+    var shake = t < 0.5 ? Math.round(Math.sin(t * 60) * 3 * (1 - t / 0.5)) : 0;
+    for (i = 0; i < 3; i++) {
+      var ddx = Math.round(cx - tot / 2 + i * (dw + gx)) + shake;
+      g.fillStyle = INK; g.fillRect(ddx - ds, dy - ds, dw + ds * 2, 7 * ds + ds * 2);
+      g.fillStyle = JP.kak ? '#3a0814' : '#2a1a04'; g.fillRect(ddx - ds * 0.5, dy - ds * 0.5, dw + ds, 7 * ds + ds);
+      digit5(g, JP.digit, ddx, dy, ds, JP.kak ? '#ff6a7a' : '#ffe14a', null);
+    }
+    // 大当り！＋中文字幕
+    var big = pxText('大当り！', 26, JP.kak ? RED_BANDS : GOLD_BANDS, { font: FONT_JP, ring: '#ffffff' });
+    var k = Math.max(1, Math.floor(Math.min(w * 0.86 / big.width, h * 0.16 / big.height)));
+    var pop = t < 0.25 ? 1.35 - 0.35 * (t / 0.25) : 1, bw = big.width * k * pop, bh = big.height * k * pop, by2 = Math.round(h * 0.56 - bh / 2);
+    g.drawImage(big, Math.round(cx - bw / 2), by2, Math.round(bw), Math.round(bh));
+    var sub = pxText('中大獎了！', 14, '#ffffff', { font: FONT }), ks = Math.max(1, Math.floor(Math.min(3, w * 0.6 / sub.width)));
+    g.drawImage(sub, Math.round(cx - sub.width * ks / 2), Math.round(by2 + bh + 6), sub.width * ks, sub.height * ks);
+    var yN = by2 + bh + 6 + sub.height * ks + 12;
+    if (JP.chain >= 2) {
+      var cj = pxText('連チャン ×' + JP.chain, 16, GOLD_BANDS, { font: FONT_JP, ring: '#ffffff' }), kc = Math.max(1, Math.floor(Math.min(3, w * 0.7 / cj.width)));
+      g.drawImage(cj, Math.round(cx - cj.width * kc / 2), Math.round(yN), cj.width * kc, cj.height * kc); yN += cj.height * kc + 4;
+      var cz = pxText('連莊 ' + JP.chain + ' 次！', 14, '#ffffff', { font: FONT }), kz = Math.max(1, Math.floor(Math.min(2, w * 0.6 / cz.width)));
+      g.drawImage(cz, Math.round(cx - cz.width * kz / 2), Math.round(yN), cz.width * kz, cz.height * kz); yN += cz.height * kz + 6;
+    }
+    if (JP.kak) {
+      var kj = pxText('確変！', 22, RED_BANDS, { font: FONT_JP, ring: '#ffffff' }), kk = Math.max(1, Math.floor(Math.min(3, w * 0.5 / kj.width)));
+      g.drawImage(kj, Math.round(cx - kj.width * kk / 2), Math.round(yN), kj.width * kk, kj.height * kk); yN += kj.height * kk + 4;
+      var kz2 = pxText('機率大幅提升！', 14, '#ffd0d6', { font: FONT }), kq = Math.max(1, Math.floor(Math.min(2, w * 0.6 / kz2.width)));
+      g.drawImage(kz2, Math.round(cx - kz2.width * kq / 2), Math.round(yN), kz2.width * kq, kz2.height * kq);
+    }
+    // 開頭閃光
+    if (t < 0.18) { g.globalAlpha = (1 - t / 0.18) * 0.9; g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h); }
+    g.globalAlpha = inA * outA * 0.75;
+    var hint = pxText('點一下跳過', 11, '#ffffff', { font: FONT, ink: null });
+    g.drawImage(hint, Math.round(cx - hint.width), Math.round(h - 40), hint.width * 2, hint.height * 2);
+    g.globalAlpha = 1;
+  }
+  if (jpLayer) {
+    jpLayer.addEventListener('pointerdown', function (e) { e.preventDefault(); if (JP.on && JP.t > 0.15) endShow(); });
+    jpLayer.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  }
+
+  // ---- sim 事件 → 用戶端演出 ----
+  function onPachiEvent(ev) {
+    switch (ev.t) {
+      case 'pocket': pocketFlashT = animT; break;
+      case 'jackpot': startShow(ev); break;
+      case 'kakuhenStart': if (ev.chain > 1) caption('確変継続！', '繼續高機率！', 'red'); else caption('確変突入！', '機率大幅提升！', 'red'); break;
+      case 'kakuhenEnd': caption('確変終了', '高機率結束了', 'gray', 1.3); break;
+      case 'attackerOpen': caption('アタッカー開放！', '大入賞口打開！打進去換彈珠', 'gold'); break;
+      case 'sureHold': caption('金保留！', '能量集滿：必中大獎！', 'gold'); break;
+    }
+  }
+  function resetPachiFx() { CAPS.length = 0; capCur = null; if (JP.on) endShow(true); JP.feverPending = false; pocketFlashT = -9; }
+
+  // 測試：某段字在這台機器上會不會變成豆腐字（跟一個一定沒有字形的私用區字元比對點陣）
+  function glyphCheck(text, font) {
+    var f = '900 28px ' + (font || FONT_JP), c = doc.createElement('canvas'); c.width = 40; c.height = 40;
+    var g = c.getContext('2d', { willReadFrequently: true }), sig = function (ch) { g.clearRect(0, 0, 40, 40); g.font = f; g.textBaseline = 'top'; g.fillStyle = '#000'; g.fillText(ch, 4, 4); var d = g.getImageData(0, 0, 40, 40).data, s = 0, n = 0; for (var i = 3; i < d.length; i += 4) if (d[i] > 100) { n++; s = (s * 31 + i) >>> 0; } return n + ':' + s; };
+    var tofu = sig(''), tofu2 = sig('￿'), bad = [];
+    for (var i = 0; i < text.length; i++) { var ch = text.charAt(i); if (/\s/.test(ch)) continue; var s = sig(ch); if (s === tofu || s === tofu2 || /^0:/.test(s)) bad.push(ch); }
+    return bad;
   }
 
   /* ================= 標題背景：第 1 章場景＋怪物在跳＋彈珠雨 ================= */
@@ -13350,13 +14225,14 @@ root.MARBLE_ART =
         if (dir) simCall('nudgeAim', dir * 260 * dt);
       }
       syncFiring();
-      if (screen !== 'pause' && screen !== 'over') stepSim(dt);
+      if (screen !== 'pause' && screen !== 'over' && !JP.on) stepSim(dt);
       pumpEvents();
       syncPhase();
     } else if (screen === 'title' || screen === 'chapters') {
       updateTitleScene(dt);
     }
-    if (screen !== 'pause') Jz.call('update', dt);
+    if (screen !== 'pause') { Jz.call('update', dt); updateCaptions(dt); }
+    renderShow(screen === 'pause' ? 0 : dt);
     if (sim && sim.state && inGame()) {
       var st = sim.state;
       renderGame(st);
@@ -13364,7 +14240,8 @@ root.MARBLE_ART =
       updateFireBtn(st);
       updateFever(st);
       syncKnob(st.aimX);
-    } else renderTitle();
+      drawFrame(st, animT);
+    } else { renderTitle(); drawFrame(null, animT); }
   }
 
   /* ================= 按鈕綁定 ================= */
@@ -13447,6 +14324,7 @@ root.MARBLE_ART =
       label: label, chapter: lv.chapter | 0, stage: lv.stage | 0, kind: lv.kind || 'normal', theme: t, variant: v, themeName: themeName(t, v),
       time: time != null ? time : (st ? st.time : 0), kills: stats.kills | 0, maxHit: Math.round(stats.maxHit || 0), maxCombo: stats.maxCombo | 0,
       fevers: stats.fevers | 0, shields: stats.shields | 0,   // 整合：狂熱次數、破盾次數（怪物左右的小徽章）
+      jackpots: stats.jackpots | 0, maxChain: stats.maxChain | 0,   // 小鋼珠：大當次數、最大連莊
       isNew: !!isNew, talents: tal, mon: mon, url: url,
       text: (isNew ? '新紀錄！' : '') + '我在彈珠傳說打到 ' + label + '！你能打到哪？ ' + url
     };
@@ -13460,9 +14338,9 @@ root.MARBLE_ART =
   function pxText(text, fs, fill, opt) {
     opt = opt || {};
     var ink = opt.ink === undefined ? INK : opt.ink, ring = opt.ring || null, shadow = opt.shadow !== false && !!ink;
-    var key = [text, fs, String(fill), ink, ring, shadow, opt.weight || 900].join('|');
+    var key = [text, fs, String(fill), ink, ring, shadow, opt.weight || 900, opt.font || ''].join('|');
     if (pxCache[key]) return pxCache[key];
-    var font = (opt.weight || 900) + ' ' + fs + 'px ' + FONT;
+    var font = (opt.weight || 900) + ' ' + fs + 'px ' + (opt.font || FONT);
     var g0 = doc.createElement('canvas').getContext('2d'); g0.font = font;
     var pad = 4, w = Math.ceil(g0.measureText(text).width) + pad * 2, h = Math.ceil(fs * 1.5) + pad * 2;
     var tmp = doc.createElement('canvas'); tmp.width = w; tmp.height = h;
@@ -13583,18 +14461,21 @@ root.MARBLE_ART =
 
     // 3b. 狂熱／破盾小徽章（整合）：放在怪物左右兩側的空白處，0 次就不畫，不擠成績列
     var bdg = [];
-    if (d.fevers > 0) bdg.push({ side: -1, lab: '狂熱', val: '×' + fmtNum(d.fevers), fill: '#fff4c2', shade: '#e8b93a', ico: spriteCv('balls.gold', 0) });
+    // 小鋼珠：有大當就把左邊徽章換成「大當 ×N」（最大連莊 ≥2 時加一行）；沒有大當才顯示狂熱次數
+    if (d.jackpots > 0) bdg.push({ side: -1, lab: '大當', val: '×' + fmtNum(d.jackpots), sub: d.maxChain >= 2 ? '最大連莊 ×' + fmtNum(d.maxChain) : '', fill: '#fff4c2', shade: '#e8b93a', ico: spriteCv('balls.normal', 0) });
+    else if (d.fevers > 0) bdg.push({ side: -1, lab: '狂熱', val: '×' + fmtNum(d.fevers), fill: '#fff4c2', shade: '#e8b93a', ico: spriteCv('balls.gold', 0) });
     if (d.shields > 0) bdg.push({ side: 1, lab: '破盾', val: '×' + fmtNum(d.shields), fill: '#e2f9ff', shade: '#86d2ee', ico: shieldCanvas(80, 72, 0) });
     for (var bi = 0; bi < bdg.length; bi++) {
-      var bd = bdg[bi], bw2 = 236, bh2 = 128, bx2 = Math.round(CX + bd.side * 352 - bw2 / 2), by2 = 516;
+      var bd = bdg[bi], bw2 = 236, bh2 = bdg[bi].sub ? 160 : 128, bx2 = Math.round(CX + bd.side * 352 - bw2 / 2), by2 = 516;
       pxBox(g, bx2, by2, bw2, bh2, bd.fill, 6, bd.shade);
       var blt = pxText(bd.lab, 13, '#6a5a85', { ink: null }), bik = bd.ico ? Math.max(1, Math.floor(36 / Math.max(bd.ico.width, bd.ico.height))) : 0;
       var biw = bd.ico ? bd.ico.width * bik + 8 : 0, brow = biw + blt.width * 2;
       if (bd.ico) g.drawImage(bd.ico, Math.round(bx2 + bw2 / 2 - brow / 2), by2 + 20 + Math.round((36 - bd.ico.height * bik) / 2), bd.ico.width * bik, bd.ico.height * bik);
       pxDraw(g, blt, bx2 + bw2 / 2 - brow / 2 + biw, by2 + 20 + Math.max(0, 36 - blt.height * 2) / 2, 2, 'left');
       var bvt = pxText(bd.val, 20, '#2a1840', { ink: null });
-      var bvk = clamp(Math.min(Math.floor((bw2 - 40) / bvt.width), Math.floor(56 / bvt.height)), 1, 3);
-      pxDraw(g, bvt, bx2 + bw2 / 2, by2 + 62 + (56 - bvt.height * bvk) / 2, bvk, 'center');
+      var bvk = clamp(Math.min(Math.floor((bw2 - 40) / bvt.width), Math.floor((bd.sub ? 40 : 56) / bvt.height)), 1, 3);
+      pxDraw(g, bvt, bx2 + bw2 / 2, by2 + 62 + ((bd.sub ? 40 : 56) - bvt.height * bvk) / 2, bvk, 'center');
+      if (bd.sub) { var bst = pxText(bd.sub, 14, '#c0392b', { ink: null }); pxDraw(g, bst, bx2 + bw2 / 2, by2 + 108, pxFitK(bst, bw2 - 24, 2), 'center'); }
     }
 
     // 4. 成績：一排四格（圖示＋名稱，下面大數字）
@@ -13810,9 +14691,33 @@ root.MARBLE_ART =
       // 狂熱模式：fever() 立刻啟動、feverEnd() 立刻結束、setFever(0～1) 設能量
       fever: function () { var r = false; if (sim && sim.debug && sim.debug.fever) { try { r = sim.debug.fever(); } catch (e) { errOnce('debug.fever', e); } pumpEvents(); } return r; },
       feverEnd: function () { var r = false; if (sim && sim.debug && sim.debug.feverEnd) { try { r = sim.debug.feverEnd(); } catch (e) { errOnce('debug.feverEnd', e); } pumpEvents(); } return r; },
-      setFever: function (v) { var r = false; if (sim && sim.debug && sim.debug.setFever) { try { r = sim.debug.setFever(v); } catch (e) { errOnce('debug.setFever', e); } pumpEvents(); } return r; }
+      setFever: function (v) { var r = false; if (sim && sim.debug && sim.debug.setFever) { try { r = sim.debug.setFever(v); } catch (e) { errOnce('debug.setFever', e); } pumpEvents(); } return r; },
+      // 小鋼珠（feat/pachinko）：jackpot(digit, instant) 強制大當（instant＝跳過轉動直接演出）、reach(win, prank) 強制聽牌、
+      // setHold(['blue','green','red','gold']) 設保留、lottery('win'|'lose'|'reach'|'lock'|null) 之後每次抽獎的結果、entry() 模擬入賞、
+      // attacker() 開大入賞口、kakuhen(on)、pachinko(on) 整個開關、pachi() 狀態、show() 演出狀態、skipShow()、captions()、glyphCheck(text)、frameInfo()
+      jackpot: function (d, instant) { return pachiDbg('jackpot', d, instant); },
+      reach: function (win, prank) { return pachiDbg('reach', win, prank); },
+      setHold: function (list) { return pachiDbg('setHold', list); },
+      lottery: function (mode) { return pachiDbg('lottery', mode); },
+      entry: function () { return pachiDbg('entry'); },
+      attacker: function () { return pachiDbg('attacker'); },
+      kakuhen: function (on) { return pachiDbg('kakuhen', on); },
+      pachinko: function (on) { return pachiDbg('pachinko', on); },
+      pachi: function () { return sim && sim.debug && sim.debug.pachi ? sim.debug.pachi() : null; },
+      show: function () { return { on: JP.on, t: JP.t, dur: JP.dur, digit: JP.digit, kakuhen: JP.kak, chain: JP.chain, layer: !!(jpLayer && !jpLayer.hidden) }; },
+      skipShow: function () { var was = JP.on; endShow(true); return was; },
+      captions: function () { var a = []; if (capCur) a.push({ jp: capCur.jp, zh: capCur.zh, now: true }); for (var i = 0; i < CAPS.length; i++) a.push({ jp: CAPS[i].jp, zh: CAPS[i].zh, now: false }); return a; },
+      glyphCheck: function (text, font) { return glyphCheck(String(text || ''), font); },
+      frameInfo: function () { var n = 0, full = 0; for (var i = 0; i < FR.bulbs.length; i++) { n++; if (FR.bulbs[i].full) full++; } return { sides: FR.sides, bulbs: n, full: full, mode: FR.mode }; }
     }
   };
+  function pachiDbg(name, a, b) {
+    if (!sim || !sim.debug || typeof sim.debug[name] !== 'function') return false;
+    var r = false;
+    try { r = sim.debug[name](a, b); } catch (e) { errOnce('debug.' + name, e); }
+    pumpEvents();
+    return r;
+  }
   shareHooks(window.__ML__.debug);   // 分享圖測試掛鉤：shareImage() shareInfo() sharePreview() shareClose()
 
   /* ================= 啟動 ================= */
