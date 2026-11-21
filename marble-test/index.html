@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2a1f3d">
 <link rel="icon" href="data:,">
-<meta name="ml-build" content="20261120-231610">
+<meta name="ml-build" content="20261122-012122">
 <title>彈珠傳說</title>
 </head>
 <body>
@@ -276,6 +276,20 @@ img{-webkit-user-drag:none;user-select:none}
 #overNew{align-self:center;padding:4px 16px 7px;font-size:20px;font-weight:900;color:#fff;text-shadow:var(--tw);background:linear-gradient(90deg,#ff6b5b,#ffb01f,#66d36a,#55bdff,#b06cff);background-size:300% 100%;box-shadow:var(--o3);animation:newRec 1.8s linear infinite,panelPop .4s cubic-bezier(.2,1.6,.4,1) both}
 #overBestRow.hl dd{color:#e2456f}
 
+/* ---------- 分享成績（feat/share）：預覽圖層 ---------- */
+#btnShare .ico{width:24px;height:24px}
+#sharePanel{z-index:12}
+#sharePanel .panel{gap:8px;padding-top:18px}
+#sharePanel .ribbon{margin-bottom:0}
+.shHint{margin:0;font-size:13px;color:#6a5a85;text-align:center;line-height:1.4}
+#shareImg{display:block;flex:1 1 auto;min-height:120px;width:100%;height:auto;object-fit:contain}
+#shareText{margin:0;padding:6px 8px;font-size:12px;line-height:1.45;color:var(--ink);background:#2a18400d;box-shadow:0 0 0 2px #2a184022;word-break:break-all;flex:none}
+#shareMsg{margin:0;min-height:1.4em;font-size:13px;color:#2f9640;text-align:center;flex:none}
+#sharePanel .row2,#sharePanel>.panel>.pbtn{flex:none}
+/* 只有預覽圖與分享文字允許長按（儲存圖片／選取文字）；全域仍是 -webkit-touch-callout:none */
+.allowsave{-webkit-touch-callout:default!important;-webkit-user-select:text;user-select:text;pointer-events:auto}
+img.allowsave{-webkit-user-select:auto;user-select:auto}
+
 /* ---------- 動畫 ---------- */
 @keyframes bumpA{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
 @keyframes bumpB{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
@@ -300,6 +314,30 @@ img{-webkit-user-drag:none;user-select:none}
 @keyframes shine{0%{left:-50%}55%,100%{left:130%}}
 @keyframes twinkle{0%,100%{opacity:0;transform:scale(.3) rotate(0)}50%{opacity:1;transform:scale(1.1) rotate(45deg)}}
 @keyframes newRec{to{background-position:300% 0}}
+/* ---------- 狂熱模式（feat/fever）：發射鈕外圈能量環、邊緣金光、大字、倒數 ---------- */
+#feverRing{position:absolute;left:0;top:0;bottom:0;width:calc(var(--fe,0) * 100%);pointer-events:none;
+  background:linear-gradient(#fff6b0,#ffc21a 45%,#e68a00);box-shadow:inset -3px 0 0 0 #fff6b0}
+#feverRing.ready{background:linear-gradient(#ffffff,#fff06a 40%,#ffb81a);animation:feverReady .45s ease-in-out infinite alternate}
+#app.fever #feverRing{background:repeating-linear-gradient(90deg,#ff8ec2 0 16px,#ffe24a 16px 32px,#8cf07c 32px 48px,#5ee0f8 48px 64px,#c58cff 64px 80px);background-size:80px 100%;animation:feverRun .5s linear infinite}
+#app.fever #aimTrack{box-shadow:var(--o3),0 0 14px 4px #ffd23fb0}
+#app.fever #aimKnob{background:#fff06a;box-shadow:inset 0 -6px 0 0 #ffb000,inset 0 4px 0 0 #fff,var(--o3),0 0 0 5px #ffe24a88,0 0 16px 4px #ffd23f}
+#feverGlow{position:absolute;left:0;top:0;right:0;bottom:0;z-index:4;pointer-events:none;opacity:0;
+  box-shadow:inset 0 0 0 4px #ffe24a,inset 0 0 26px 8px #ffc83cd0,inset 0 0 70px 18px #ff8ec266}
+#app.fever #feverGlow{animation:feverPulse .42s ease-in-out infinite alternate}
+#feverText{position:absolute;left:0;right:0;top:40%;z-index:6;pointer-events:none;text-align:center;opacity:0;transform:translateY(-50%);
+  font-size:56px;font-weight:900;color:#ffe24a;text-shadow:var(--tw),0 0 20px #ffb81a;letter-spacing:.08em;white-space:nowrap;line-height:1.15}
+#feverText small{display:block;font-size:16px;color:#fff;text-shadow:var(--tw1);letter-spacing:.04em}
+#feverText.show{animation:feverIn 1.4s ease both}
+/* 狂熱倒數（整合）：放在 HUD 中間、暫時取代「補彈」那一行（5 秒內補彈倒數不重要）。
+   原本在舞台右上角，會壓到桌機／小手機的魔王大血條（世界 y≈25）、右上連擊數，也會蓋住瞄準到最右邊時的掉落點箭頭 */
+#feverTimer{font-size:11px;font-weight:900;line-height:1;color:#ffe24a;text-shadow:var(--tw1);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
+#app.fever #hudRefill{display:none}
+#feverTimer.hurry{animation:lowBlink .4s steps(2) infinite}
+@keyframes feverRun{to{background-position:80px 0}}
+@keyframes feverPulse{from{opacity:.55}to{opacity:1}}
+@keyframes feverReady{from{filter:brightness(1)}to{filter:brightness(1.5) drop-shadow(0 0 6px #fff06a)}}
+@keyframes feverIn{0%{opacity:0;transform:translateY(-50%) scale(2.2) rotate(-6deg)}14%{opacity:1;transform:translateY(-50%) scale(.92) rotate(2deg)}24%{transform:translateY(-50%) scale(1.06) rotate(0)}75%{opacity:1;transform:translateY(-50%) scale(1)}100%{opacity:0;transform:translateY(-72%) scale(1.1)}}
+@media (prefers-reduced-motion:reduce){#app.fever #feverGlow{animation:none;opacity:.85}#app.fever #feverRing,#feverRing.ready{animation:none}}
 @media (prefers-reduced-motion:reduce){#logo{animation:none}.cfx .rays{animation:none}}
 </style>
 <div id="app">
@@ -308,6 +346,7 @@ img{-webkit-user-drag:none;user-select:none}
     <div id="hudM">
       <div id="hudMarbleRow"><i class="ico none" data-ico="marble"></i><i class="mi"></i><span id="hudMarbles">0 / 0</span></div>
       <span id="hudRefill">補彈 1:00</span>
+      <span id="feverTimer" hidden></span>
     </div>
     <div id="hudR"><button id="btnPause" class="pbtn sq blue" type="button" aria-label="暫停"><i class="ico none" data-ico="pause"></i><b class="pz"></b></button></div>
   </header>
@@ -316,10 +355,12 @@ img{-webkit-user-drag:none;user-select:none}
     <div id="banner" aria-live="polite"><i class="stripe"></i><span class="bt"></span><span class="bs"></span><i class="stripe"></i></div>
     <div id="toast"></div>
     <div id="coreMsg" hidden></div>
+    <div id="feverGlow" aria-hidden="true"></div>
+    <div id="feverText" aria-hidden="true">狂熱！<small>傷害 ×2・連發加速</small></div>
   </main>
   <footer id="controls" hidden>
     <div id="aimBar" role="slider" aria-label="按住發射，左右拖曳移動掉落點" aria-valuemin="14" aria-valuemax="346" aria-valuenow="180">
-      <div id="aimTrack"><i id="aimFill"></i></div>
+      <div id="aimTrack"><i id="aimFill"></i><i id="feverRing" aria-hidden="true"></i></div>
       <div id="aimKnob"><span id="aimHint" aria-hidden="true"><i>◀</i><i>▶</i></span><b id="knobTxt">發射</b></div>
     </div>
     <div id="fireRow">
@@ -400,6 +441,7 @@ img{-webkit-user-drag:none;user-select:none}
         <dt>擊倒怪物</dt><dd id="overKills">0</dd>
         <dt id="overBestLabel">最高紀錄</dt><dd id="overBest">—</dd>
       </dl>
+      <button id="btnShare" class="pbtn pink" type="button"><i class="ico none" data-ico="crown"></i><span>分享成績</span></button>
       <button id="btnRetry" class="pbtn big yel" type="button"><i class="ico none" data-ico="play"></i><span>再玩一次</span></button>
       <div class="row2">
         <button id="btnOverChapters" class="pbtn sm blue" type="button">選擇章節</button>
@@ -407,8 +449,24 @@ img{-webkit-user-drag:none;user-select:none}
       </div>
     </div>
   </section>
+
+  <section id="sharePanel" class="overlay dim" hidden aria-label="分享成績">
+    <div class="panel">
+      <div class="ribbon pink">分享成績</div>
+      <p class="shHint">長按圖片可「儲存」或「分享」，再貼到脆／IG</p>
+      <img id="shareImg" class="allowsave" alt="彈珠傳說成績圖" width="1080" height="1350" draggable="false">
+      <p id="shareText" class="allowsave"></p>
+      <div class="row2">
+        <button id="btnShareDl" class="pbtn sm blue" type="button">下載圖片</button>
+        <button id="btnShareCopy" class="pbtn sm green" type="button">複製文字</button>
+      </div>
+      <button id="btnShareNative" class="pbtn sm pink" type="button" hidden>用其他 App 分享文字</button>
+      <button id="btnShareClose" class="pbtn sm gray" type="button">關閉</button>
+      <p id="shareMsg" aria-live="polite"></p>
+    </div>
+  </section>
 </div>
-<script>window.ML_BUILD="20261120-231610";</script>
+<script>window.ML_BUILD="20261122-012122";</script>
 <script>/* art/sprites.js */
 /* 彈珠傳說 像素美術資料 window.MARBLE_ART（由 art/gen/build.js 產生，請改產生器後重新產生，不要手改）
    格式：sprite = { w, h, palette, frames:[ [字串列...] ... ], fps?, loop?, weak? }，字元對照 palettes[palette]，"." 透明。
@@ -7609,6 +7667,57 @@ root.MARBLE_ART =
     { inst: P_('tri', 0.003, 0.3, 0.8, 0.1), vol: 0.85, data: 'C4:6 F3:3 G3:3 C3:8' },
     { inst: 'drums', vol: 0.45, data: 't1:1 t1:1 t2:1 c:3 -:3 s:1 s:1 s:1 c:8' } ] });
 
+  // ---- 怪物花樣（feat/monsters，原創）：護盾、移動預兆、閉殼、分身
+  defSfx('shield_hit', { label: '打到護盾（叮咚玻璃）', group: 'hit', step: 0.02, vol: 0.30, rand: 0.8, gap: 0.04, pri: 1, max: 3, tracks: [
+    { inst: P_('tri', 0.001, 0.12, 0, 0.05), echo: { time: 0.05, fb: 0.2, mix: 0.2 }, data: 'G6:3' },
+    { inst: P_('p12', 0.001, 0.05, 0, 0.02), vol: 0.35, data: 'D7:2' },
+    { inst: N_('hp', 0, 0.001, 0.02, 0, 0.01), vol: 0.35, data: 'C8:1' } ] });
+  defSfx('shield_break', { label: '破盾（玻璃碎裂＋上行）', group: 'kill', step: 0.03, vol: 0.44, gap: 0.12, pri: 3, max: 2, tracks: [
+    { inst: N_('hp', 0, 0.001, 0.22, 0, 0.08, { slide: -12 }), data: 'C8:6' },
+    { inst: N_('bp', 2.5, 0.001, 0.1, 0, 0.04), vol: 0.6, data: 'E7:1 C7:1 A6:1 F6:1' },
+    { inst: P_('tri', 0.001, 0.15, 0, 0.05), vol: 0.7, data: '-:2 G6:1 B6:1 D7:1 G7:4' },
+    { inst: P_('tri', 0.002, 0.12, 0, 0.04, { slide: -12 }), vol: 0.8, data: 'C4:3' } ] });
+  defSfx('shield_up', { label: '護盾再生（嗡—亮起）', group: 'alert', step: 0.04, vol: 0.32, gap: 0.5, pri: 2, max: 1, tracks: [
+    { inst: P_('p25', 0.02, 0.3, 0.5, 0.1, { slide: 12, slideTime: 0.3 }), data: 'C5:8' },
+    { inst: P_('tri', 0.01, 0.3, 0.6, 0.12, { vib: { depth: 20, rate: 9, delay: 0 } }), vol: 0.6, data: '-:3 G5:2 C6:5' } ] });
+  defSfx('dash_warn', { label: '移動預兆（嗶嗶）', group: 'alert', step: 0.05, vol: 0.20, gap: 0.15, pri: 1, max: 2, tracks: [
+    { inst: P_('p50', 0.001, 0.04, 0.3, 0.01), data: 'A5:1 -:1 A5:1' } ] });
+  defSfx('dash', { label: '衝刺（咻）', group: 'hit', step: 0.02, vol: 0.30, gap: 0.08, pri: 1, max: 2, tracks: [
+    { inst: N_('bp', 1.5, 0.004, 0.16, 0, 0.05, { slide: 19 }), data: 'C6:6' },
+    { inst: P_('tri', 0.002, 0.08, 0, 0.03, { slide: -12 }), vol: 0.5, data: 'E4:3' } ] });
+  defSfx('blink', { label: '瞬移（嗶咻）', group: 'hit', step: 0.03, vol: 0.28, gap: 0.08, pri: 1, max: 2, tracks: [
+    { inst: P_('p12', 0.001, 0.12, 0.2, 0.04, { slide: 24, slideTime: 0.12 }), data: 'C6:4' },
+    { inst: P_('tri', 0.001, 0.1, 0, 0.05), vol: 0.5, echo: { time: 0.06, fb: 0.3, mix: 0.3 }, data: '-:2 E7:2' } ] });
+  defSfx('hop', { label: '起跳（啵咿）', group: 'hit', step: 0.02, vol: 0.26, rand: 0.6, gap: 0.08, pri: 1, max: 2, tracks: [
+    { inst: P_('tri', 0.002, 0.12, 0, 0.03, { slide: 12, slideTime: 0.1 }), data: 'G4:5' } ] });
+  defSfx('land', { label: '落地（咚）', group: 'hit', step: 0.02, vol: 0.30, rand: 0.6, gap: 0.08, pri: 1, max: 2, tracks: [
+    { inst: P_('tri', 0.001, 0.1, 0, 0.03, { slide: -12 }), data: 'C3:4' },
+    { inst: N_('lp', 0, 0.001, 0.06, 0, 0.02), vol: 0.5, data: 'C5:2' } ] });
+  defSfx('guard_close', { label: '弱點關殼（喀）', group: 'hit', step: 0.02, vol: 0.22, gap: 0.1, pri: 1, max: 2, tracks: [
+    { inst: P_('p25', 0.001, 0.04, 0, 0.01), data: 'E5:1 B4:2' },
+    { inst: N_('bp', 3, 0.001, 0.03, 0, 0.01), vol: 0.5, data: 'C6:1' } ] });
+  defSfx('guard_open', { label: '弱點打開（啵）', group: 'hit', step: 0.02, vol: 0.22, gap: 0.1, pri: 1, max: 2, tracks: [
+    { inst: P_('p25', 0.001, 0.05, 0, 0.02), data: 'B4:1 E5:1 B5:2' } ] });
+  defSfx('monster_split', { label: '分身（啵啵分裂）', group: 'kill', step: 0.035, vol: 0.34, gap: 0.1, pri: 2, max: 2, tracks: [
+    { inst: P_('tri', 0.002, 0.06, 0, 0.02, { slide: 7, slideTime: 0.04 }), data: 'E5:1 -:1 A5:1' },
+    { inst: P_('p25', 0.002, 0.08, 0, 0.03), vol: 0.4, data: '-:1 E6:1 -:1 A6:2' } ] });
+  // ---- 狂熱模式（feat/fever；原創）
+  defSfx('fever_ready', { label: '狂熱快滿了', group: 'reward', step: 0.04, vol: 0.24, gap: 1, pri: 2, max: 1, tracks: [
+    { inst: P_('tri', 0.002, 0.1, 0, 0.04), data: 'B5:1 D6:1 F#6:2' },
+    { inst: N_('hp', 0, 0.002, 0.04, 0, 0.02), vol: 0.25, data: '-:2 C8:1' } ] });
+  defSfx('fever_start', { label: '狂熱啟動', group: 'reward', step: 0.045, vol: 0.38, gap: 1, pri: 3, max: 1, duck: 0.35, tracks: [
+    { inst: P_('p25', 0.002, 0.12, 0.5, 0.05), data: 'D5:1 F#5:1 A5:1 D6:1 F#6:1 A6:1 D7:2 -:1 B6:1 D7:1 F#7:6' },
+    { inst: P_('p50', 0.003, 0.2, 0.6, 0.08), vol: 0.5, data: '-:4 A5:2 D6:2 -:1 G6:2 A6:6' },
+    { inst: P_('tri', 0.002, 0.2, 0.8, 0.08, { slide: 12, slideTime: 0.25 }), vol: 0.85, data: 'D3:6 D4:10' },
+    { inst: N_('bp', 1.5, 0.05, 0.3, 0.3, 0.1, { slide: 24 }), vol: 0.35, data: 'C5:8' },
+    { inst: 'drums', vol: 0.55, data: 's:1 s:1 s:1 s:1 t1:1 t2:1 t3:1 k:1 c:8' } ] });
+  defSfx('fever_tick', { label: '狂熱倒數', group: 'reward', step: 0.03, vol: 0.20, gap: 0.3, pri: 1, max: 1, tracks: [
+    { inst: P_('p12', 0.001, 0.05, 0, 0.02), data: 'A6:1 D7:2' },
+    { inst: 'drums', vol: 0.35, data: 'k:2' } ] });
+  defSfx('fever_end', { label: '狂熱結束', group: 'reward', step: 0.05, vol: 0.28, gap: 0.5, pri: 2, max: 1, tracks: [
+    { inst: P_('p25', 0.002, 0.12, 0.3, 0.06), data: 'A6:1 F#6:1 D6:1 A5:3' },
+    { inst: P_('tri', 0.002, 0.2, 0.5, 0.08, { slide: -7 }), vol: 0.7, data: 'D4:6' } ] });
+
   // ---- 登場警示
   defSfx('boss_appear', { label: '魔王登場', group: 'alert', step: 0.09, vol: 0.40, gap: 1, pri: 3, max: 1, duck: 0.4, tracks: [
     { inst: P_('p50', 0.02, 0.5, 0.7, 0.2), vol: 0.45, data: 'C3:6 C#3:6 C3:8' },
@@ -8240,13 +8349,23 @@ root.MARBLE_ART =
  *
  * ★ 平衡公式（autoplay 調整後定案，數字在下面「怪物血量」「掉落」區塊）：
  *   本關基準血量 B = HP_BASE × HP_GROWTH^(關−1) × 章節倍率(章) × (1 + HP_LOOP × variant)   關＝章內第幾關 1～10
- *   章節倍率：HP_CHAPTER=[a, b] → 第 2 章 ×a、第 3 章再 ×b、之後每章都再 ×b（鋸齒：每章開頭比上一章結尾好打）
- *   總監定案（autoplay 2026-11-20）：第 1 章快節奏（每關 3～9 秒、彈珠收支打平），第 1 章魔王補滿到 1100 後，
- *   第 2 章每關 20～40 秒、精英／魔王 1～2 分鐘，把 1100 顆慢慢耗完 → 一般玩家多數死在 2-5～2-10、一局約 7～11 分。
+ *   章節倍率：HP_CHAPTER=[a, b, c] → 第 2 章 ×a、第 3 章再 ×b、第 4 章起每章再 ×c（陣列最後一個值之後沿用）
+ *     鋸齒：每章開頭約等於上一章 X-9 的 1.0～1.4 倍（第 3 章起每關只 ×1.25，所以第 4 章起每章只再 ×7.5；原本 ×13 會讓 4-1、5-1 變成牆）
+ *   「依章節」的鍵（HP_GROWTH、ELITE_HP、BOSS_HP、DROP_CHAPTER、BOARD_BONUS_PER_LEVEL）可以是數字或陣列 [第1章, 第2章, …]，
+ *   陣列最後一個值之後沿用。
+ *   平衡修正（autoplay 2026-11-21，feat/balance）：
+ *     第 1 章每關約 9～20 秒（越後面越久）、精英約 21～27 秒、魔王約 30～40 秒（舊版 3～9 秒三選一跳太頻繁）；第 1 章靠擊倒掉落（DROP_CHAPTER 12 倍）把收支拉平，
+ *     彈珠在章內慢慢存到接近上限；第 1 章魔王補滿到 1100 後，第 2 章每關約 30 秒起、逐關變硬（1-9 約 20 秒 → 2-1 約 26～30 秒，
+ *     舊版 5 秒 → 40 秒是一道牆），第 2 章起掉落與清盤獎勵減少，回到消耗戰 → 一般玩家多數死在 2-5～2-10、一局中位約 10～11 分。
+ *   整合後重新平衡（autoplay 2026-11-21，四個分支合併後；--games 120 --seed 50000 定案，數字見 test/balance.json）：
+ *     狂熱（傷害 ×2、連發 ×2）與怪物花樣都加進來後（一般玩家）：1-1～1-3 約 8～12 秒（新手不會死在開頭），1-4～1-9 約 12～22 秒，
+ *     精英約 20 秒、魔王約 29 秒；1-9 → 2-1 約 22 → 23 秒（沒有牆）；第 2 章每關 23～36 秒、精英（帶護盾）約 49 秒、魔王約 75 秒；
+ *     一局中位約 9.1 分（p10 7.2、p90 18）、約 86% 死在第 2 章、12% 到第 3～4 章；新手第 1 章死亡約 4%；
+ *     狂熱第 1 章約每 2.4 關、第 2 章約每關一次（全局每 1.3 關）；高手中位約 31 分、死在第 4～5 章。
  *   普通怪每隻 = B × HP_SHARE[隻數−1] × species.hpMul
- *   精英       = B × ELITE_HP × hpMul；精英關的普通護衛 = B × ESCORT_HP × hpMul
- *   魔王       = B × BOSS_HP × hpMul
- *   擊倒掉落   = round(DROP[kind] × (1 + DROP_GROWTH × (章−1)) × 戰利品倍率)
+ *   精英       = B × ELITE_HP(章) × hpMul；精英關的普通護衛 = B × ESCORT_HP × hpMul
+ *   魔王       = B × BOSS_HP(章) × hpMul
+ *   擊倒掉落   = round(DROP[kind] × (1 + DROP_GROWTH × (章−1)) × DROP_CHAPTER(章) × 戰利品倍率)
  */
 (function (root) {
   'use strict';
@@ -8290,21 +8409,54 @@ root.MARBLE_ART =
     REFILL_INTERVAL: 60, REFILL_INTERVAL_MIN: 30, REFILL_AMOUNT: 50,
     REFILL_PEG: 3,
     BOARD_BONUS: 10,
-    BOARD_BONUS_PER_LEVEL: 3,    // 每關前 3 次清盤有 +10（之後重排的盤面也不放補彈釘），避免超長魔王戰靠清盤無限補彈
+    BOARD_BONUS_PER_LEVEL: [3, 1], // 每關前 N 次清盤有 +10（之後重排的盤面也不放補彈釘），避免超長魔王戰靠清盤無限補彈；[第1章, 第2章起]
     REROLLS: 1,
+
+    // ---------- 章節補償（從第 N 章開始；總監整合定案，規格變更待使用者確認） ----------
+    // ① 自動補給：前面每章自動補 START_AUTO_PER_CHAPTER 次天賦（重播那幾關的三選一，照一般玩家偏好挑，含經濟天賦）
+    // ② 金卡三選一：min(START_PICKS_MAX, (N−1)×START_PICKS_PER_CHAPTER) 次 → 第 2 章 2、第 3 章 4、第 4 章起 6 次（不再點幾十次）
+    // 目標：從第 N 章開始的表現≈從 1-1 玩到第 N 章的一般玩家（autoplay typical_chN vs ref_chN）
+    //   autoplay --games 120 --seed 50000：每章補 8 張時 typical_ch3 多打 6.6 關（ref_ch3 6.9）、typical_ch2 9.8 關（ref_ch2 8.1）；補 9 張就偏強
+    START_AUTO_PER_CHAPTER: 8, START_PICKS_PER_CHAPTER: 2, START_PICKS_MAX: 6,
+    START_AUTO_PREF: { power: 1.5, double: 1.6, quick: 1.3, deadly: 1.3, golden: 1.3, ammo: 1.2, chain: 1.2, giant: 1.1, splitter: 1.1 },
+    START_AUTO_RARITY: { w: 1, b: 1.15, g: 1.35 },
 
     // ---------- 掉落（平衡槓桿） ----------
     DROP: { normal: 5, elite: 15, boss: 30 },
     DROP_GROWTH: 0.25,
+    DROP_CHAPTER: [12, 0.2],     // 章節掉落倍率 [第1章, 第2章起]：第 1 章關卡變長（10～23 秒），靠擊倒掉落把收支拉平、存到接近上限；第 2 章起掉落減少，回到消耗戰
 
     // ---------- 怪物血量（平衡槓桿） ----------
-    HP_BASE: 9, HP_GROWTH: 1.2, HP_CHAPTER: [120, 6], HP_LOOP: 0.3,
+    HP_BASE: 40, HP_GROWTH: [1.37, 1.37, 1.25], HP_CHAPTER: [16.9, 13, 7.5], HP_LOOP: 0.3,
     HP_SHARE: [1, 0.62, 0.46],   // 1/2/3 隻時每隻分到的比例
-    ELITE_HP: 2.6, ESCORT_HP: 0.45, BOSS_HP: 5.5,
+    ELITE_HP: [1.6, 1.7], ESCORT_HP: 0.45, BOSS_HP: [1.15, 2.6], // [第1章, 第2章起]；第 2 章精英帶護盾，1.7 讓 2-5 不要變成牆（2.2→1.7）；第 1 章魔王 1.15 讓新手少死在 1-10
     ELITE_ESCORT_CHANCE: 0.5,    // 精英關多一隻普通護衛的機率
     MONSTER_RX: 0.44, MONSTER_RY: 0.44,
     LANE_MARGIN: 4,
     SPEED_GROWTH: 0.04,          // 每章巡邏速度 +4%（上限 +40%）
+
+    // ---------- 怪物花樣（trait；feat/monsters）----------
+    TRAITS: true,                // false＝完全關掉怪物花樣（autoplay 對照用：--cfg '{"TRAITS":false}'）
+    // 定義與各章偏好在 data.js 的 traits / traitPlan；這裡只放數值。哪章出現什麼見 data.js 註解。
+    // 出現機率：普通怪每隻帶 1 種 trait 的機率＝TRAIT_CH[章]+TRAIT_STAGE×關（上限 TRAIT_MAX）；第 1 章只在 TRAIT_CH1_FROM 關以後
+    TRAIT_CH: [0, 0, 0.3, 0.42, 0.5, 0.55],     // index＝章（0 不用；第 1 章只靠 TRAIT_STAGE×關＝少量），第 5 章以後沿用最後一個再 +TRAIT_LOOP×variant
+    TRAIT_CH1_FROM: 7, TRAIT_STAGE: 0.04, TRAIT_MAX: 0.92, TRAIT_LOOP: 0.08,
+    TRAIT2_BASE: -0.16, TRAIT2_CH: 0.1, TRAIT2_STAGE: 0.025, TRAIT2_MAX: 0.6, // 第 2 種 trait（組合）：CH×(章−1)＋STAGE×關＋BASE
+    // 護盾：護盾值＝原本血量×SHIELD_FRAC；有護盾的怪本體血量 ×SHIELD_HP_MUL（公平補償：總量約 1.1 倍，但護盾在時不能弱點回收）
+    //   打在弱點正上方的護盾照弱點倍率算（不回收）；破盾後暈眩 SHIELD_STUN 秒（停住、弱點打開）
+    SHIELD_FRAC: { normal: 0.32, elite: 0.28, boss: 0.16 }, SHIELD_HP_MUL: { normal: 0.78, elite: 0.76, boss: 0.7 }, SHIELD_STUN: 0.9,
+    SHIELD_RX: 1.16, SHIELD_RY: 1.2,          // 護盾泡泡碰撞橢圓（相對本體 rx/ry）
+    SHIELD_REUP: 0.5, SHIELD_REUP_FROM: 3,    // 魔王的護盾在血量 50% 時再張開一次（第 3 章起；第 2 章魔王是第一次見到護盾，只有一層）
+    // 閉殼：弱點開 GUARD_OPEN 秒 → 預兆 GUARD_WARN 秒 → 關 GUARD_SHUT 秒（關著時打弱點＝打身體，不回收）
+    GUARD_OPEN: 2.6, GUARD_WARN: 0.6, GUARD_SHUT: 1.8, GUARD_HP_MUL: 0.92,
+    // 移動：每隔 MOVE_GAP 秒動一次；動之前預兆 MOVE_WARN 秒（衝刺閃、跳跳蹲、瞬移目的地光圈）
+    MOVE_GAP: [3.2, 5.0], MOVE_WARN: { dash: 0.6, hop: 0.42, blink: 0.8 },
+    DASH_SPEED: 300, HOP_T: 0.62, HOP_H: 30, MOVE_MIN: 0.45, // 目的地至少離目前位置「跑道寬×MOVE_MIN」
+    MOVE_LANE: 1.7,                           // 會移動的怪跑道權重 ×1.7（並排時分到比較寬的跑道，衝刺才有空間）
+    // 群體：一關 4～6 隻小怪（體型 ×SWARM_SCALE），總血量＝本關基準×SWARM_HP，每隻掉 DROP_MINI 顆
+    SWARM_SCALE: 0.6, SWARM_HP: 1.25, DROP_MINI: 2,
+    // 分身：倒下時分裂成 2 隻小的（各 maxHp×TWIN_HP，體型 ×TWIN_SCALE）；本體血量 ×TWIN_HP_MUL
+    TWIN_HP: 0.28, TWIN_SCALE: 0.62, TWIN_HP_MUL: 0.8, SPAWN_INV: 0.25,
 
     // ---------- 技能釘與盤面 ----------
     PEG_COUNT: 28,               // 普通高度（406）盤面的技能釘數，魔王關依高度等比例
@@ -8334,7 +8486,21 @@ root.MARBLE_ART =
     // ---------- 天賦稀有度 ----------
     GOLD_BASE: 0.04, GOLD_PER: 0.008, GOLD_MAX: 0.3,
     BLUE_BASE: 0.24, BLUE_PER: 0.006, BLUE_MAX: 0.42,
-    ELITE_GOLD: 0.25, ELITE_GOLD_PER: 0.005
+    ELITE_GOLD: 0.25, ELITE_GOLD_PER: 0.005,
+
+    // ---------- 狂熱模式（feat/fever）：命中累積能量，集滿自動啟動 ----------
+    // 能量 0～1；狂熱期間不累積，結束後歸零。能量跨關保留（換關不清空）。
+    FEVER_HIT: 0.0045,           // 彈珠打到怪物（含打在護盾上）+能量（整合平衡：0.0016→0.0045，第 1 章一般玩家約每 2 關一次）
+    FEVER_WEAK: 0.011,           // 打中弱點（取代 FEVER_HIT）
+    FEVER_BOMB: 0.0015,          // 爆炸波及每隻怪（打在護盾上也算）
+    FEVER_BREAK: 0.05,           // 打破護盾額外 +能量（整合定案；一樣受每秒上限限制）
+    FEVER_GAIN_CAP: 0.04,        // 每秒最多累積 0.04（＝最快 25 秒集滿）；可預存 FEVER_GAIN_BURST 秒的額度
+    FEVER_GAIN_BURST: 3,
+    FEVER_COMBO_AT: 25, FEVER_COMBO_MULT: 1.5, // 連擊 ≥25 時能量 ×1.5（鼓勵持續命中）
+    FEVER_READY: 0.8,            // 能量 ≥0.8 發 feverReady（用戶端能量條開始發光）
+    FEVER_DUR: 5,                // 持續秒數（只在 play 倒數；過關／選天賦時暫停）
+    FEVER_DMG: 2,                // 狂熱彈珠傷害 ×2（含爆炸與燒傷施加量；和黃金 ×5 相乘＝×10）
+    FEVER_RATE: 0.5              // 狂熱期間發射間隔 ×0.5（不受 FIRE_RATE_MAX 限制，但仍受場上 50 顆限制）
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -8456,6 +8622,35 @@ root.MARBLE_ART =
   // X-5＝精英（＋0～1 隻普通護衛）、X-10＝魔王單挑。
   var stageCounts = { 1: [1], 2: [1, 2], 3: [2], 4: [2, 3], 6: [2], 7: [2, 3], 8: [3], 9: [2, 3] };
 
+  // ---------- 怪物花樣（trait；feat/monsters）----------
+  // 套在既有怪物上的特性，數值在 config.js（SHIELD_* GUARD_* MOVE_* SWARM_* TWIN_*）。都不反擊、不偷彈珠。
+  //   move:true 的是「移動類」，一隻最多一種；color＝提示／圖示色；tip＝第一次出現時的提示字
+  var traits = {
+    shield: { name: '護盾', color: '#7fe3ff', tip: '護盾：先打破泡泡，才傷得到本體和弱點！' },
+    guard: { name: '閉殼', color: '#c9b6ff', tip: '閉殼：弱點會定時關起來，閃爍時快打！' },
+    dash: { name: '衝刺', color: '#ffb35a', move: true, tip: '衝刺：閃白光之後會衝到別處！' },
+    hop: { name: '跳跳', color: '#9df07a', move: true, tip: '跳跳：蹲下之後會跳到影子的位置！' },
+    blink: { name: '瞬移', color: '#e59bff', move: true, tip: '瞬移：地上出現光圈，就會瞬間移過去！' },
+    twin: { name: '分身', color: '#ff9ad0', tip: '分身：倒下時會分裂成兩隻小的！' },
+    swarm: { name: '群體', color: '#ffe27a', tip: '小怪血少但數量多，炸彈和分裂最好用！' }
+  };
+  // 各章（主題 1～5）偏好：pool＝普通怪抽 trait 的權重；swarm＝哪幾關是群體關；elite/boss＝固定帶的 trait。
+  //   第 1 章：只有 1-7 以後少量「跳跳」（教學性質），精英／魔王不帶。
+  //   第 2 章 洞窟：引入護盾（水晶殼）、後段閉殼；2-7 群體；精英／魔王帶護盾。
+  //   第 3 章 火山：衝刺、分身為主；3-4、3-8 群體；精英衝刺、魔王護盾＋衝刺。
+  //   第 4 章 冰原：跳跳、護盾、閉殼；4-3、4-7 群體；精英護盾＋跳跳、魔王閉殼＋衝刺。
+  //   第 5 章 古堡：瞬移、閉殼、分身、護盾；5-4、5-8 群體；精英瞬移＋護盾、魔王瞬移＋閉殼＋護盾。
+  //   第 6 章以後（循環）：pool 再混入全部 trait 各權重 1、群體關沿用該主題（第 1 主題改 4、8 關），
+  //   精英／魔王再多抽 1 種（不重複、移動類最多一種）。組合機率見 config.js TRAIT2_*（關卡越後面越常見）。
+  var traitPlan = {
+    1: { pool: { hop: 1 }, swarm: [], elite: [], boss: [] },
+    2: { pool: { shield: 3, guard: 2, hop: 1 }, guardFrom: 5, swarm: [7], elite: ['shield'], boss: ['shield'] },
+    3: { pool: { dash: 3, twin: 2, shield: 1 }, swarm: [4, 8], elite: ['dash'], boss: ['shield', 'dash'] },
+    4: { pool: { hop: 3, shield: 2, guard: 1, twin: 1 }, swarm: [3, 7], elite: ['shield', 'hop'], boss: ['guard', 'dash'] },
+    5: { pool: { blink: 3, guard: 2, twin: 2, shield: 2 }, swarm: [4, 8], elite: ['blink', 'shield'], boss: ['blink', 'guard', 'shield'] }
+  };
+  var traitLoopSwarm = [4, 8];       // 第 6 章以後第 1 主題（草原）的群體關
+
   // ---------- 釘子種類（UI 說明用） ----------
   var pegKinds = {
     attack: { name: '攻擊', color: '#ff6b6b', desc: '這顆彈珠傷害 +1' },
@@ -8478,7 +8673,10 @@ root.MARBLE_ART =
     speciesList: speciesList,
     chapters: chapters,
     stageCounts: stageCounts,
-    pegKinds: pegKinds
+    pegKinds: pegKinds,
+    traits: traits,
+    traitPlan: traitPlan,
+    traitLoopSwarm: traitLoopSwarm
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -8530,11 +8728,41 @@ root.MARBLE_ART =
     var theme = ((chapter - 1) % 5) + 1;
     var th = D.themes[theme - 1];
     var kind = stage === 10 ? 'boss' : stage === 5 ? 'elite' : 'normal';
+    var variant = Math.floor((chapter - 1) / 5);
     return {
       chapter: chapter, stage: stage, index: index, label: chapter + '-' + stage, kind: kind,
-      theme: theme, themeName: th.name, variant: Math.floor((chapter - 1) / 5),
-      bgm: kind === 'boss' ? (D.bossBgm || 'boss') : th.bgm
+      theme: theme, themeName: th.name, variant: variant,
+      bgm: kind === 'boss' ? (D.bossBgm || 'boss') : th.bgm,
+      swarm: kind === 'normal' && swarmStages(theme, variant, D).indexOf(stage) >= 0   // 怪物花樣：群體關
     };
+  }
+  // 怪物花樣：某主題（循環時 variant>0）的群體關（data.js traitPlan）
+  function swarmStages(theme, variant, D) {
+    var tp = D.traitPlan && D.traitPlan[theme];
+    if (!tp) return [];
+    if (variant > 0 && !tp.swarm.length) return D.traitLoopSwarm || [];
+    return tp.swarm;
+  }
+
+  // 章節補償（總監整合定案 2026-11-21；規格變更，待使用者確認）：從第 N 章開始時
+  //   ① 自動補給：前面 N−1 章每章自動補 START_AUTO_PER_CHAPTER 次天賦（＝那幾關過關時本來會拿到的三選一：
+  //      照該關的稀有度機率抽三張、依 START_AUTO_PREF 偏好挑一張，跟一般玩家的拿法一樣，包含回收／補給這類經濟天賦）
+  //   ② 金卡三選一：min(START_PICKS_MAX, (N−1)×START_PICKS_PER_CHAPTER) 次，由玩家自己選（保留選卡樂趣與抽金卡特效）
+  //   → 天賦組成接近「從 1-1 一路玩到第 N 章」的一般玩家（autoplay ref_chN 對照），高章節也最多只點 START_PICKS_MAX 次。
+  //   （規格原本是 (N−1)×2 次金卡；feat/balance 改成 (N−1)×5＋(N−1)(N−2)×1.25，第 6 章要點 50 次、第 10 章 135 次，太多）
+  function startPicksFor(ch, C) {
+    ch = Math.max(1, Math.floor(Number(ch) || 1));
+    var k = C && C.START_PICKS_PER_CHAPTER != null ? C.START_PICKS_PER_CHAPTER : 2;
+    var mx = C && C.START_PICKS_MAX != null ? C.START_PICKS_MAX : Infinity;
+    return Math.max(0, Math.min(mx, Math.round((ch - 1) * k)));
+  }
+  // 自動補給要重播的關卡（總關數 index 的清單）：每章前 START_AUTO_PER_CHAPTER 關（定案 8＝X-1～X-8；X-5 精英照精英的稀有度、設到 10 時 X-10 魔王是金卡）
+  function startAutoLevels(ch, C) {
+    ch = Math.max(1, Math.floor(Number(ch) || 1));
+    var a = Math.max(0, Math.min(10, Math.round(C && C.START_AUTO_PER_CHAPTER != null ? C.START_AUTO_PER_CHAPTER : 0)));
+    var out = [];
+    for (var c = 1; c < ch; c++) for (var st = 1; st <= a; st++) out.push((c - 1) * 10 + st);
+    return out;
   }
 
   // =====================================================================
@@ -8577,7 +8805,9 @@ root.MARBLE_ART =
       offer: null,
       // 文件欄位＋額外：pegs（觸發釘子數）、boards（清盤次數）、misses（落空數）
       stats: { fired: 0, hits: 0, weakHits: 0, damage: 0, kills: 0, maxCombo: 0, maxHit: 0, levelsCleared: 0, marblesGained: 0,
-               pegs: 0, boards: 0, misses: 0 },
+               pegs: 0, boards: 0, misses: 0, shields: 0, fevers: 0 },
+      // 狂熱模式（feat/fever）：energy 0～1；active 時 energy＝剩餘比例 t/dur；count＝本局觸發次數
+      fever: { energy: 0, active: false, t: 0, dur: C.FEVER_DUR, count: 0, ready: false },
       over: null
     };
     var M = {};                       // 天賦加成（sim.mods）
@@ -8662,9 +8892,11 @@ root.MARBLE_ART =
       for (var c = 2; c <= ch; c++) m *= typeof st === 'number' ? st : st[Math.min(c - 2, st.length - 1)];
       return m;
     }
+    // 依章節取值：數字＝每章一樣；陣列＝[第1章, 第2章, …]，最後一個值之後沿用（HP_GROWTH、ELITE_HP、BOSS_HP、DROP_CHAPTER、BOARD_BONUS_PER_LEVEL）
+    function perCh(v, ch) { return typeof v === 'number' ? v : v[Math.min(ch - 1, v.length - 1)]; }
     function levelHp(L) {
       // 章內依關（stage）成長、跨章乘上章節倍率：每章開頭相對好打（章節補償開局才不會一開就死），章尾很硬
-      return C.HP_BASE * Math.pow(C.HP_GROWTH, L.stage - 1) * chapterMult(L.chapter) * (1 + C.HP_LOOP * L.variant);
+      return C.HP_BASE * Math.pow(perCh(C.HP_GROWTH, L.chapter), L.stage - 1) * chapterMult(L.chapter) * (1 + C.HP_LOOP * L.variant);
     }
 
     function makeMonsters(L) {
@@ -8676,49 +8908,140 @@ root.MARBLE_ART =
         ids.push(ch.elite);
         if (r() < C.ELITE_ESCORT_CHANCE) ids.push(ch.normals[Math.floor(r() * ch.normals.length)]);
         if (ids.length === 2 && r() < 0.5) ids.reverse();
+      } else if (L.swarm && traitOn('swarm')) {
+        // 怪物花樣：群體關 4～6 隻小怪（另一條亂數，不影響原本的組成）
+        var rs = mulberry32(mix(mix(seed, 0x5A4E), L.index));
+        var ns = Math.min(6, 4 + (L.stage >= 6 ? 1 : 0) + (L.chapter >= 4 ? 1 : 0));
+        for (i = 0; i < ns; i++) ids.push(ch.normals[Math.floor(rs() * ch.normals.length)]);
       } else {
         var opt = D.stageCounts[L.stage] || [2];
         var n = opt[Math.floor(r() * opt.length)];
         for (i = 0; i < n; i++) ids.push(ch.normals[Math.floor(r() * ch.normals.length)]);
       }
-      var B = levelHp(L), nNormal = ids.length, totalW = 0;
-      for (i = 0; i < ids.length; i++) totalW += SPEC[ids[i]].w;
+      var swarm = L.kind === 'normal' && L.swarm && traitOn('swarm');
+      var tlist = rollTraits(L, ids, swarm);
+      var B = levelHp(L), nNormal = ids.length, totalW = 0, sc = swarm ? C.SWARM_SCALE : 1;
+      var laneK = [];
+      for (i = 0; i < ids.length; i++) {
+        laneK.push(SPEC[ids[i]].w * sc * (hasMove(tlist[i]) && ids.length > 1 ? C.MOVE_LANE : 1));
+        totalW += laneK[i];
+      }
       var spdK = 1 + Math.min(0.4, C.SPEED_GROWTH * (L.chapter - 1));
       var list = [], x0 = 0;
       for (i = 0; i < ids.length; i++) {
         var sp = SPEC[ids[i]];
-        var laneW = W * sp.w / totalW;
-        var lo = x0 + sp.w / 2 + C.LANE_MARGIN, hi = x0 + laneW - sp.w / 2 - C.LANE_MARGIN;
-        if (lo > hi) lo = hi = x0 + laneW / 2;
-        var share = sp.kind === 'boss' ? C.BOSS_HP : sp.kind === 'elite' ? C.ELITE_HP
+        var laneW = W * laneK[i] / totalW;
+        var share = sp.kind === 'boss' ? perCh(C.BOSS_HP, L.chapter) : sp.kind === 'elite' ? perCh(C.ELITE_HP, L.chapter)
+          : swarm ? C.SWARM_HP / nNormal
           : (L.kind === 'elite' ? C.ESCORT_HP : C.HP_SHARE[Math.min(C.HP_SHARE.length, nNormal) - 1]);
         var hp = Math.max(1, Math.round(B * share * sp.hpMul));
-        var m = {
-          id: uid++, species: sp.id, kind: sp.kind, name: sp.name,
-          x: lo + (hi - lo) * r(), y: FLOOR_Y - sp.h / 2, w: sp.w, h: sp.h,
-          rx: sp.w * C.MONSTER_RX, ry: sp.h * C.MONSTER_RY,
-          hp: hp, maxHp: hp, alive: true, deadT: 0,
-          weak: { x: 0, y: 0, r: 0 },
-          frozenT: 0, burnT: 0, burnDps: 0, flashT: 0, dir: r() < 0.5 ? -1 : 1,
-          _lo: lo, _hi: hi, _spd: sp.speed * spdK, _ph: r() * TAU, _bt: 0, _ba: 0
-        };
-        updateWeak(m);
+        var m = newMonster(sp, hp, x0, x0 + laneW, sc, tlist[i], spdK, r);
+        m.mini = swarm;
+        if (swarm) m.hue = i % 3 === 1 ? 1 : i % 3 === 2 ? 2 : 0;   // 群體換色（用美術的 variant 色相旋轉）
         list.push(m);
         x0 += laneW;
       }
       return list;
     }
 
+    // 怪物花樣：建一隻怪（lane＝[a,b] 跑道；sc＝體型倍率；traits＝trait 陣列）
+    function newMonster(sp, hp, a, b, sc, traits, spdK, r) {
+      var w = sp.w * sc, h = sp.h * sc;
+      var lo = a + w / 2 + C.LANE_MARGIN, hi = b - w / 2 - C.LANE_MARGIN;
+      if (lo > hi) lo = hi = (a + b) / 2;
+      traits = traits || [];
+      var m = {
+        id: uid++, species: sp.id, kind: sp.kind, name: sp.name,
+        x: lo + (hi - lo) * r(), y: FLOOR_Y - h / 2, w: w, h: h,
+        rx: w * C.MONSTER_RX, ry: h * C.MONSTER_RY,
+        hp: hp, maxHp: hp, alive: true, deadT: 0,
+        weak: { x: 0, y: 0, r: 0 },
+        frozenT: 0, burnT: 0, burnDps: 0, flashT: 0, dir: r() < 0.5 ? -1 : 1,
+        // 怪物花樣欄位（用戶端唯讀，見 ARCHITECTURE.md 第 5 節）
+        traits: traits, scale: sc, mini: false, child: false, hue: 0,
+        shield: 0, shieldMax: 0, shieldFlashT: 0, stunT: 0, invT: 0,
+        move: null, tele: 0, teleMax: 0, moving: false, moveX: 0, air: 0,
+        weakShut: false, shutWarn: false,
+        _lo: lo, _hi: hi, _spd: sp.speed * spdK, _ph: r() * TAU, _bt: 0, _ba: 0,
+        _mvT: 0, _hopT: 0, _hopX0: 0, _gPh: 'open', _gT: 0, _reup: false
+      };
+      if (hasT(m, 'shield')) {
+        m.shield = m.shieldMax = Math.max(1, Math.round(hp * (C.SHIELD_FRAC[sp.kind] || C.SHIELD_FRAC.normal)));
+        var shm = C.SHIELD_HP_MUL;
+        hp = Math.max(1, Math.round(hp * (typeof shm === 'number' ? shm : (shm[sp.kind] || shm.normal))));
+      }
+      if (hasT(m, 'guard')) { hp = Math.max(1, Math.round(hp * C.GUARD_HP_MUL)); m._gT = C.GUARD_OPEN * (0.4 + 0.6 * r()); }
+      if (hasT(m, 'twin')) hp = Math.max(1, Math.round(hp * C.TWIN_HP_MUL));
+      m.hp = m.maxHp = hp;
+      m.move = moveOf(traits);
+      if (m.move) m._mvT = 1.2 + r() * (C.MOVE_GAP[1] - 1.2);
+      updateWeak(m);
+      return m;
+    }
+    // C.TRAITS：true＝全開、false＝全關、陣列＝只開這幾種（autoplay 單項對照用）
+    function traitOn(t) { var T = C.TRAITS; return T === false ? false : (T && T.length != null ? T.indexOf(t) >= 0 : true); }
+    function hasT(m, t) { return !!m.traits && m.traits.indexOf(t) >= 0; }
+    function moveOf(traits) {
+      for (var i = 0; traits && i < traits.length; i++) if (D.traits[traits[i]] && D.traits[traits[i]].move) return traits[i];
+      return null;
+    }
+    function hasMove(traits) { return !!moveOf(traits); }
+
+    // 怪物花樣：依章節偏好決定每隻怪帶的 trait（自己一條亂數，第 1 章前段完全不變）
+    var forcedTraits = null;           // debug.forceTraits 用
+    function rollTraits(L, ids, swarm) {
+      var out = [], i;
+      for (i = 0; i < ids.length; i++) out.push([]);
+      if (C.TRAITS === false) return out;
+      if (forcedTraits) { for (i = 0; i < ids.length; i++) if (SPEC[ids[i]].kind !== 'boss' || forcedTraits.boss) out[i] = forcedTraits.list.slice(); return out; }
+      var tp = D.traitPlan && D.traitPlan[L.theme];
+      if (!tp) return out;
+      var rt = mulberry32(mix(mix(seed, 0x7A17), L.index)), loop = L.variant > 0;
+      var pool = {}, k;
+      for (k in tp.pool) if (hasOwn.call(tp.pool, k) && traitOn(k)) pool[k] = tp.pool[k];
+      if (tp.guardFrom && L.stage < tp.guardFrom) delete pool.guard;
+      if (loop) for (k in D.traits) if (hasOwn.call(D.traits, k) && k !== 'swarm' && traitOn(k)) pool[k] = (pool[k] || 0) + 1;
+      var chA = C.TRAIT_CH, p1;
+      p1 = chA[Math.min(L.chapter, chA.length - 1)] + C.TRAIT_STAGE * L.stage + (L.chapter > 5 ? C.TRAIT_LOOP * L.variant : 0);
+      if (L.chapter === 1 && !loop && L.stage < C.TRAIT_CH1_FROM) p1 = 0;
+      p1 = Math.min(C.TRAIT_MAX, p1);
+      var p2 = clamp(C.TRAIT2_BASE + C.TRAIT2_CH * (L.chapter - 1) + C.TRAIT2_STAGE * L.stage, 0, C.TRAIT2_MAX);
+      if (swarm) { p1 *= 0.35; p2 = 0; }   // 群體本身就是花樣，小怪只偶爾帶一種
+      for (i = 0; i < ids.length; i++) {
+        var kind = SPEC[ids[i]].kind, tl = out[i];
+        if (kind === 'elite' || kind === 'boss') {
+          var fixed = tp[kind] || [];
+          for (var f = 0; f < fixed.length; f++) if (traitOn(fixed[f])) tl.push(fixed[f]);
+          if (loop) addTrait(tl, pool, rt, kind);
+          continue;
+        }
+        if (rt() < p1) { addTrait(tl, pool, rt, kind); if (rt() < p2) addTrait(tl, pool, rt, kind); }
+      }
+      return out;
+    }
+    function addTrait(tl, pool, rt, kind) {
+      var cand = [], sum = 0, k;
+      for (k in pool) {
+        if (!hasOwn.call(pool, k) || tl.indexOf(k) >= 0) continue;
+        if (D.traits[k].move && hasMove(tl)) continue;             // 移動類一隻最多一種
+        if (k === 'twin' && kind !== 'normal') continue;           // 分身只給普通怪
+        cand.push(k); sum += pool[k];
+      }
+      if (!cand.length) return;
+      var u = rt() * sum;
+      for (var i = 0; i < cand.length; i++) { u -= pool[cand[i]]; if (u < 0 || i === cand.length - 1) { tl.push(cand[i]); return; } }
+    }
+
     function updateWeak(m) {
-      var wk = SPEC[m.species].weak;
-      m.weak.r = wk.r * M.weakScale;
+      var wk = SPEC[m.species].weak, sc = m.scale || 1;
+      m.weak.r = wk.r * Math.max(0.75, sc) * M.weakScale;
       if (wk.arc) {
         var th = Math.PI / 2 + wk.arc * Math.sin(m._ph);
         m.weak.x = m.x + Math.cos(th) * m.rx * wk.k;
         m.weak.y = m.y - Math.sin(th) * m.ry * wk.k;
       } else {
-        m.weak.x = m.x + (wk.dx || 0);
-        m.weak.y = m.y - m.h / 2 + wk.dy;
+        m.weak.x = m.x + (wk.dx || 0) * sc;
+        m.weak.y = m.y - m.h / 2 + wk.dy * sc;
       }
     }
 
@@ -8730,13 +9053,18 @@ root.MARBLE_ART =
       S.balls = []; S.queue = 0; bombs = []; spawnList = [];
       S.offer = null;
       S.combo.n = 0; S.combo.t = 0; comboMs = 0;
-      boardClearT = -1; boardNo = 0; boardBonusLeft = C.BOARD_BONUS_PER_LEVEL;
+      boardClearT = -1; boardNo = 0; boardBonusLeft = perCh(C.BOARD_BONUS_PER_LEVEL, L.chapter);
       pendingShot = false; fireCd = 0;
+      if (C.TRAITS === false) L.swarm = false;
       S.monsters = makeMonsters(L);
-      var top = FLOOR_Y;
-      for (var i = 0; i < S.monsters.length; i++) top = Math.min(top, FLOOR_Y - S.monsters[i].h);
-      zoneY1 = top - C.PEG_GAP_ABOVE_MONSTER;
-      monsterTopY = top;
+      var top = FLOOR_Y, hopTop = FLOOR_Y;
+      for (var i = 0; i < S.monsters.length; i++) {
+        top = Math.min(top, FLOOR_Y - S.monsters[i].h);
+        if (S.monsters[i].move === 'hop') hopTop = Math.min(hopTop, FLOOR_Y - S.monsters[i].h - C.HOP_H);
+      }
+      // 怪物花樣：跳跳的怪跳起來也不會撞進釘子區
+      zoneY1 = Math.min(top - C.PEG_GAP_ABOVE_MONSTER, hopTop - C.PEG_GAP_ABOVE_MONSTER + 16);
+      monsterTopY = Math.min(top, hopTop) - 6;
       genBoard();
       S.phase = 'play';
       if (refillNext) {               // 魔王後補滿到新上限
@@ -8746,7 +9074,7 @@ root.MARBLE_ART =
       var ms = [];
       for (i = 0; i < S.monsters.length; i++) {
         var m = S.monsters[i];
-        ms.push({ id: m.id, species: m.species, name: m.name, kind: m.kind });
+        ms.push({ id: m.id, species: m.species, name: m.name, kind: m.kind, traits: m.traits.slice(), mini: m.mini });
       }
       emit({ t: 'levelStart', level: copyObj(L), monsters: ms });
     }
@@ -8770,6 +9098,7 @@ root.MARBLE_ART =
     }
 
     function gameOver() {
+      if (S.fever.active) feverEnd();
       S.phase = 'over';
       pendingShot = false;
       S.over = { level: copyObj(S.level), stats: copyObj(S.stats), time: S.time };
@@ -9021,13 +9350,13 @@ root.MARBLE_ART =
       return {
         id: uid++, x: x, y: y, vx: vx, vy: vy, r: M.ballR,
         dmg: a ? a.dmg : M.baseDmg, mult: a ? a.mult : 1,
-        fire: a ? !!a.fire : false, ice: a ? !!a.ice : false, gold: a ? !!a.gold : false,
+        fire: a ? !!a.fire : false, ice: a ? !!a.ice : false, gold: a ? !!a.gold : false, fever: a ? !!a.fever : false,
         redrops: a ? (a.redrops || 0) : 0, age: 0,
         _life: 0, _cpT: 0, _cpY: y, _stuck: 0, _dead: false, _paid: false, _canSplit: !a
       };
     }
     function snapshot(b) {
-      return b ? { id: b.id, dmg: b.dmg, mult: b.mult, fire: b.fire, ice: b.ice, gold: b.gold, redrops: b.redrops } : null;
+      return b ? { id: b.id, dmg: b.dmg, mult: b.mult, fire: b.fire, ice: b.ice, gold: b.gold, fever: b.fever, redrops: b.redrops } : null;
     }
 
     function doFire() {
@@ -9039,11 +9368,12 @@ root.MARBLE_ART =
         var x = clamp(S.aimX + off + (rng() * 2 - 1) * C.SPAWN_JITTER, C.AIM_MIN, C.AIM_MAX);
         var b = newBall(x, C.SPAWN_Y, (rng() * 2 - 1) * C.SPAWN_VX + off * 3, C.SPAWN_VY, null);
         b.gold = M.golden && firedBalls % C.GOLDEN_EVERY === 0;
+        b.fever = S.fever.active;     // 狂熱期間發射的彈珠（分裂分身會繼承）
         b._paid = i === 0;            // 只有真正扣了彈珠的那顆能被「回收」退回（分身、雙重射擊第 2 顆不算）
         S.balls.push(b);
       }
       S.stats.fired += n;
-      emit({ t: 'fire', x: S.aimX, y: C.SPAWN_Y, n: n, cost: 1 });
+      emit({ t: 'fire', x: S.aimX, y: C.SPAWN_Y, n: n, cost: 1, fever: S.fever.active });
     }
 
     function missBall(b) {
@@ -9094,9 +9424,14 @@ root.MARBLE_ART =
       if (b.y + b.r < monsterTopY - 24) return false;
       for (var i = 0; i < S.monsters.length; i++) {
         var m = S.monsters[i];
-        if (!m.alive) continue;
+        if (!m.alive || m.invT > 0) continue;
+        if (m.shield > 0) {             // 怪物花樣：護盾泡泡整個包住（含弱點）
+          var sx = (b.x - m.x) / (m.rx * C.SHIELD_RX + b.r), sy = (b.y - (m.y - m.h * 0.04)) / (m.ry * C.SHIELD_RY + b.r);
+          if (sx * sx + sy * sy < 1) { hitShield(b, m); return true; }
+          continue;
+        }
         var w = m.weak, dx = b.x - w.x, dy = b.y - w.y, R = w.r + b.r;
-        if (dx * dx + dy * dy < R * R) { hitMonster(b, m, true); return true; }
+        if (dx * dx + dy * dy < R * R) { hitMonster(b, m, !m.weakShut); return true; }   // 閉殼：關著時算打身體
         var ex = (b.x - m.x) / (m.rx + b.r), ey = (b.y - m.y) / (m.ry + b.r);
         if (ex * ex + ey * ey < 1) { hitMonster(b, m, false); return true; }
       }
@@ -9218,18 +9553,24 @@ root.MARBLE_ART =
       var R = C.BOMB_R * M.blastR, i;
       emit({ t: 'explode', x: p.x, y: p.y, r: R });
       var a = b || snap;
-      var basePow = a ? a.dmg * a.mult * (a.gold ? C.GOLD_MULT : 1) : M.baseDmg;
+      var basePow = a ? a.dmg * a.mult * (a.gold ? C.GOLD_MULT : 1) * (a.fever ? C.FEVER_DMG : 1) : M.baseDmg;
       for (i = 0; i < S.monsters.length; i++) {
         var m = S.monsters[i];
-        if (!m.alive) continue;
+        if (!m.alive || m.invT > 0) continue;
         var ex = (m.x - p.x) / (m.rx + R), ey = (m.y - p.y) / (m.ry + R);
         if (ex * ex + ey * ey >= 1) continue;
         var frozen = m.frozenT > 0;
         var d = Math.max(1, Math.round(basePow * C.BOMB_DMG * M.blastDmg * (frozen ? 1 + M.frostDmg : 1)));
         var hx = clamp(p.x, m.x - m.rx * 0.8, m.x + m.rx * 0.8), hy = m.y - m.ry * 0.7;
+        if (m.shield > 0) {             // 怪物花樣：炸彈先打護盾（basePow 已含狂熱 ×2）；波及護盾照樣集氣
+          shieldDamage(m, d, hx, hy, false, true, !!(a && a.gold), false, !!(a && a.fever));
+          feverGain(C.FEVER_BOMB);
+          continue;
+        }
         damageMonster(m, d);
         emit({ t: 'hit', monsterId: m.id, x: hx, y: hy, dmg: d, crit: false, weak: false, gold: !!(a && a.gold), frozen: frozen,
-               combo: S.combo.n, kind: m.kind, bomb: true });
+               combo: S.combo.n, kind: m.kind, bomb: true, fever: !!(a && a.fever) });
+        feverGain(C.FEVER_BOMB);
         if (m.hp <= 0) kill(m);
       }
       var R2 = R * R;
@@ -9272,6 +9613,57 @@ root.MARBLE_ART =
       m.flashT = C.FLASH_T;
       S.stats.damage += d;
       if (d > S.stats.maxHit) S.stats.maxHit = d;
+      checkReshield(m);
+    }
+
+    // ---------------- 怪物花樣：護盾 ----------------
+    // 與狂熱（整合定案）：狂熱彈珠打護盾一樣 ×FEVER_DMG（護盾吸收的是加倍後的傷害，溢出仍不打到本體）；
+    //   打在護盾上＝一般命中，集氣 FEVER_HIT（不分是否在弱點上方，因為不會回收）；打破護盾再 +FEVER_BREAK。
+    function hitShield(b, m) {
+      var crit = M.critChance > 0 && rng() < M.critChance;
+      var w = m.weak, wx = b.x - w.x, wy = b.y - w.y, wr = w.r + b.r + 4;
+      var atWeak = wx * wx + wy * wy < wr * wr;      // 打在弱點正上方的護盾：傷害照弱點倍率（但不回收）
+      var d = b.dmg * b.mult * (crit ? 2 : 1) * (b.gold ? C.GOLD_MULT : 1) * (atWeak ? M.weakDmg : 1) * (b.fever ? C.FEVER_DMG : 1);
+      d = Math.max(1, Math.round(d));
+      S.combo.n++; S.combo.t = C.COMBO_WINDOW;
+      if (S.combo.n > S.combo.best) S.combo.best = S.combo.n;
+      if (S.combo.n > S.stats.maxCombo) S.stats.maxCombo = S.combo.n;
+      S.stats.hits++;
+      b._dead = true;                 // 打在護盾上：彈珠碎掉（不回收、不上火／冰）
+      shieldDamage(m, d, b.x, b.y, crit || b.mult > 1, false, b.gold, atWeak, b.fever);
+      feverGain(C.FEVER_HIT);
+      var ms = nextMilestone(comboMs);
+      if (S.combo.n >= ms) { comboMs++; emit({ t: 'combo', n: ms }); }
+    }
+    // 回傳 true＝傷害被護盾吸收（溢出的部分不打到本體）；fever＝狂熱彈珠造成的（Juice 畫狂熱火花）
+    function shieldDamage(m, d, x, y, crit, bomb, gold, weak, fever) {
+      if (!(m.shield > 0)) return false;
+      var got = Math.min(m.shield, d);
+      m.shield -= got;
+      m.shieldFlashT = C.FLASH_T;
+      S.stats.damage += got;
+      if (d > S.stats.maxHit) S.stats.maxHit = d;
+      emit({ t: 'shieldHit', monsterId: m.id, x: x, y: y, dmg: d, shield: Math.max(0, m.shield), max: m.shieldMax,
+             crit: !!crit, gold: !!gold, bomb: !!bomb, weak: !!weak, fever: !!fever, combo: S.combo.n, kind: m.kind });
+      if (m.shield <= 0) breakShield(m);
+      return true;
+    }
+    function breakShield(m) {
+      m.shield = 0;
+      m.stunT = C.SHIELD_STUN;        // 破盾暈眩：停住、弱點完全打開
+      m.tele = 0; m.teleMax = 0;
+      if (!m.moving && m.move) m._mvT = Math.max(m._mvT, C.MOVE_GAP[0]);
+      if (m._gPh !== 'open') { m._gPh = 'open'; m._gT = C.GUARD_OPEN; m.weakShut = false; m.shutWarn = false; }
+      S.stats.shields = (S.stats.shields || 0) + 1;
+      emit({ t: 'shieldBreak', monsterId: m.id, x: m.x, y: m.y, w: m.w, h: m.h, kind: m.kind });
+      feverGain(C.FEVER_BREAK);       // 破盾獎勵集氣（一樣受每秒上限限制）
+    }
+    function checkReshield(m) {       // 魔王：血量降到一半時護盾再張開一次
+      if (m.kind !== 'boss' || m._reup || !(m.shieldMax > 0) || m.hp <= 0 || m.hp > m.maxHp * C.SHIELD_REUP) return;
+      if (S.level && S.level.chapter < (C.SHIELD_REUP_FROM || 1)) return;
+      m._reup = true;
+      m.shield = m.shieldMax;
+      emit({ t: 'shieldUp', monsterId: m.id, x: m.x, y: m.y, w: m.w, h: m.h, shield: m.shield, kind: m.kind });
     }
 
     function nextMilestone(i) {
@@ -9286,6 +9678,7 @@ root.MARBLE_ART =
       if (weak) d *= M.weakDmg;
       if (frozen) d *= 1 + M.frostDmg;
       if (b.gold) d *= C.GOLD_MULT;
+      if (b.fever) d *= C.FEVER_DMG;      // 狂熱 ×2，和黃金 ×5 相乘
       d = Math.max(1, Math.round(d));
       S.combo.n++; S.combo.t = C.COMBO_WINDOW;
       if (S.combo.n > S.combo.best) S.combo.best = S.combo.n;
@@ -9294,11 +9687,12 @@ root.MARBLE_ART =
       if (weak) S.stats.weakHits++;
       damageMonster(m, d);
       emit({ t: 'hit', monsterId: m.id, x: b.x, y: b.y, dmg: d, crit: crit || b.mult > 1, weak: weak, gold: b.gold, frozen: frozen,
-             combo: S.combo.n, kind: m.kind });
+             combo: S.combo.n, kind: m.kind, fever: !!b.fever });
+      feverGain(weak ? C.FEVER_WEAK : C.FEVER_HIT);
       var ms = nextMilestone(comboMs);
       if (S.combo.n >= ms) { comboMs++; emit({ t: 'combo', n: ms }); }
       if (m.hp > 0) {
-        if (b.fire) applyBurn(m, b.dmg * b.mult * C.BURN_FACTOR, true);
+        if (b.fire) applyBurn(m, b.dmg * b.mult * C.BURN_FACTOR * (b.fever ? C.FEVER_DMG : 1), true);
         if (b.ice) applyFreeze(m);
       }
       if (weak && b.redrops < C.WEAK_REDROP_MAX) weakBack(b);
@@ -9311,7 +9705,7 @@ root.MARBLE_ART =
       b.redrops++;
       b.x = clamp(b.x, C.AIM_MIN, C.AIM_MAX); b.y = C.SPAWN_Y;
       b.vx = (rng() * 2 - 1) * C.SPAWN_VX; b.vy = C.SPAWN_VY;
-      b.dmg = M.baseDmg; b.mult = 1; b.fire = false; b.ice = false;   // 只保留黃金
+      b.dmg = M.baseDmg; b.mult = 1; b.fire = false; b.ice = false;   // 只保留黃金與狂熱
       b.age = 0; b._life = 0; b._stuck = 0; b._cpT = 0; b._cpY = b.y;
       emit({ t: 'weakBack', x: x1, y: y1, x2: b.x, y2: b.y, ballId: b.id });
     }
@@ -9337,7 +9731,9 @@ root.MARBLE_ART =
     }
 
     function dropFor(m) {
-      var base = (C.DROP[m.kind] || 0) * (1 + C.DROP_GROWTH * (S.level.chapter - 1));
+      // 群體小怪／分身掉 DROP_MINI；章節掉落倍率 DROP_CHAPTER（陣列最後一個值之後沿用）：第 1 章關卡變長，靠擊倒掉落把彈珠收支拉平
+      var ch = S.level.chapter, base = ((m.mini || m.child) ? C.DROP_MINI : (C.DROP[m.kind] || 0)) * (1 + C.DROP_GROWTH * (ch - 1));
+      if (C.DROP_CHAPTER != null) base *= perCh(C.DROP_CHAPTER, ch);
       return Math.max(1, Math.round(base * M.lootMult));
     }
 
@@ -9345,9 +9741,30 @@ root.MARBLE_ART =
       if (!m.alive) return;
       m.alive = false; m.hp = 0; m.deadT = 0;
       m.frozenT = 0; m.burnT = 0; m.burnDps = 0;
+      m.shield = 0; m.stunT = 0; m.tele = 0; m.moving = false; m.weakShut = false; m.shutWarn = false;
       S.stats.kills++;
-      var e = emit({ t: 'kill', monsterId: m.id, species: m.species, kind: m.kind, x: m.x, y: m.y, drop: 0 });
+      var e = emit({ t: 'kill', monsterId: m.id, species: m.species, kind: m.kind, x: m.x, y: m.y, drop: 0, mini: !!(m.mini || m.child) });
       e.drop = addMarbles(dropFor(m), 'kill');
+      if (!m.child && hasT(m, 'twin')) splitMonster(m);
+    }
+
+    // 怪物花樣：分身——倒下時在原地分裂成 2 隻小的（各占原本跑道的一半）
+    function splitMonster(m) {
+      var sp = SPEC[m.species], sc = C.TWIN_SCALE * (m.scale || 1);
+      var a = m._lo - m.w / 2 - C.LANE_MARGIN, b = m._hi + m.w / 2 + C.LANE_MARGIN;
+      if (b - a < sp.w * sc * 2 + 8) { var mid = (a + b) / 2, half = sp.w * sc + 6; a = Math.max(0, mid - half); b = Math.min(W, mid + half); }
+      var hp = Math.max(1, Math.round(m.maxHp * C.TWIN_HP)), kids = [], spdK = m._spd / (sp.speed || 1);
+      for (var i = 0; i < 2; i++) {
+        var la = i === 0 ? a : (a + b) / 2, lb = i === 0 ? (a + b) / 2 : b;
+        var k = newMonster(sp, hp, la, lb, sc, [], spdK * 1.25, rng);
+        k.kind = 'normal'; k.child = true; k.invT = C.SPAWN_INV; k.hue = m.hue;
+        k.x = clamp(m.x + (i === 0 ? -1 : 1) * m.w * 0.22, k._lo, k._hi);
+        k.dir = i === 0 ? -1 : 1;
+        updateWeak(k);
+        S.monsters.push(k);
+        kids.push({ id: k.id, species: k.species, name: k.name, kind: k.kind, x: k.x, y: k.y });
+      }
+      emit({ t: 'monsterSplit', monsterId: m.id, x: m.x, y: m.y, children: kids });
     }
 
     function updateMonsters(dt) {
@@ -9359,12 +9776,22 @@ root.MARBLE_ART =
           if (m.deadT >= C.DEAD_T) S.monsters.splice(i, 1);
           continue;
         }
+        if (m.invT > 0) m.invT = Math.max(0, m.invT - dt);
+        if (m.shieldFlashT > 0) m.shieldFlashT = Math.max(0, m.shieldFlashT - dt);
+        if (m.moving && m.move === 'hop') stepHop(m, dt);          // 跳到一半被冰凍也會先落地
         if (m.frozenT > 0) m.frozenT = Math.max(0, m.frozenT - dt);
+        else if (m.stunT > 0) m.stunT = Math.max(0, m.stunT - dt);  // 破盾暈眩：停住
         else {
-          m.x += m.dir * m._spd * dt;
-          if (m.x < m._lo) { m.x = m._lo; m.dir = 1; } else if (m.x > m._hi) { m.x = m._hi; m.dir = -1; }
+          if (m.moving) stepMove(m, dt);
+          else if (m.tele > 0) { m.tele -= dt; if (m.tele <= 0) startMove(m); }
+          else {
+            m.x += m.dir * m._spd * dt;
+            if (m.x < m._lo) { m.x = m._lo; m.dir = 1; } else if (m.x > m._hi) { m.x = m._hi; m.dir = -1; }
+            if (m.move) { m._mvT -= dt; if (m._mvT <= 0) warnMove(m); }
+          }
           var wk = SPEC[m.species].weak;
           if (wk.arc) m._ph += wk.spd * dt;
+          if (m.traits.length && hasT(m, 'guard')) stepGuard(m, dt);
         }
         if (m.burnT > 0) {
           m.burnT -= dt; m._bt += dt;
@@ -9373,8 +9800,10 @@ root.MARBLE_ART =
             var raw = m.burnDps * C.BURN_TICK * M.burnMult + m._ba;
             var dmg = Math.floor(raw);
             m._ba = raw - dmg;
-            if (dmg >= 1) {
+            if (dmg >= 1 && m.shield > 0) shieldDamage(m, dmg, m.x, m.y - m.h * 0.25, false, false);   // 怪物花樣：燒傷先燒護盾
+            else if (dmg >= 1) {
               m.hp -= dmg; S.stats.damage += dmg;
+              checkReshield(m);
               emit({ t: 'burn', monsterId: m.id, x: m.x, y: m.y - m.h * 0.25, dmg: dmg });
               if (m.hp <= 0) { kill(m); continue; }
             }
@@ -9382,6 +9811,65 @@ root.MARBLE_ART =
           if (m.burnT <= 0) { m.burnT = 0; m.burnDps = 0; m._bt = 0; m._ba = 0; }
         }
         updateWeak(m);
+      }
+    }
+
+    // ---------------- 怪物花樣：移動（衝刺／跳跳／瞬移，都先有預兆）與閉殼 ----------------
+    function warnMove(m) {
+      var span = m._hi - m._lo;
+      if (span < 10) { m._mvT = C.MOVE_GAP[1]; return; }
+      var x = m.x, minD = span * C.MOVE_MIN;
+      for (var k = 0; k < 6; k++) { x = m._lo + span * rng(); if (Math.abs(x - m.x) >= minD) break; }
+      if (Math.abs(x - m.x) < minD) x = m.x - m._lo > m._hi - m.x ? m._lo : m._hi;
+      m.moveX = x;
+      m.tele = m.teleMax = C.MOVE_WARN[m.move] || 0.5;
+      emit({ t: 'dashWarn', monsterId: m.id, move: m.move, x: m.x, y: m.y, x2: x, dur: m.tele, w: m.w, h: m.h });
+    }
+    function startMove(m) {
+      m.tele = 0; m.teleMax = 0;
+      var x1 = m.x;
+      if (m.move === 'blink') {
+        m.x = m.moveX; m.dir = rng() < 0.5 ? -1 : 1;
+        m._mvT = C.MOVE_GAP[0] + rng() * (C.MOVE_GAP[1] - C.MOVE_GAP[0]);
+      } else {
+        m.moving = true;
+        if (m.move === 'hop') { m._hopT = 0; m._hopX0 = m.x; }
+        m.dir = m.moveX > m.x ? 1 : -1;
+      }
+      emit({ t: 'dash', monsterId: m.id, move: m.move, x: x1, y: m.y, x2: m.moveX, y2: m.y, w: m.w, h: m.h });
+    }
+    function endMove(m) {
+      m.moving = false; m.air = 0;
+      m._mvT = C.MOVE_GAP[0] + rng() * (C.MOVE_GAP[1] - C.MOVE_GAP[0]);
+    }
+    function stepMove(m, dt) {
+      if (m.move !== 'dash') return;
+      var d = m.moveX - m.x, st = C.DASH_SPEED * dt;
+      if (Math.abs(d) <= st) { m.x = m.moveX; endMove(m); }
+      else m.x += d > 0 ? st : -st;
+    }
+    function stepHop(m, dt) {
+      m._hopT += dt;
+      var u = Math.min(1, m._hopT / C.HOP_T);
+      m.x = m._hopX0 + (m.moveX - m._hopX0) * u;
+      m.air = 4 * C.HOP_H * u * (1 - u);
+      m.y = FLOOR_Y - m.h / 2 - m.air;
+      if (u >= 1) {
+        m.y = FLOOR_Y - m.h / 2;
+        endMove(m);
+        emit({ t: 'land', monsterId: m.id, x: m.x, y: FLOOR_Y, w: m.w, kind: m.kind });
+      }
+    }
+    function stepGuard(m, dt) {
+      m._gT -= dt;
+      if (m._gT > 0) return;
+      if (m._gPh === 'open') { m._gPh = 'warn'; m._gT = C.GUARD_WARN; m.shutWarn = true; }
+      else if (m._gPh === 'warn') {
+        m._gPh = 'shut'; m._gT = C.GUARD_SHUT; m.shutWarn = false; m.weakShut = true;
+        emit({ t: 'weakShut', monsterId: m.id, x: m.weak.x, y: m.weak.y, shut: true });
+      } else {
+        m._gPh = 'open'; m._gT = C.GUARD_OPEN; m.weakShut = false;
+        emit({ t: 'weakShut', monsterId: m.id, x: m.weak.x, y: m.weak.y, shut: false });
       }
     }
 
@@ -9396,6 +9884,45 @@ root.MARBLE_ART =
       }
     }
 
+    // ---------------- 狂熱模式（feat/fever） ----------------
+    // 命中累積能量（弱點更多、連擊 ≥25 再 ×1.5），集滿自動啟動 FEVER_DUR 秒：
+    // 期間新發射的彈珠 fever=true（傷害 ×FEVER_DMG、分身繼承、弱點回收保留）、發射間隔 ×FEVER_RATE；結束後能量歸零。
+    function feverGain(v) {
+      var F = S.fever;
+      if (F.active || S.phase !== 'play' || !(v > 0)) return;
+      if (S.combo.n >= C.FEVER_COMBO_AT) v *= C.FEVER_COMBO_MULT;
+      v = Math.min(v, feverBudget);     // 每秒累積上限（天賦堆很強、命中爆量時也不會每幾秒就觸發）
+      if (!(v > 0)) return;
+      feverBudget -= v;
+      F.energy = Math.min(1, F.energy + v);
+      if (!F.ready && F.energy >= C.FEVER_READY) { F.ready = true; emit({ t: 'feverReady', energy: F.energy }); }
+      if (F.energy >= 1) feverStart();
+    }
+    function feverStart() {
+      var F = S.fever;
+      if (F.active) return;
+      F.active = true; F.t = F.dur = C.FEVER_DUR; F.energy = 1; F.ready = true; F.count++;
+      S.stats.fevers++;
+      var iv = fireIntervalNow();
+      if (fireCd > iv) fireCd = iv;    // 立刻進入快速連發
+      emit({ t: 'feverStart', dur: F.dur, n: F.count, x: S.aimX, y: C.SPAWN_Y });
+    }
+    function feverEnd() {
+      var F = S.fever;
+      if (!F.active) return;
+      F.active = false; F.t = 0; F.energy = 0; F.ready = false;
+      emit({ t: 'feverEnd', n: F.count });
+    }
+    var feverBudget = 0;
+    function feverTick(dt) {
+      var F = S.fever;
+      if (!F.active) { feverBudget = Math.min(C.FEVER_GAIN_CAP * C.FEVER_GAIN_BURST, feverBudget + C.FEVER_GAIN_CAP * dt); return; }
+      F.t -= dt;
+      F.energy = Math.max(0, F.t / F.dur);
+      if (F.t <= 0) feverEnd();
+    }
+    function fireIntervalNow() { return M.fireInterval * (S.fever.active ? C.FEVER_RATE : 1); }
+
     // ---------------- 每一步 ----------------
     function tickPlay(dt) {
       S.time += dt;
@@ -9408,6 +9935,7 @@ root.MARBLE_ART =
       if (S.refillT <= 0) { S.refillT += S.refillInterval; addMarbles(C.REFILL_AMOUNT, 'timer'); }
       // 連擊計時
       if (S.combo.n > 0) { S.combo.t -= dt; if (S.combo.t <= 0) { S.combo.n = 0; S.combo.t = 0; comboMs = 0; } }
+      feverTick(dt);
 
       updateMonsters(dt);
       updatePegs(dt);
@@ -9432,7 +9960,7 @@ root.MARBLE_ART =
         } else if (S.balls.length + M.shots <= C.FIELD_MAX) {
           doFire();
           pendingShot = false;
-          fireCd = Math.max(fireCd, -DT) + M.fireInterval;
+          fireCd = Math.max(fireCd, -DT) + fireIntervalNow();
         }
       }
 
@@ -9479,9 +10007,9 @@ root.MARBLE_ART =
       if (def.id === 'quick' && M.fireRate >= C.FIRE_RATE_MAX - 1e-9) return true;
       return false;
     }
-    function rarityFor(source) {
+    function rarityFor(source, atIndex) {
       if (source === 'boss' || source === 'start') return 'g';
-      var idx = S.level ? S.level.index : 1, u = rng();
+      var idx = atIndex || (S.level ? S.level.index : 1), u = rng();   // atIndex：章節補償自動補給重播的關卡
       if (source === 'elite') return u < C.ELITE_GOLD + C.ELITE_GOLD_PER * idx ? 'g' : 'b';
       var pg = Math.min(C.GOLD_MAX, C.GOLD_BASE + C.GOLD_PER * (idx - 1));
       var pb = Math.min(C.BLUE_MAX, C.BLUE_BASE + C.BLUE_PER * (idx - 1));
@@ -9499,10 +10027,10 @@ root.MARBLE_ART =
       var tpl = owned > 0 && def.descUp ? def.descUp : def.desc;
       return { id: def.id, rarity: rar, name: def.name, desc: tpl.replace(/\{v\}/g, String(v)), icon: def.icon, owned: owned };
     }
-    function rollCards(source, avoid) {
+    function rollCards(source, avoid, atIndex) {
       var cards = [], used = {};
       for (var c = 0; c < 3; c++) {
-        var rar = rarityFor(source);
+        var rar = rarityFor(source, atIndex);
         var order = rar === 'g' ? ['g', 'b', 'w'] : rar === 'b' ? (source === 'elite' ? ['b', 'g', 'w'] : ['b', 'w', 'g']) : ['w', 'b', 'g'];
         var got = null;
         for (var o = 0; o < order.length && !got; o++) {
@@ -9529,7 +10057,30 @@ root.MARBLE_ART =
       if (!cards.length) { afterOffer(source, remaining); return; }
       S.phase = 'talent';
       S.offer = { cards: cards, source: source, remaining: remaining };
+      if (source === 'start') S.offer.auto = startAutoN;   // 章節補償：開局已自動補給幾張（用戶端顯示用）
       emit({ t: 'talentOffer', cards: cards, source: source, remaining: remaining });
+    }
+    // 章節補償的自動補給：照一般玩家的偏好從三張裡挑一張（權重＝START_AUTO_PREF[id]×START_AUTO_RARITY[稀有度]）
+    var startAutoN = 0;
+    function autoPickIndex(cards) {
+      var pref = C.START_AUTO_PREF || {}, rp = C.START_AUTO_RARITY || {}, w = [], sum = 0, i;
+      for (i = 0; i < cards.length; i++) { var x = (pref[cards[i].id] || 1) * (rp[cards[i].rarity] || 1); w.push(x); sum += x; }
+      var u = rng() * sum;
+      for (i = 0; i < w.length - 1; i++) { u -= w[i]; if (u < 0) break; }
+      return i;
+    }
+    function startAutoSupply(ch) {
+      var lv = startAutoLevels(ch, C), n = 0, ev0 = ev.length;
+      for (var i = 0; i < lv.length; i++) {
+        var st = lv[i] - Math.floor((lv[i] - 1) / 10) * 10;
+        var src = st === 10 ? 'boss' : st === 5 ? 'elite' : 'level';
+        var cards = rollCards(src, null, lv[i]);
+        if (!cards.length) continue;
+        var c = cards[autoPickIndex(cards)];
+        if (applyTalent(c.id, c.rarity)) n++;
+      }
+      ev.length = ev0;                // 補給時的 income 事件不送出（開局一次補滿，不要一直跳數字）
+      return n;
     }
     function afterOffer(source, remaining) {
       if (source === 'start' && remaining > 1) openOffer('start', remaining - 1);
@@ -9628,7 +10179,19 @@ root.MARBLE_ART =
         S.pegs = pegs; boardClearT = -1; boardPattern = 'custom';
         buildGrid();
       },
+      // 狂熱模式：fever() 立刻啟動（能量直接集滿）；feverEnd() 立刻結束；setFever(e) 設定能量 0～1（不會自動啟動以外的副作用）
+      fever: function () { if (S.phase !== 'play') return false; if (!S.fever.active) { S.fever.energy = 1; feverStart(); } return true; },
+      feverEnd: function () { if (!S.fever.active) return false; feverEnd(); return true; },
+      setFever: function (e) {
+        e = clamp(Number(e) || 0, 0, 1);
+        if (S.fever.active) return false;
+        S.fever.energy = e; S.fever.ready = e >= C.FEVER_READY;
+        if (e >= 1 && S.phase === 'play') feverStart();
+        return true;
+      },
       newBoard: function (pattern) { if (!S.level) return false; genBoard(pattern); return true; },
+      // 怪物花樣：之後的關卡每隻普通／精英怪都帶這些 trait（boss:true 連魔王也帶）；null 取消。搭配 gotoLevel 截圖／測試用
+      forceTraits: function (list, opt) { forcedTraits = list ? { list: [].concat(list), boss: !!(opt && opt.boss) } : null; return true; },
       info: function () {
         return { seed: seed, boardNo: boardNo, pattern: boardPattern, zoneY1: zoneY1, fireCd: fireCd, pendingShot: pendingShot,
                  bombs: bombs.length, boardClearT: boardClearT, refillNext: refillNext, picksCount: copyObj(picksCount) };
@@ -9643,7 +10206,10 @@ root.MARBLE_ART =
       S.level = levelInfoFor(startIndex, D);
       S.cap = capFor(startIndex);
       S.marbles = S.cap;
-      openOffer('start', (startChapter - 1) * 2);
+      startAutoN = startAutoSupply(startChapter);
+      S.cap = capFor(startIndex); S.marbles = S.cap;   // 自動補給拿到的彈藥箱也算進上限，並補滿
+      var nPick = startPicksFor(startChapter, C);
+      if (nPick > 0) openOffer('start', nPick); else startLevel(startIndex);
     } else {
       startIndex = 1;
       S.cap = capFor(1);
@@ -9671,6 +10237,8 @@ root.MARBLE_ART =
     create: create,
     // 靜態輔助（用戶端可用）：關卡資訊與上限
     levelInfo: function (index) { return levelInfoFor(index, root.ML_DATA); },
+    startPicks: function (chapter) { return startPicksFor(chapter, root.ML_CONFIG); },          // 章節補償：金卡三選一次數
+    startAuto: function (chapter) { return startAutoLevels(chapter, root.ML_CONFIG).length; }, // 章節補償：自動補給次數（上限，天賦全滿時會少一點）
     capFor: function (index) { return Math.max(1, Math.floor(index)) * ((root.ML_CONFIG && root.ML_CONFIG.CAP_PER_LEVEL) || 100); }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -9735,6 +10303,7 @@ root.MARBLE_ART =
   var FIRE_COL = ['#fff6b0', '#ffe24a', '#ffb85a', '#ff7c22', '#d8501e'];
   var ICE_COL = ['#ffffff', '#e8fdff', '#c4f8ff', '#5ee0f8', '#2ca6dc'];
   var SMOKE_COL = ['#6c668a', '#857fa3', '#a8a2c4'];
+  var FEVER_COL = ['#fff6b0', '#ffe24a', '#ffb81a', '#ff8ec2', '#8cf07c', '#5ee0f8', '#c58cff'];   // 狂熱：金色為主＋彩虹點綴
   var DUST_COL = ['#c49a6a', '#a8a2c4', '#d8c8a8'];
   var TIER_COL = ['#ffffff', '#ffe24a', '#ff9a2a', '#ff4a9a', '#b98cff', '#5ef0c8'];
 
@@ -9763,7 +10332,8 @@ root.MARBLE_ART =
     gold: ['#fff6c0', '#ffbe1a'], ice: ['#e8fdff', '#5ec8f8'], burn: ['#ffd08a', '#ff6a1a'],
     green: ['#e2ffd2', '#3ecf5a'], gray: ['#e6e2f0', '#9a94b8'], red: ['#ffd6d6', '#ec3a4c'], blue: ['#e2ecff', '#5a86ff'],
     c0: ['#ffffff', '#cfc8ea'], c1: ['#fff07a', '#ffa21a'], c2: ['#ffd08a', '#ff6a1a'],
-    c3: ['#ffd0e6', '#ff3a8a'], c4: ['#e6d0ff', '#9a5aff'], c5: ['#d0fff0', '#1ad8a0']
+    c3: ['#ffd0e6', '#ff3a8a'], c4: ['#e6d0ff', '#9a5aff'], c5: ['#d0fff0', '#1ad8a0'],
+    shield: ['#e8fdff', '#3cc8f0'], purple: ['#f4dcff', '#b45aff']          // 怪物花樣：護盾數字、瞬移／分身字
   };
   var atlases = {};
   function atlas(style) {
@@ -10247,6 +10817,10 @@ root.MARBLE_ART =
     }
     if (crit || gold) for (i = 0; i < 2; i++) P(K_STAR, x + rr(-8, 8), y - rr(0, 8), rr(-60, 60), rr(-120, -60), 200, 2, rr(0.35, 0.5), 2, '#fff6b0');
     if (gold) for (i = 0; i < 4; i++) P(K_SPARK, x + rr(-14, 14), y + rr(-14, 6), rr(-30, 30), rr(-60, -20), 0, 2, rr(0.3, 0.55), 2, '#ffe24a');
+    if (e.fever) {                       // 狂熱命中：更亮（金白閃點＋彩虹火花）
+      ring(1, x, y, 0, 10, 0.06, '#fff8d0', 0);
+      for (i = 0; i < budget(3); i++) P(K_SPARK, x + rr(-10, 10), y + rr(-10, 4), rr(-90, 90), rr(-150, -50), 260, 2, rr(0.25, 0.45), 2, pick(FEVER_COL));
+    }
     if (frozen) for (i = 0; i < 3; i++) P(K_SHARD, x + rr(-8, 8), y, rr(-80, 80), rr(-110, -40), 360, 1, rr(0.3, 0.45), 2, pick(ICE_COL));
     if (weak) {
       ring(0, x, y, 4, 30, 0.22, '#ff8ec2', 3);
@@ -10293,11 +10867,11 @@ root.MARBLE_ART =
 
   HANDLERS.kill = function (e) {
     var x = num(e.x, 180), y = num(e.y, 520), kind = e.kind || 'normal', drop = Math.max(0, num(e.drop, 0) | 0), i;
-    var big = kind === 'boss' ? 2.2 : kind === 'elite' ? 1.5 : 1, force = big > 1;
+    var big = kind === 'boss' ? 2.2 : kind === 'elite' ? 1.5 : e.mini ? 0.7 : 1, force = big > 1;   // 怪物花樣：小怪特效小一點
     ring(1, x, y, 0, 26 * big, 0.08, '#ffffff', 0);
     ring(0, x, y, 8, 46 * big, 0.32, '#fff6b0', Math.round(3 * big));
     if (big > 1) { ring(0, x, y, 6, 70 * big, 0.45, '#ff8ec2', 3, 0.06); ring(5, x, y, 10, 60 * big, 0.4, '#fff6b0', 3); }
-    var n = force ? Math.round(24 * big) : budget(22);
+    var n = force ? Math.round(24 * big) : budget(e.mini ? 12 : 22);
     for (i = 0; i < n; i++) {
       var a = rnd() * 6.283, v = rr(90, 250) * Math.sqrt(big);
       P(i % 3 ? K_SQ : K_CONF, x + rr(-10, 10) * big, y + rr(-10, 10) * big, Math.cos(a) * v, Math.sin(a) * v - 90, 380, 1.4, rr(0.55, 0.95), pick([2, 4, 4]), pick(CONFETTI), force);
@@ -10427,6 +11001,123 @@ root.MARBLE_ART =
       SCR.warn = SCR.warnDur = 1.1; SCR.warnCol = '#ff9a2a'; SCR.warnPulses = 2;
       S.sfx('elite_appear');
     }
+  };
+  /* ---------------- 怪物花樣（feat/monsters）：護盾、移動預兆、閉殼、分身 ---------------- */
+  var SHIELD_COL = ['#ffffff', '#e8fdff', '#bdf4ff', '#7fe3ff', '#3cc8f0'];
+  HANDLERS.shieldHit = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 520), dmg = Math.max(0, num(e.dmg, 1)), big = !!(e.crit || e.gold || e.weak), i;
+    if (frameNums < 12) { frameNums++; hitNum(e.monsterId, x, y - 6, dmg, 'shield', big ? 2.5 : 2, big, false); }
+    var n = budget(big ? 5 : 3);
+    for (i = 0; i < n; i++) {
+      var a = -Math.PI / 2 + rr(-1.3, 1.3), v = rr(70, 160);
+      P(K_SHARD, x, y, Math.cos(a) * v, Math.sin(a) * v, 340, 1, rr(0.2, 0.36), 2, pick(SHIELD_COL));
+    }
+    ring(0, x, y, 3, big ? 20 : 13, 0.16, '#bdf4ff', 2);
+    if (e.fever) {                       // 狂熱彈珠打在護盾上：和打本體一樣多一圈金白閃點＋彩虹火花
+      ring(1, x, y, 0, 10, 0.06, '#fff8d0', 0);
+      for (i = 0; i < budget(2); i++) P(K_SPARK, x + rr(-10, 10), y + rr(-10, 4), rr(-90, 90), rr(-150, -50), 260, 2, rr(0.25, 0.45), 2, pick(FEVER_COL));
+    }
+    if (big) addShake(0.08, 0.25);
+    S.sfx('shield_hit', { pitch: big ? 2 : 0, volume: e.bomb ? 0.7 : 1 });
+    comboHit(num(e.combo, 0));
+  };
+  HANDLERS.shieldBreak = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 520), w = num(e.w, 80), h = num(e.h, 72), boss = e.kind === 'boss', i;
+    var big = boss ? 1.8 : e.kind === 'elite' ? 1.35 : w < 60 ? 0.75 : 1;
+    ring(1, x, y, 0, 22 * big, 0.08, '#ffffff', 0);
+    ring(0, x, y, w * 0.3, w * 0.75 * big, 0.3, '#bdf4ff', 3);
+    ring(5, x, y, 8, 52 * big, 0.32, '#e8fdff', 2);
+    var n = Math.round(26 * big);
+    for (i = 0; i < n; i++) {                           // 泡泡碎片沿著外框往外噴
+      var a = rnd() * 6.283, ox = Math.cos(a) * w * 0.5, oy = Math.sin(a) * h * 0.55, v = rr(110, 260) * Math.sqrt(big);
+      P(K_SHARD, x + ox, y + oy, Math.cos(a) * v, Math.sin(a) * v - 60, 420, 1.2, rr(0.4, 0.75), pick([2, 2, 4]), pick(SHIELD_COL), true);
+    }
+    for (i = 0; i < 4; i++) P(K_STAR, x + rr(-16, 16), y - h * 0.4, rr(-90, 90), rr(-180, -80), 300, 1.2, rr(0.45, 0.7), 2, '#fff6b0', true);
+    labelFx('破盾！', 'shield', boss ? 26 : 20, x, y - h * 0.55, 0.85, -46, 1.5);
+    hitStop(boss ? 0.1 : 0.05, 0.3);
+    SCR.flash = Math.max(SCR.flash, boss ? 0.35 : 0.18); SCR.flashCol = '#e8fdff'; SCR.flashDecay = 3.5;
+    addShake(boss ? 0.55 : 0.32, 0.7);
+    vib(boss ? 35 : 22, 100);
+    S.sfx('shield_break', { pitch: boss ? -3 : w < 60 ? 3 : 0 });
+  };
+  HANDLERS.shieldUp = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 520), w = num(e.w, 176);
+    ring(0, x, y, w * 0.8, w * 0.35, 0.4, '#7fe3ff', 3);
+    ring(0, x, y, w * 0.95, w * 0.45, 0.5, '#e8fdff', 2, 0.1);
+    labelFx('護盾再生！', 'shield', 22, x, y - num(e.h, 152) * 0.5, 1.0, -30, 1.3);
+    addShake(0.25, 0.5);
+    S.sfx('shield_up');
+  };
+  HANDLERS.dashWarn = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 520), h = num(e.h, 72), mv = e.move;
+    if (mv === 'dash') labelFx('!', 'crit', 22, x + num(e.w, 80) * 0.42, y - h * 0.45, 0.55, -20, 1.6);   // 放在頭的斜上方，不擋血條
+    else if (mv === 'blink') {
+      var x2 = num(e.x2, x), i;
+      for (i = 0; i < 6; i++) P(K_SPARK, x2 + rr(-18, 18), FLOOR_Y - rr(2, 30), rr(-10, 10), rr(-40, -10), 0, 1, rr(0.4, 0.7), 2, i & 1 ? '#f4c8ff' : '#e59bff');
+    }
+    S.sfx('dash_warn', { pitch: mv === 'hop' ? 3 : mv === 'blink' ? 5 : 0, volume: 0.8 });
+  };
+  HANDLERS.dash = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 520), x2 = num(e.x2, x), w = num(e.w, 80), h = num(e.h, 72), mv = e.move, i, n;
+    if (mv === 'blink') {
+      ring(0, x, y, 4, w * 0.6, 0.22, '#e59bff', 2);
+      ring(1, x2, y, 0, w * 0.35, 0.1, '#ffffff', 0);
+      ring(0, x2, y, w * 0.7, 6, 0.22, '#f4c8ff', 2);
+      n = budget(10);
+      for (i = 0; i < n; i++) P(i & 1 ? K_SPARK : K_STAR, x + rr(-w * 0.35, w * 0.35), y + rr(-h * 0.35, h * 0.35), rr(-30, 30), rr(-60, -10), 0, 1.5, rr(0.3, 0.55), 2, i & 1 ? '#f4c8ff' : '#e59bff');
+      S.sfx('blink');
+    } else if (mv === 'hop') {
+      n = budget(5);
+      for (i = 0; i < n; i++) { var p = P(K_SMOKE, x + rr(-w * 0.3, w * 0.3), FLOOR_Y - 3, rr(-50, 50), rr(-25, -5), 0, 3, rr(0.25, 0.4), 4, pick(DUST_COL)); if (p) { p.s2 = 7; p.layer = 1; } }
+      S.sfx('hop');
+    } else {
+      var dir = x2 > x ? 1 : -1;
+      n = budget(10);
+      for (i = 0; i < n; i++) { var q = P(K_SMOKE, x - dir * w * 0.3 + rr(-6, 6), FLOOR_Y - rr(2, 10), -dir * rr(40, 120), rr(-30, -5), 0, 3, rr(0.3, 0.5), 4, pick(DUST_COL)); if (q) { q.s2 = 9; q.layer = 1; } }
+      for (i = 0; i < 4; i++) P(K_SQ, x, y + rr(-h * 0.3, h * 0.3), -dir * rr(120, 220), 0, 0, 4, rr(0.15, 0.25), 2, '#ffe9a8');
+      addShake(0.08, 0.2);
+      S.sfx('dash');
+    }
+  };
+  HANDLERS.land = function (e) {
+    var x = num(e.x, 180), w = num(e.w, 80), n = budget(6), i;
+    for (i = 0; i < n; i++) { var p = P(K_SMOKE, x + rr(-w * 0.35, w * 0.35), FLOOR_Y - 3, (i & 1 ? 1 : -1) * rr(30, 80), rr(-20, -4), 0, 3, rr(0.25, 0.4), 4, pick(DUST_COL)); if (p) { p.s2 = 8; p.layer = 1; } }
+    addShake(e.kind === 'boss' ? 0.3 : 0.06, 0.3);
+    S.sfx('land', { volume: w < 60 ? 0.6 : 1 });
+  };
+  HANDLERS.weakShut = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 520);
+    ring(0, x, y, e.shut ? 18 : 4, e.shut ? 6 : 18, 0.16, e.shut ? '#a99bcc' : '#ffe0f0', 2);
+    S.sfx(e.shut ? 'guard_close' : 'guard_open', { volume: 0.8 });
+  };
+  HANDLERS.monsterSplit = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 520), i;
+    ring(1, x, y, 0, 18, 0.08, '#ffffff', 0);
+    ring(0, x, y, 6, 40, 0.26, '#ff9ad0', 3);
+    for (i = 0; i < 10; i++) P(K_CONF, x + rr(-10, 10), y + rr(-10, 10), rr(-160, 160), rr(-200, -60), 380, 1.3, rr(0.4, 0.7), pick([2, 4]), pick(CONFETTI), true);
+    labelFx('分身！', 'purple', 18, x, y - 40, 0.75, -40, 1.4);
+    S.sfx('monster_split');
+  };
+
+  // ---- 狂熱模式（feat/fever）：大字、倒數、邊緣金光由用戶端畫；Juice 負責爆發粒子、閃光、震動與音效
+  HANDLERS.feverReady = function () { S.sfx('fever_ready'); };
+  HANDLERS.feverStart = function (e) {
+    var i, p;
+    for (i = 0; i < 44; i++) {                       // 從兩側往中間噴的彩虹金粉
+      var side = i & 1, a = side ? rr(-2.6, -2.0) : rr(-1.1, -0.5), v = rr(240, 460);
+      p = P(i % 3 ? K_SPARK : K_STAR, side ? W - 10 : 10, rr(120, 420), Math.cos(a) * v, Math.sin(a) * v, 220, 1.4, rr(0.6, 1.1), 2, pick(FEVER_COL), true);
+    }
+    for (i = 0; i < 18; i++) P(K_STAR, rr(30, W - 30), rr(60, 200), rr(-30, 30), rr(-40, 10), 80, 1, rr(0.6, 1.0), 2, '#fff6b0', true);
+    ring(0, W / 2, 230, 10, 190, 0.45, '#ffe24a', 4);
+    ring(0, W / 2, 230, 0, 120, 0.3, '#ffffff', 3);
+    SCR.flash = Math.max(SCR.flash, 0.4); SCR.flashCol = '#fff2b0'; SCR.flashDecay = 2.4;
+    addShake(0.35, 0.5);
+    vib(40, 80);
+    S.sfx('fever_start');
+  };
+  HANDLERS.feverEnd = function () {
+    for (var i = 0; i < 12; i++) P(K_SPARK, rr(20, W - 20), rr(40, 120), rr(-20, 20), rr(10, 60), 60, 1, rr(0.4, 0.7), 2, pick(FEVER_COL));
+    S.sfx('fever_end');
   };
   // talentOffer / reroll / talentPick / gameOver：音效由用戶端負責，Juice 不出聲
 
@@ -11337,6 +12028,7 @@ root.MARBLE_ART =
     E.talentPanel.hidden = !(screen === 'talent' || talentClosing);
     E.pausePanel.hidden = screen !== 'pause';
     E.overPanel.hidden = screen !== 'over';
+    if (screen !== 'over') shareClose(true);   // 離開結束畫面時一併關掉分享預覽
     if (hudWasHidden !== E.hud.hidden) layout(true);   // HUD／操作區顯示或隱藏會改變舞台大小，立刻重算避免閃一格空白
   }
 
@@ -11478,7 +12170,9 @@ root.MARBLE_ART =
     if (!s2 || !s2.state) { showCoreMsg('遊戲核心建立失敗，請稍後再試'); return false; }
     releaseInputs();
     clearDealTimers();
-    sim = s2; runChapter = ch; runSeed = seed; startTotal = (ch - 1) * 2;
+    sim = s2; runChapter = ch; runSeed = seed;
+    // 章節補償總次數：直接讀 sim 開出的第一組 offer（次數公式在 sim.js startPicksFor，平衡會調）
+    startTotal = s2.state.offer && s2.state.offer.source === 'start' ? (s2.state.offer.remaining | 0) : 0;
     bestAtRun = save.best ? { chapter: save.best.chapter, stage: save.best.stage, index: save.best.index } : null;
     save.runs = (save.runs | 0) + 1; writeSave();
     overShown = false; talentSig = ''; talentOffer = null; clearedLabel = '';
@@ -11486,6 +12180,7 @@ root.MARBLE_ART =
     E.aimHint.hidden = false; knobX = -1;
     E.talentPanel.classList.remove('closing'); talentClosing = false;
     Jz.call('reset');
+    feverHide();
     var lv = sim.state.level || DEF_LEVEL;
     setTheme(lv.theme || themeIdx(lv.chapter), lv.variant | 0);
     setScreen(sim.state.phase === 'talent' ? 'talent' : 'play');
@@ -11510,6 +12205,7 @@ root.MARBLE_ART =
     }
   }
   function onEvent(ev) {
+    shareTrack(ev);   // 分享圖：記錄最強戰果
     switch (ev.t) {
       case 'levelStart': onLevelStart(ev); break;
       case 'fire': firePulse(); break;
@@ -11521,6 +12217,8 @@ root.MARBLE_ART =
         showBanner('clear', '過關！', ev.refund > 0 ? ('場上彈珠退回 +' + ev.refund) : '');
         break;
       case 'boardClear': showToast('清盤！+' + (ev.bonus != null ? ev.bonus : 10)); break;
+      case 'feverStart': feverShow(); break;
+      case 'feverEnd': feverHide(); break;
       case 'talentOffer': talentSig = ''; break;
       case 'reroll': talentSig = ''; break;
       case 'gameOver': openOver(ev); break;
@@ -11539,10 +12237,30 @@ root.MARBLE_ART =
     var label = lv.label || (ch + '-' + lv.stage);
     var mons = ev.monsters || [], bossNm = '', eliteNm = '';
     for (var i = 0; i < mons.length; i++) { if (mons[i].kind === 'boss' && !bossNm) bossNm = mons[i].name || ''; if (mons[i].kind === 'elite' && !eliteNm) eliteNm = mons[i].name || ''; }
-    if (lv.kind === 'boss') showBanner('boss', label + ' 魔王 · ' + (bossNm || '章節魔王'), '弱點會移動，瞄準發光處！');
-    else if (lv.kind === 'elite') showBanner('elite', label + ' 精英來襲！', eliteNm);
-    else showBanner('start', label + ' ' + themeName(t, v), '');
+    var tip = traitTip(mons), bigT = traitNames(mons, lv.kind === 'boss' ? 'boss' : 'elite');
+    if (lv.kind === 'boss') showBanner('boss', label + ' 魔王 · ' + (bossNm || '章節魔王'), tip || (bigT ? bigT + '　弱點會移動！' : '弱點會移動，瞄準發光處！'));
+    else if (lv.kind === 'elite') showBanner('elite', label + ' 精英來襲！', tip || (eliteNm + (bigT ? ' · ' + bigT : '')));
+    else if (lv.swarm) showBanner('elite', label + ' 群體來襲！', tip || (mons.length + ' 隻小怪一起上'));
+    else showBanner('start', label + ' ' + themeName(t, v), tip);
+    if (tip && E.banner.className.indexOf(' long') < 0) E.banner.className += ' long';
     syncMusic();
+  }
+
+  /* ================= 怪物花樣：提示字（data.js traits） ================= */
+  var traitSeenSim = null, traitSeen = {};
+  function traitDefs() { var D = window.ML_DATA; return (D && D.traits) || {}; }
+  // 這一局第一次出現的 trait → 回傳提示字（一次只提示一種，其餘下次再說）
+  function traitTip(mons) {
+    if (traitSeenSim !== sim) { traitSeenSim = sim; traitSeen = {}; }
+    var T = traitDefs(), list = [];
+    for (var i = 0; i < mons.length; i++) { if (mons[i].mini) list.push('swarm'); var tr = mons[i].traits || []; for (var j = 0; j < tr.length; j++) list.push(tr[j]); }
+    for (i = 0; i < list.length; i++) if (!traitSeen[list[i]] && T[list[i]]) { traitSeen[list[i]] = true; return T[list[i]].tip || ''; }
+    return '';
+  }
+  function traitNames(mons, kind) {
+    var T = traitDefs(), out = [];
+    for (var i = 0; i < mons.length; i++) if (mons[i].kind === kind) { var tr = mons[i].traits || []; for (var j = 0; j < tr.length; j++) if (T[tr[j]] && out.indexOf(T[tr[j]].name) < 0) out.push(T[tr[j]].name); }
+    return out.join('、');
   }
 
   /* ================= 橫幅／提示 ================= */
@@ -11592,6 +12310,99 @@ root.MARBLE_ART =
     bumpFlip ^= 1;
     r.classList.remove(bumpFlip ? 'bump0' : 'bump1');
     r.classList.add(bumpFlip ? 'bump1' : 'bump0');
+  }
+
+  /* ================= 狂熱模式（feat/fever） ================= */
+  // 能量條：①底部橫條軌道裡的能量填充（DOM #feverRing，--fe＝0～1）②畫面左側牆邊的直立能量槽（canvas，不擋釘子區 x≥22）
+  // 啟動：大字 #feverText、邊緣金光 #feverGlow（#app.fever）、HUD 中間倒數 #feverTimer（整合：暫時取代補彈那行）、最後 3 秒每秒「滴」
+  var FVE = { text: $('feverText'), timer: $('feverTimer'), ring: $('feverRing') };
+  var fvc = { on: null, ready: null, fe: -1, sec: -1, hurry: null };
+  function feverShow() {
+    var t = FVE.text;
+    if (t) { t.className = ''; void t.offsetWidth; t.className = 'show'; }
+  }
+  function feverHide() {
+    if (FVE.text) FVE.text.className = '';
+    fvc.on = null; fvc.sec = -1;
+  }
+  function updateFever(st) {
+    var F = st.fever;
+    var on = !!(F && F.active) && (screen === 'play' || screen === 'pause'), e = F ? clamp(F.energy || 0, 0, 1) : 0;
+    if (on !== fvc.on) {
+      fvc.on = on;
+      if (on) E.app.classList.add('fever'); else E.app.classList.remove('fever');
+      if (FVE.timer) FVE.timer.hidden = !on;
+      fvc.sec = -1;
+    }
+    var ready = !on && !!(F && F.ready);
+    if (ready !== fvc.ready) { fvc.ready = ready; if (FVE.ring) { if (ready) FVE.ring.classList.add('ready'); else FVE.ring.classList.remove('ready'); } }
+    var fe = Math.round(e * 100) / 100;
+    if (fe !== fvc.fe && FVE.ring) { fvc.fe = fe; FVE.ring.style.setProperty('--fe', String(fe)); }
+    if (on && FVE.timer) {
+      var t10 = Math.max(0, Math.ceil((F.t || 0) * 10));
+      if (t10 !== fvc.sec) {
+        var prevS = Math.ceil(fvc.sec / 10), curS = Math.ceil(t10 / 10);
+        if (fvc.sec >= 0 && curS < prevS && curS >= 1 && curS <= 3 && screen === 'play') Au.sfx('fever_tick', { pitch: (3 - curS) * 2 });
+        fvc.sec = t10;
+        FVE.timer.textContent = '狂熱 ×2 ' + (t10 / 10).toFixed(1) + '秒';
+        var hurry = t10 <= 15;
+        if (hurry !== fvc.hurry) { fvc.hurry = hurry; if (hurry) FVE.timer.classList.add('hurry'); else FVE.timer.classList.remove('hurry'); }
+      }
+    }
+  }
+  var FV_HUES = [];
+  for (var fvh = 0; fvh < 12; fvh++) FV_HUES.push('hsl(' + (fvh * 30) + ',100%,66%)');
+  // 左側牆邊的直立能量槽（世界座標）：x 2～11，y 72～300；快滿時發光、狂熱時彩虹並往下倒數
+  function drawFeverGauge(st, t) {
+    var F = st.fever;
+    if (!F) return;
+    var x = 2, w = 9, y0 = 72, h = 228, e = clamp(F.energy || 0, 0, 1);
+    var fh = Math.round(h * e), fy = y0 + h - fh, ready = !F.active && !!F.ready;
+    if (ready) {                              // 快滿：外圈閃白光
+      ctx.globalAlpha = 0.35 + 0.35 * Math.abs(Math.sin(t * 7));
+      ctx.fillStyle = '#fff6b0'; ctx.fillRect(x - 5, y0 - 5, w + 10, h + 10);
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = INK; ctx.fillRect(x - 2, y0 - 2, w + 4, h + 4);
+    ctx.fillStyle = '#3a2a5a'; ctx.fillRect(x, y0, w, h);
+    if (F.active) {
+      var seg = 8, off = Math.floor(t * 40);
+      for (var yy = y0 + h; yy > fy; yy -= seg) {
+        var top = Math.max(fy, yy - seg);
+        ctx.fillStyle = FV_HUES[((Math.floor((yy + off) / seg)) % 12 + 12) % 12];
+        ctx.fillRect(x, top, w, yy - top);
+      }
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x, fy, w, 2);
+    } else if (fh > 0) {
+      ctx.fillStyle = ready ? '#ffe24a' : '#ffb81a'; ctx.fillRect(x, fy, w, fh);
+      ctx.fillStyle = ready ? '#fff6b0' : '#ffd27a'; ctx.fillRect(x, fy, 3, fh);
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    for (var k = 1; k < 5; k++) ctx.fillRect(x, y0 + Math.round(h * k / 5), w, 1);
+    // 頂端小閃電圖示（狂熱標記）
+    var ix = Math.round(x + w / 2), iy = y0 - 16;
+    ctx.fillStyle = INK; ctx.fillRect(ix - 5, iy - 2, 10, 14);
+    ctx.fillStyle = F.active ? FV_HUES[Math.floor(t * 12) % 12] : (ready ? '#ffe24a' : '#ffb81a');
+    ctx.fillRect(ix - 1, iy, 3, 4); ctx.fillRect(ix - 3, iy + 4, 6, 2); ctx.fillRect(ix - 2, iy + 6, 3, 4);
+  }
+  // 狂熱彈珠：拖尾（沿速度反方向的殘影）＋金色光暈（在本體下面）
+  function drawFeverUnder(b, r, t) {
+    var vx = b.vx || 0, vy = b.vy || 0;
+    for (var k = 3; k >= 1; k--) {
+      ctx.globalAlpha = 0.18 * (4 - k);
+      ctx.fillStyle = k === 1 ? '#fff6b0' : '#ffb81a';
+      circle(b.x - vx * 0.012 * k, b.y - vy * 0.012 * k, r * (1 - 0.18 * k));
+    }
+    ctx.globalAlpha = 0.5 + 0.2 * Math.sin(t * 18 + (b.id || 0));
+    ctx.fillStyle = '#ffd23f'; circle(b.x, b.y, r * 1.8);
+    ctx.globalAlpha = 1;
+  }
+  // 狂熱彈珠：本體上疊金光＋彩虹外框（黃金彈珠天賦是純金球、沒有彩虹框，兩者分得出來；兩者都有時＝金球＋彩虹框）
+  function drawFeverOver(b, r, t) {
+    ctx.globalAlpha = 0.72; ctx.fillStyle = '#ffd84a'; circle(b.x, b.y, r);   // 染成金色（原本的火/冰/暴擊顏色還隱約看得到）
+    ctx.globalAlpha = 1; ctx.fillStyle = '#fffbe0'; circle(b.x - r * 0.35, b.y - r * 0.35, r * 0.28);
+    ctx.strokeStyle = FV_HUES[(Math.floor(t * 14) + (b.id || 0)) % 12]; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(b.x, b.y, r + 1.5, 0, 6.2832); ctx.stroke();
   }
 
   /* ================= 發射鈕與橫條 ================= */
@@ -11730,8 +12541,8 @@ root.MARBLE_ART =
   ['gesturestart', 'gesturechange', 'gestureend', 'dblclick'].forEach(function (n) {
     doc.addEventListener(n, function (e) { e.preventDefault(); }, { passive: false });
   });
-  doc.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-  doc.addEventListener('selectstart', function (e) { e.preventDefault(); });
+  doc.addEventListener('contextmenu', function (e) { if (!shareAllow(e.target)) e.preventDefault(); });   // 分享預覽圖要能長按儲存
+  doc.addEventListener('selectstart', function (e) { if (!shareAllow(e.target)) e.preventDefault(); });
   doc.addEventListener('pointerdown', gesture, true);
   doc.addEventListener('pointerup', gesture, true);
   doc.addEventListener('touchend', gesture, true);
@@ -11855,7 +12666,10 @@ root.MARBLE_ART =
     else { title = (clearedLabel || (st.level && st.level.label) || '') + ' 過關！選擇一個天賦'; ribbon = 'green'; }
     E.talentTitle.textContent = title;
     E.talentTitle.className = 'ribbon ' + ribbon;
-    E.talentSub.textContent = finePointer ? '按 1 / 2 / 3 選擇，R 重抽' : '點一張卡片拿走它';
+    var sub = finePointer ? '按 1 / 2 / 3 選擇，R 重抽' : '點一張卡片拿走它';
+    // 章節補償：前面章節的天賦已自動補給（sim 開局就加好了），這裡只提示張數
+    if (src === 'start' && off.auto > 0) sub = '已自動補上前 ' + Math.max(1, runChapter - 1) + ' 章的 ' + off.auto + ' 張天賦，' + (finePointer ? '金卡按 1/2/3 選' : '金卡由你挑');
+    E.talentSub.textContent = sub;
     E.talentPanel.classList.remove('closing'); talentClosing = false;
     var anyGold = false;
     clearDealTimers();
@@ -11955,6 +12769,7 @@ root.MARBLE_ART =
     Au.stopBGM(); curMusic = null;
     Au.sfx('game_over');
     if (isNew) setTimeout(function () { if (screen === 'over') Au.sfx('new_record'); }, 1100);
+    shareOnOver(lv, stats, time, isNew);   // 分享圖：拍結算快照
     focusLater(E.btnRetry, 700);
   }
 
@@ -12078,12 +12893,14 @@ root.MARBLE_ART =
       if (b.on === false) continue;
       var type = ballType(b), r = b.r || 7, fade = b.a !== undefined && b.a < 1;
       if (fade) { if (b.a <= 0) continue; ctx.globalAlpha = b.a; }
+      if (b.fever && !fade) drawFeverUnder(b, r, t);
       var e = sprEntry(BALL_PATH[type]) || sprEntry(BALL_PATH.normal);
       var c = e ? sprCanvas(e, frameOf(e, t + (b.id || 0) * 0.31), 0, null) : null;
       if (c) {
         var sc = 2 * r / 7, w = e.w * sc, h = e.h * sc;
         ctx.drawImage(c, b.x - w / 2, b.y - h / 2, w, h);
       } else fbBall(b, type, r);
+      if (b.fever && !fade) drawFeverOver(b, r, t);
       if (fade) ctx.globalAlpha = 1;
     }
   }
@@ -12096,8 +12913,15 @@ root.MARBLE_ART =
     var dead = !m.alive, dt = dead ? clamp(m.deadT || 0, 0, 1) : 0;
     if (dead && dt >= 1) return;
     var footY = m.y + m.h / 2, bob = monBob(m, t);
+    if (m.hue) variant = ((variant | 0) + m.hue) % 5;          // 怪物花樣：群體／分身換色
+    var tele = !dead && m.tele > 0 ? m.move : null, sqx = 1, sqy = 1, mAlpha = 1;
+    if (tele || m.stunT > 0 || m.air > 0) bob = 0;
+    if (tele === 'hop') { var hq = 1 - clamp(m.tele / (m.teleMax || 0.4), 0, 1); sqx = 1 + 0.14 * hq; sqy = 1 - 0.16 * hq; }
+    else if (tele === 'blink') mAlpha = 0.45 + 0.55 * Math.abs(Math.cos(t * 22));
+    if (m.invT > 0) { var iv = clamp(m.invT / 0.25, 0, 1); sqx = sqy = 1 - 0.5 * iv; }
     var tint = null, ent = sprEntry(monPath(m.species, false));
     if (!dead && m.flashT > 0) tint = 'white';
+    else if (tele === 'dash' && Math.floor(t * 14) % 2 === 0) tint = 'white';   // 衝刺前閃白
     else if (!dead && hurtUntil[m.id] > t) { var he = sprEntry(monPath(m.species, true)); if (he) ent = he; }
     if (!tint && m.frozenT > 0) tint = 'ice';
     var c = null;
@@ -12109,11 +12933,17 @@ root.MARBLE_ART =
         ctx.globalAlpha = Math.max(0, 1 - dt);
         ctx.drawImage(c, m.x - w * sx / 2, footY - h * sy, w * sx, h * sy);
         ctx.globalAlpha = 1;
-      } else ctx.drawImage(c, m.x - w / 2, footY - h - bob, w, h);
+      } else {
+        var dx0 = tele === 'dash' ? Math.sin(t * 60) * 1.5 : 0;
+        if (mAlpha < 1) ctx.globalAlpha = mAlpha;
+        ctx.drawImage(c, m.x - w * sqx / 2 + dx0, footY - h * sqy - bob, w * sqx, h * sqy);
+        if (mAlpha < 1) ctx.globalAlpha = 1;
+      }
     } else fbMonster(m, footY, bob, tint, dead, dt);
     if (dead) return;
     if (m.burnT > 0) drawFlames(m, t, bob);
     if (m.frozenT > 0) drawFrost(m);
+    if (m.stunT > 0) drawStun(m, t);
   }
   var FLAME_X_BOSS = [-0.3, 0.05, 0.32], FLAME_X = [-0.22, 0.24];
   var BAR_FONT = '900 13px ' + FONT, barTagW = 0;
@@ -12144,7 +12974,10 @@ root.MARBLE_ART =
     for (var i = 0; i < mons.length; i++) {
       var m = mons[i];
       if (!m.alive || !m.weak) continue;
-      var bob = monBob(m, t), wx = m.weak.x, wy = m.weak.y - bob, r = m.weak.r || 10;
+      var bob = (m.tele > 0 || m.stunT > 0 || m.air > 0) ? 0 : monBob(m, t), wx = m.weak.x, wy = m.weak.y - bob, r = m.weak.r || 10;
+      if (m.weakShut) { drawWeakShut(wx, wy, r); continue; }          // 怪物花樣：閉殼
+      if (m.shutWarn && Math.floor(t * 12) % 2 === 0) { drawWeakShut(wx, wy, r * 0.8); continue; }
+      if (m.shield > 0) ctx.globalAlpha = 0.4;
       var frozen = m.frozenT > 0, pulse = frozen ? 0.4 : 0.5 + 0.5 * Math.sin(t * 7 + m.id);
       var gr = r * (1.45 + 0.4 * pulse);
       ctx.globalAlpha = 0.3 + 0.35 * pulse;
@@ -12152,7 +12985,7 @@ root.MARBLE_ART =
       ctx.globalAlpha = 1;
       var c = e ? sprCanvas(e, frozen ? 0 : frameOf(e, t), 0, null) : null;
       if (c) {
-        var sc = Math.max(2, r * 2.6 / e.w), w = e.w * sc, h = e.h * sc;
+        var sc = Math.max(m.w < 60 ? 1 : 2, r * 2.6 / e.w), w = e.w * sc, h = e.h * sc;   // 小怪的弱點標記跟著縮小
         ctx.drawImage(c, wx - w / 2, wy - h / 2, w, h);
       } else {
         var rr = r * (0.9 + 0.12 * pulse);
@@ -12160,6 +12993,116 @@ root.MARBLE_ART =
         ctx.fillStyle = '#ff5fa2'; circle(wx, wy, rr);
         ctx.fillStyle = '#fff7a8'; circle(wx, wy, rr * 0.5);
       }
+      ctx.globalAlpha = 1;
+    }
+  }
+  /* ---------- 怪物花樣：護盾泡泡、閉殼、預兆、暈眩（程式畫的像素風） ---------- */
+  var shieldCv = {};
+  // 1 美術像素＝2 世界單位：泡泡在 (a,b) 半軸（美術像素）的橢圓上畫描邊、亮邊、半透明填色、左上高光；v＝0 正常、1 有裂痕、2 閃白
+  function shieldCanvas(w, h, v) {
+    var a = Math.max(6, Math.round(w * 0.44 * 1.16 / 2)), b = Math.max(6, Math.round(h * 0.44 * 1.2 / 2));
+    var key = a + 'x' + b + ':' + v, c = shieldCv[key];
+    if (c !== undefined) return c;
+    c = null;
+    try {
+      c = doc.createElement('canvas'); c.width = a * 2 + 2; c.height = b * 2 + 2;
+      var g = c.getContext('2d'), cx = a + 1, cy = b + 1, mn = Math.min(a, b);
+      for (var py = 0; py < c.height; py++) for (var px = 0; px < c.width; px++) {
+        var dx = (px + 0.5 - cx) / a, dy = (py + 0.5 - cy) / b, e = Math.sqrt(dx * dx + dy * dy);
+        if (e > 1.02) continue;
+        var ang = Math.atan2(dy, dx), col;
+        if (e > 1 - 1.2 / mn) col = v === 2 ? '#ffffff' : '#1d4f6e';
+        else if (e > 1 - 2.3 / mn) col = v === 2 ? '#ffffff' : '#bdf4ff';
+        else if (e > 0.55 && e < 0.74 && ang > -2.6 && ang < -1.9) col = 'rgba(255,255,255,0.85)';
+        else if (e > 0.6 && e < 0.7 && ang > -1.75 && ang < -1.55) col = 'rgba(255,255,255,0.7)';
+        else col = v === 2 ? 'rgba(255,255,255,0.55)' : 'rgba(127,227,255,' + (0.1 + 0.16 * e * e).toFixed(3) + ')';
+        g.fillStyle = col; g.fillRect(px, py, 1, 1);
+      }
+      if (v === 1) {                                     // 裂痕：從右上往下的折線
+        g.fillStyle = '#1d4f6e';
+        var pts = [[0.35, -0.75], [0.15, -0.35], [0.38, -0.05], [0.2, 0.3], [0.32, 0.55]];
+        for (var k = 0; k < pts.length - 1; k++) {
+          var x1 = cx + pts[k][0] * a, y1 = cy + pts[k][1] * b, x2 = cx + pts[k + 1][0] * a, y2 = cy + pts[k + 1][1] * b;
+          var n = Math.ceil(Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1)));
+          for (var s = 0; s <= n; s++) g.fillRect(Math.round(x1 + (x2 - x1) * s / n), Math.round(y1 + (y2 - y1) * s / n), 1, 1);
+        }
+        g.fillRect(Math.round(cx - 0.4 * a), Math.round(cy + 0.1 * b), 2, 1);
+        g.fillRect(Math.round(cx - 0.45 * a), Math.round(cy + 0.15 * b), 1, 2);
+      }
+    } catch (er) { c = null; }
+    shieldCv[key] = c;
+    return c;
+  }
+  function drawShields(mons, t) {
+    if (!mons) return;
+    for (var i = 0; i < mons.length; i++) {
+      var m = mons[i];
+      if (!m.alive || !(m.shield > 0)) continue;
+      var v = m.shieldFlashT > 0 ? 2 : (m.shieldMax > 0 && m.shield < m.shieldMax * 0.5 ? 1 : 0);
+      var c = shieldCanvas(m.w, m.h, v);
+      var bob = (m.tele > 0 || m.stunT > 0 || m.air > 0) ? 0 : monBob(m, t);
+      var cy = m.y - m.h * 0.04 - bob;
+      if (c) {
+        ctx.globalAlpha = 0.82 + 0.18 * Math.sin(t * 5 + m.id);
+        ctx.drawImage(c, Math.round(m.x - c.width), Math.round(cy - c.height), c.width * 2, c.height * 2);
+        ctx.globalAlpha = 1;
+      } else {
+        ctx.strokeStyle = '#7fe3ff'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.ellipse(m.x, cy, m.rx * 1.16, m.ry * 1.2, 0, 0, 6.2832); ctx.stroke();
+      }
+    }
+  }
+  function drawWeakShut(x, y, r) {                       // 閉殼：灰紫色的殼＋鎖
+    var e = sprEntry('icons.lock'), c = e ? sprCanvas(e, 0, 0, null) : null;
+    ctx.fillStyle = INK; circle(x, y, r + 2);
+    ctx.fillStyle = '#7b6a9c'; circle(x, y, r);
+    ctx.fillStyle = '#a99bcc'; circle(x - r * 0.25, y - r * 0.3, r * 0.35);
+    if (c) ctx.drawImage(c, Math.round(x - e.w), Math.round(y - e.h), e.w * 2, e.h * 2);
+  }
+  // 預兆畫在地面：衝刺＝往目的地的箭頭、跳跳＝落點影子、瞬移＝目的地光圈；跳起來時地上有影子
+  function drawMoveMarks(mons, t, floorY) {
+    if (!mons) return;
+    for (var i = 0; i < mons.length; i++) {
+      var m = mons[i];
+      if (!m.alive) continue;
+      var y = floorY - 3;
+      if (m.air > 0) {
+        var k = 1 - clamp(m.air / 34, 0, 1) * 0.5;
+        ctx.fillStyle = 'rgba(20,10,40,0.35)'; ellipse(m.x, y, m.w * 0.36 * k, 4 * k);
+      }
+      if (!(m.tele > 0)) continue;
+      var p = 1 - clamp(m.tele / (m.teleMax || 0.5), 0, 1), x2 = m.moveX;
+      if (m.move === 'dash') {
+        var dir = x2 > m.x ? 1 : -1, n = Math.max(1, Math.floor(Math.abs(x2 - m.x) / 18));
+        for (var s = 1; s <= n; s++) {
+          var ax = m.x + dir * (m.w * 0.3 + (Math.abs(x2 - m.x) - m.w * 0.3) * s / n);
+          var on = (Math.floor(t * 12) - s) % 3 === 0;
+          ctx.fillStyle = on ? '#ffe9a8' : 'rgba(255,179,90,0.8)';
+          ctx.fillRect(Math.round(ax - dir * 4), y - 7, 2, 2); ctx.fillRect(Math.round(ax - dir * 2), y - 5, 2, 2);
+          ctx.fillRect(Math.round(ax), y - 3, 2, 2); ctx.fillRect(Math.round(ax - dir * 2), y - 1, 2, 2); ctx.fillRect(Math.round(ax - dir * 4), y + 1, 2, 2);
+        }
+      } else if (m.move === 'hop') {
+        ctx.fillStyle = 'rgba(20,10,40,' + (0.15 + 0.3 * p).toFixed(2) + ')'; ellipse(x2, y, m.w * 0.36 * (0.5 + 0.5 * p), 4);
+        ctx.fillStyle = 'rgba(157,240,122,0.9)'; ctx.fillRect(Math.round(x2 - 1), y - 14 + Math.round(Math.sin(t * 10) * 2), 2, 6);
+      } else if (m.move === 'blink') {
+        var R = m.w * 0.42 * (1.25 - 0.25 * p), seg = 20;
+        ctx.fillStyle = Math.floor(t * 16) % 2 ? '#f4c8ff' : '#e59bff';
+        for (var q = 0; q < seg; q++) {
+          var an = q / seg * 6.2832 + t * 3;
+          ctx.fillRect(Math.round(x2 + Math.cos(an) * R) - 1, Math.round(y - 2 + Math.sin(an) * R * 0.22) - 1, 2, 2);
+        }
+        ctx.globalAlpha = 0.25 + 0.45 * p;
+        ctx.drawImage(glow('gold'), x2 - R, y - R * 0.9, R * 2, R * 1.1);
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+  function drawStun(m, t) {                              // 破盾暈眩：頭上轉圈的小星星
+    var e = sprEntry('fx.star'), c = e ? sprCanvas(e, 0, 0, null) : null, top = m.y - m.h / 2 - 4;
+    for (var i = 0; i < 3; i++) {
+      var a = t * 7 + i * 2.094, x = m.x + Math.cos(a) * m.w * 0.3, y = top + Math.sin(a) * 4;
+      if (c) ctx.drawImage(c, Math.round(x - e.w), Math.round(y - e.h), e.w * 2, e.h * 2);
+      else { ctx.fillStyle = '#fff6b0'; ctx.fillRect(x - 2, y - 2, 4, 4); }
     }
   }
   function lagOf(m) {
@@ -12176,7 +13119,8 @@ root.MARBLE_ART =
       var m = mons[i];
       if (!m.alive || m.kind === 'boss' || m.kind === 'elite' || !(m.maxHp > 0)) continue;
       var bob = monBob(m, t), frac = clamp(m.hp / m.maxHp, 0, 1), lag = clamp(lagOf(m) / m.maxHp, 0, 1);
-      var bw = Math.max(36, Math.round(m.w * 0.6)), bh = 5;
+      var bw = Math.max(m.w < 60 ? 26 : 36, Math.round(m.w * 0.6)), bh = 5;
+      if (m.tele > 0 || m.stunT > 0 || m.air > 0) bob = 0;
       var topY = m.y - m.h / 2;
       if (m.weak) topY = Math.min(topY, m.weak.y - Math.max(16, (m.weak.r || 10) * 1.3));
       var x = Math.round(m.x - bw / 2), y = Math.round(topY - bob - 12);
@@ -12185,6 +13129,12 @@ root.MARBLE_ART =
       if (lag > frac) { ctx.fillStyle = '#ffffff'; ctx.fillRect(x + bw * frac, y, bw * (lag - frac), bh); }
       ctx.fillStyle = frac > 0.5 ? '#66e06a' : (frac > 0.25 ? '#ffd23f' : '#ff5d5d'); ctx.fillRect(x, y, bw * frac, bh);
       ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fillRect(x, y, bw * frac, 1.5);
+      if (m.shield > 0 && m.shieldMax > 0) {                       // 怪物花樣：護盾條（青色，壓在血條上方）
+        var sf = clamp(m.shield / m.shieldMax, 0, 1);
+        ctx.fillStyle = INK; ctx.fillRect(x - 2, y - 6, bw + 4, 6);
+        ctx.fillStyle = '#1d4a66'; ctx.fillRect(x, y - 4, bw, 3);
+        ctx.fillStyle = '#7fe3ff'; ctx.fillRect(x, y - 4, bw * sf, 3);
+      }
     }
   }
   function drawBigBars(mons, t) {
@@ -12209,6 +13159,11 @@ root.MARBLE_ART =
       if (lag > frac) { ctx.fillStyle = '#fff4c8'; ctx.fillRect(x + w * frac, y, w * (lag - frac), h); }
       ctx.fillStyle = m.frozenT > 0 ? '#7fdcff' : (boss ? '#ff4b4b' : '#ff9a2a'); ctx.fillRect(x, y, w * frac, h);
       ctx.fillStyle = boss ? '#ff9a7a' : '#ffd27a'; ctx.fillRect(x, y, w * frac, 2);
+      if (m.alive && m.shield > 0 && m.shieldMax > 0) {             // 怪物花樣：護盾（青色條疊在血條上半）
+        var sfr = clamp(m.shield / m.shieldMax, 0, 1);
+        ctx.fillStyle = 'rgba(127,227,255,0.92)'; ctx.fillRect(x, y, w * sfr, 5);
+        ctx.fillStyle = '#e6fbff'; ctx.fillRect(x, y, w * sfr, 1.5);
+      }
       ctx.fillStyle = 'rgba(0,0,0,0.18)';
       for (var s = 1; s < 10; s++) ctx.fillRect(Math.round(x + w * s / 10), y, 1, h);
       n++;
@@ -12248,8 +13203,11 @@ root.MARBLE_ART =
     drawBackground(th, va);
     ctx.save(); Jz.call('drawUnder', ctx); ctx.restore(); resetCtx(); worldXf(sx, sy);
     drawPegs(st.pegs, animT);
+    drawMoveMarks(st.monsters, animT, st.FLOOR_Y || FLOOR_DEF);
+    if (st.fever) drawFeverGauge(st, animT);
     drawMonsters(st.monsters, animT, va, st.FLOOR_Y || FLOOR_DEF);
     drawWeakMarks(st.monsters, animT);
+    drawShields(st.monsters, animT);
     drawHeadBars(st.monsters, animT);
     var bar = hasBigBar(st.monsters);
     if (st.phase === 'play' || st.phase === 'clear') drawAim(st.aimX, animT, bar);
@@ -12404,6 +13362,7 @@ root.MARBLE_ART =
       renderGame(st);
       updateHud(st);
       updateFireBtn(st);
+      updateFever(st);
       syncKnob(st.aimX);
     } else renderTitle();
   }
@@ -12426,6 +13385,403 @@ root.MARBLE_ART =
   tap(E.btnRetry, function () { startRun(runChapter); }, 'ui_tap');
   tap(E.btnOverChapters, function () { openChapters('over'); }, 'ui_tap');
   tap(E.btnOverHome, goTitle, 'ui_back');
+
+  /* ================= 結算分享圖（feat/share）=================
+   * 結束畫面的「分享成績」：產生 1080×1350 直式像素風成績圖（全部用 MarbleArt 與本機字型畫，不用網路資源）。
+   * 分享路徑（不能讓人卡住）：
+   *   1. 支援 navigator.share({ files }) → 直接分享圖片＋文字（使用者取消就留在結束畫面）
+   *   2. 不支援或分享失敗（脆／IG 內建瀏覽器常見）→ 預覽圖層 #sharePanel：長按圖片儲存、下載圖片、複製文字、（有 navigator.share 時）只分享文字
+   * 對外只用到：shareTrack(ev)（onEvent 開頭）、shareOnOver(...)（openOver 結尾）、shareClose()（syncPanels）、
+   *            shareAllow(target)（全域 contextmenu／selectstart 例外）、shareHooks(debug)（測試掛鉤）。 */
+  var SHARE_URL_DEF = 'https://yoyoman-1.github.io/kanpai/marble/';   // 正式版網址；ML_CONFIG.SHARE_URL 可覆寫
+  var SHARE_W = 1080, SHARE_H = 1350;
+  var KIND_RANK = { normal: 1, elite: 2, boss: 3 };
+  var KIND_NAME = { normal: '', elite: '精英', boss: '魔王' };
+  var SH = { sim: null, best: null, bestRank: 0, data: null, out: null, open: false, mode: '' };
+  var SE = {};
+  'btnShare sharePanel shareImg shareText shareMsg btnShareDl btnShareCopy btnShareNative btnShareClose'.split(' ').forEach(function (id) { SE[id] = $(id); });
+
+  function shareUrl() { var C = window.ML_CONFIG, u = C && C.SHARE_URL; return (typeof u === 'string' && /^https?:\/\//.test(u)) ? u : SHARE_URL_DEF; }
+  function speciesName(id) { var D = window.ML_DATA, s = D && D.species && D.species[id]; return (s && s.name) || ''; }
+  function levelVariant(lv) { return lv ? (lv.variant != null ? lv.variant | 0 : variantOf(lv.chapter)) : 0; }
+
+  // 每個 sim 事件都經過這裡：記下這一局打倒過最強的怪（魔王＞精英＞普通，同級取最新）
+  function shareTrack(ev) {
+    if (SH.sim !== sim) { SH.sim = sim; SH.best = null; SH.bestRank = 0; SH.data = null; SH.out = null; }
+    if (!ev || ev.t !== 'kill' || !ev.species) return;
+    var rk = KIND_RANK[ev.kind] || 1;
+    if (rk >= SH.bestRank) { SH.bestRank = rk; SH.best = { species: ev.species, kind: ev.kind || 'normal', variant: levelVariant(sim && sim.state && sim.state.level) }; }
+  }
+
+  // 結束時拍一張資料快照（之後按幾次分享都是同一張圖）
+  function shareOnOver(lv, stats, time, isNew) {
+    SH.data = shareCollect(lv, stats, time, isNew);
+    SH.out = null;
+    if (SE.btnShare) SE.btnShare.disabled = false;
+  }
+  function shareCollect(lv, stats, time, isNew) {
+    var st = sim && sim.state;
+    lv = lv || (st && st.level) || DEF_LEVEL; stats = stats || (st && st.stats) || {};
+    var t = lv.theme || themeIdx(lv.chapter), v = levelVariant(lv), label = lv.label || (lv.chapter + '-' + lv.stage);
+    // 天賦：依拿到的順序合併同一個 id（次數、最高稀有度）
+    var tal = [], map = {}, picks = (st && st.picks) || [];
+    for (var i = 0; i < picks.length; i++) {
+      var p = picks[i]; if (!p || !p.id) continue;
+      var e = map[p.id];
+      if (!e) { e = map[p.id] = { id: p.id, rarity: p.rarity || 'w', n: 0 }; tal.push(e); }
+      e.n++;
+      if ((RAR_RANK[p.rarity] || 0) > (RAR_RANK[e.rarity] || 0)) e.rarity = p.rarity;
+    }
+    var mon = null;
+    if (SH.sim === sim && SH.best) mon = { species: SH.best.species, kind: SH.best.kind, variant: SH.best.variant, cap: '最強戰果' };
+    else if (st && st.monsters) {
+      for (var j = 0; j < st.monsters.length; j++) {
+        var m = st.monsters[j];
+        if (m && m.alive) { mon = { species: m.species, kind: m.kind || 'normal', variant: v, cap: '下次一定打倒你' }; break; }
+      }
+    }
+    if (!mon) mon = { species: 'c' + t + '_n1', kind: 'normal', variant: v, cap: '下次一定打倒你' };
+    mon.name = speciesName(mon.species);
+    var url = shareUrl();
+    return {
+      label: label, chapter: lv.chapter | 0, stage: lv.stage | 0, kind: lv.kind || 'normal', theme: t, variant: v, themeName: themeName(t, v),
+      time: time != null ? time : (st ? st.time : 0), kills: stats.kills | 0, maxHit: Math.round(stats.maxHit || 0), maxCombo: stats.maxCombo | 0,
+      fevers: stats.fevers | 0, shields: stats.shields | 0,   // 整合：狂熱次數、破盾次數（怪物左右的小徽章）
+      isNew: !!isNew, talents: tal, mon: mon, url: url,
+      text: (isNew ? '新紀錄！' : '') + '我在彈珠傳說打到 ' + label + '！你能打到哪？ ' + url
+    };
+  }
+  function shareData() { return SH.data || shareCollect(null, null, null, false); }
+
+  /* ---- 點陣字：用本機字型畫小字 → 門檻化成 1 位元 → 深色描邊（＋可選白色外框）＋落影 → 整數倍放大（不平滑） ---- */
+  var pxCache = {};
+  function hexRgb(h) { h = String(h || '#ffffff').replace('#', ''); if (h.length === 3) h = h.charAt(0) + h.charAt(0) + h.charAt(1) + h.charAt(1) + h.charAt(2) + h.charAt(2); var n = parseInt(h, 16) || 0; return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  // fill：一個顏色或由上到下的色帶陣列；opt.ink＝描邊色（null＝不描邊）、opt.ring＝描邊外的第二圈、opt.shadow＝落影
+  function pxText(text, fs, fill, opt) {
+    opt = opt || {};
+    var ink = opt.ink === undefined ? INK : opt.ink, ring = opt.ring || null, shadow = opt.shadow !== false && !!ink;
+    var key = [text, fs, String(fill), ink, ring, shadow, opt.weight || 900].join('|');
+    if (pxCache[key]) return pxCache[key];
+    var font = (opt.weight || 900) + ' ' + fs + 'px ' + FONT;
+    var g0 = doc.createElement('canvas').getContext('2d'); g0.font = font;
+    var pad = 4, w = Math.ceil(g0.measureText(text).width) + pad * 2, h = Math.ceil(fs * 1.5) + pad * 2;
+    var tmp = doc.createElement('canvas'); tmp.width = w; tmp.height = h;
+    var tg = tmp.getContext('2d'); tg.font = font; tg.textBaseline = 'middle'; tg.fillStyle = '#000'; tg.fillText(text, pad, h / 2);
+    var src = tg.getImageData(0, 0, w, h).data, n = w * h, mask = new Uint8Array(n), i, top = h, bot = -1;
+    for (i = 0; i < n; i++) if (src[i * 4 + 3] >= 120) { mask[i] = 1; var yy = (i / w) | 0; if (yy < top) top = yy; if (yy > bot) bot = yy; }
+    var o1 = ink ? dilate(mask, w, h, false) : mask, o2 = ring ? dilate(dilate(o1, w, h, false), w, h, true) : o1;
+    var bands = (Array.isArray(fill) ? fill : [fill]).map(hexRgb), inkC = ink ? hexRgb(ink) : null, ringC = ring ? hexRgb(ring) : null;
+    var SHd = shadow ? 1 : 0, bx0 = w, bx1 = -1, by0 = h, by1 = -1;
+    for (i = 0; i < n; i++) if (o2[i]) { var xx = i % w, y2 = (i / w) | 0; if (xx < bx0) bx0 = xx; if (xx > bx1) bx1 = xx; if (y2 < by0) by0 = y2; if (y2 > by1) by1 = y2; }
+    if (bx1 < 0) { bx0 = 0; bx1 = 0; by0 = 0; by1 = 0; }
+    var cw = bx1 - bx0 + 1, ch = by1 - by0 + 1 + SHd;
+    var c = doc.createElement('canvas'); c.width = cw; c.height = ch;
+    var og = c.getContext('2d'), img = og.createImageData(cw, ch), d = img.data;
+    for (var y = 0; y < ch; y++) for (var x = 0; x < cw; x++) {
+      var sx = x + bx0, sy = y + by0, si = sy < h ? sy * w + sx : -1, o = (y * cw + x) * 4, col = null, a = 255;
+      if (si >= 0 && mask[si]) {
+        var up = sy > 0 && mask[si - w];
+        var bi = Math.min(bands.length - 1, Math.max(0, Math.floor((sy - top) / Math.max(1, bot - top + 1) * bands.length)));
+        col = bands[bi];
+        if (!up && bands.length > 1) col = [Math.min(255, col[0] + 40), Math.min(255, col[1] + 40), Math.min(255, col[2] + 40)];
+      } else if (si >= 0 && o1[si] && inkC) col = inkC;
+      else if (si >= 0 && o2[si] && ringC) col = ringC;
+      else if (SHd && sy - 1 >= 0 && sy - 1 < h && o2[(sy - 1) * w + sx]) { col = inkC; a = 140; }
+      if (col) { d[o] = col[0]; d[o + 1] = col[1]; d[o + 2] = col[2]; d[o + 3] = a; }
+    }
+    og.putImageData(img, 0, 0);
+    pxCache[key] = c;
+    return c;
+  }
+  // 以整數倍 k 畫點陣字；align：'left' | 'center' | 'right'；回傳畫出的寬高
+  function pxDraw(g, p, x, y, k, align) {
+    var dw = p.width * k, dh = p.height * k, dx = align === 'center' ? x - dw / 2 : (align === 'right' ? x - dw : x);
+    g.imageSmoothingEnabled = false;
+    g.drawImage(p, Math.round(dx), Math.round(y), dw, dh);
+    return { w: dw, h: dh };
+  }
+  function pxFitK(p, maxW, kMax) { return clamp(Math.floor(maxW / Math.max(1, p.width)), 1, kMax); }
+  // Q 版像素框：缺角深色外框（粗 b）＋底色＋底部厚度
+  function pxBox(g, x, y, w, h, fill, b, shade) {
+    g.fillStyle = INK; g.fillRect(x + b, y, w - 2 * b, h); g.fillRect(x, y + b, w, h - 2 * b);
+    g.fillStyle = fill; g.fillRect(x + b, y + b, w - 2 * b, h - 2 * b);
+    if (shade) { g.fillStyle = shade; g.fillRect(x + b, y + h - b - b, w - 2 * b, b); }
+    g.fillStyle = 'rgba(255,255,255,0.55)'; g.fillRect(x + b, y + b, w - 2 * b, Math.max(2, b >> 1));
+  }
+  function spriteCv(path, variant) { var e = sprEntry(path); return e ? sprCanvas(e, 0, variant | 0, null) : null; }
+
+  /* ---- 畫整張分享圖 ---- */
+  function shareRender(d) {
+    var c = doc.createElement('canvas'); c.width = SHARE_W; c.height = SHARE_H;
+    var g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+    var ui = themeUi(d.theme, d.variant), CX = SHARE_W / 2, FR = 24;   // FR＝外框厚度
+    // 背景：本章場景放大 6 倍，地面貼齊底部；上下用一格一格的色帶壓暗，讓字跳出來
+    g.fillStyle = ui[2]; g.fillRect(0, 0, SHARE_W, SHARE_H);
+    var bg = getBg(d.theme, d.variant);
+    if (bg) g.drawImage(bg, 0, SHARE_H - bg.height * 6, bg.width * 6, bg.height * 6);
+    for (var b = 0; b < 27; b++) {
+      var f = b / 26, a = 0.18 + 0.42 * Math.sin(Math.min(1, f * 1.15) * Math.PI) * (f < 0.85 ? 1 : 0.6);
+      g.fillStyle = 'rgba(23,10,44,' + a.toFixed(3) + ')'; g.fillRect(0, b * 50, SHARE_W, 50);
+    }
+    // 外框：深色＋主題色＋亮邊
+    g.fillStyle = INK; g.fillRect(0, 0, SHARE_W, FR); g.fillRect(0, SHARE_H - FR, SHARE_W, FR); g.fillRect(0, 0, FR, SHARE_H); g.fillRect(SHARE_W - FR, 0, FR, SHARE_H);
+    g.fillStyle = ui[0]; g.fillRect(FR, FR, SHARE_W - 2 * FR, 8); g.fillRect(FR, SHARE_H - FR - 8, SHARE_W - 2 * FR, 8); g.fillRect(FR, FR, 8, SHARE_H - 2 * FR); g.fillRect(SHARE_W - FR - 8, FR, 8, SHARE_H - 2 * FR);
+    // 四角小星星
+    var star = spriteCv('fx.star', 0);
+    if (star) { var sk = 6; [[64, 64], [SHARE_W - 64, 64]].forEach(function (q) { g.drawImage(star, q[0] - star.width * sk / 2, q[1] - star.height * sk / 2, star.width * sk, star.height * sk); }); }
+
+    // 版面以固定基準線排（1080×1350）：Logo 52｜最遠到達 160｜關卡 212｜章節 376｜怪物腳 700｜成績 792｜天賦 974｜網址列 1190
+    // 1. 遊戲名（沿用標題的點陣 Logo；沒有就自己畫）
+    var logo = E.logoCv && E.logo && E.logo.classList.contains('cv') && E.logoCv.width > 0 ? E.logoCv : null;
+    if (!logo) logo = pxText('彈珠傳說', 30, ['#fffcd6', '#fff07a', '#ffd640', '#ffb822', '#ff8c16'], { ring: '#ffffff' });
+    var lk = clamp(Math.floor(Math.min(640 / logo.width, 112 / logo.height)), 1, 8);
+    g.drawImage(logo, Math.round(CX - logo.width * lk / 2), Math.round(92 - logo.height * lk / 2), logo.width * lk, logo.height * lk);
+
+    // 2. 最遠到達「章節-關卡」＋章節名稱
+    pxDraw(g, pxText('最遠到達', 14, '#ffffff'), CX, 158, 3, 'center');
+    var big = pxText(d.label, 40, ['#fffcd6', '#fff07a', '#ffd640', '#ffb822', '#ff8c16'], { ring: '#ffffff' });
+    var bk = clamp(Math.min(Math.floor(720 / big.width), Math.floor(156 / big.height)), 1, 6);
+    var bs = pxDraw(g, big, CX, 290 - big.height * bk / 2, bk, 'center');
+    var sub = pxText('第 ' + d.chapter + ' 章 ' + d.themeName + (d.kind !== 'normal' && KIND_NAME[d.kind] ? ' · ' + KIND_NAME[d.kind] + '關' : ''), 14, '#ffffff');
+    var sw = sub.width * 3 + 48, sh = sub.height * 3 + 20;
+    pxBox(g, Math.round(CX - sw / 2), 380, sw, sh, ui[1], 6, null);
+    pxDraw(g, sub, CX, 390, 3, 'center');
+    // 新紀錄：關卡數字右上斜貼的緞帶
+    if (d.isNew) {
+      var nr = pxText('新紀錄！', 16, '#ffffff'), nw = nr.width * 3 + 44, nh = nr.height * 3 + 22;
+      g.save(); g.translate(Math.min(SHARE_W - 40 - nw / 2, CX + bs.w / 2 + nw / 2 - 16), 268); g.rotate(0.17);
+      pxBox(g, -nw / 2, -nh / 2, nw, nh, '#ff5b6e', 6, '#c23a4f');
+      pxDraw(g, nr, 0, -nh / 2 + 9, 3, 'center');
+      g.restore();
+    }
+
+    // 3. 怪物：打倒過最強的一隻（沒打倒任何怪就放擋路的那隻）
+    var monFoot = 700;
+    g.save(); g.translate(CX, monFoot - 110);   // 背後的放射光
+    for (var r = 0; r < 12; r++) {
+      g.fillStyle = r % 2 ? 'rgba(255,236,150,0.12)' : 'rgba(255,255,255,0.05)';
+      g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, 240, r * Math.PI / 6, (r + 1) * Math.PI / 6); g.closePath(); g.fill();
+    }
+    g.restore();
+    g.fillStyle = 'rgba(23,10,44,0.5)';   // 地面影子（像素橢圓）
+    for (var sy2 = -3; sy2 <= 3; sy2++) { var hw = Math.round(150 * Math.sqrt(1 - (sy2 * sy2) / 16) / 6) * 6; g.fillRect(CX - hw, monFoot + sy2 * 6 - 3, hw * 2, 6); }
+    var mon = d.mon, mc = mon ? spriteCv(monPath(mon.species, false), mon.variant) : null;
+    if (mc) {
+      var mk = clamp(Math.floor(Math.min(320 / mc.width, 236 / mc.height)), 2, 8);
+      g.drawImage(mc, Math.round(CX - mc.width * mk / 2), monFoot - mc.height * mk, mc.width * mk, mc.height * mk);
+    } else if (mon) {
+      var sz = mon.kind === 'boss' ? [270, 230] : (mon.kind === 'elite' ? [250, 220] : [230, 206]);
+      var saved = ctx; ctx = g;   // 借用遊戲裡沒有美術時的退回畫法
+      try { fbMonster({ x: CX, w: sz[0], h: sz[1], species: mon.species, kind: mon.kind }, monFoot, 0, null, false, 0); } finally { ctx = saved; }
+    }
+    if (mon) {
+      var capT = pxText(mon.cap + (mon.name ? ' · ' + mon.name : ''), 14, mon.cap === '最強戰果' ? '#ffe27a' : '#ffffff');
+      var cw2 = capT.width * 3 + 44, ch2 = capT.height * 3 + 18;
+      pxBox(g, Math.round(CX - cw2 / 2), monFoot + 18, cw2, ch2, '#2a1840', 6, null);
+      pxDraw(g, capT, CX, monFoot + 27, 3, 'center');
+    }
+
+    // 3b. 狂熱／破盾小徽章（整合）：放在怪物左右兩側的空白處，0 次就不畫，不擠成績列
+    var bdg = [];
+    if (d.fevers > 0) bdg.push({ side: -1, lab: '狂熱', val: '×' + fmtNum(d.fevers), fill: '#fff4c2', shade: '#e8b93a', ico: spriteCv('balls.gold', 0) });
+    if (d.shields > 0) bdg.push({ side: 1, lab: '破盾', val: '×' + fmtNum(d.shields), fill: '#e2f9ff', shade: '#86d2ee', ico: shieldCanvas(80, 72, 0) });
+    for (var bi = 0; bi < bdg.length; bi++) {
+      var bd = bdg[bi], bw2 = 236, bh2 = 128, bx2 = Math.round(CX + bd.side * 352 - bw2 / 2), by2 = 516;
+      pxBox(g, bx2, by2, bw2, bh2, bd.fill, 6, bd.shade);
+      var blt = pxText(bd.lab, 13, '#6a5a85', { ink: null }), bik = bd.ico ? Math.max(1, Math.floor(36 / Math.max(bd.ico.width, bd.ico.height))) : 0;
+      var biw = bd.ico ? bd.ico.width * bik + 8 : 0, brow = biw + blt.width * 2;
+      if (bd.ico) g.drawImage(bd.ico, Math.round(bx2 + bw2 / 2 - brow / 2), by2 + 20 + Math.round((36 - bd.ico.height * bik) / 2), bd.ico.width * bik, bd.ico.height * bik);
+      pxDraw(g, blt, bx2 + bw2 / 2 - brow / 2 + biw, by2 + 20 + Math.max(0, 36 - blt.height * 2) / 2, 2, 'left');
+      var bvt = pxText(bd.val, 20, '#2a1840', { ink: null });
+      var bvk = clamp(Math.min(Math.floor((bw2 - 40) / bvt.width), Math.floor(56 / bvt.height)), 1, 3);
+      pxDraw(g, bvt, bx2 + bw2 / 2, by2 + 62 + (56 - bvt.height * bvk) / 2, bvk, 'center');
+    }
+
+    // 4. 成績：一排四格（圖示＋名稱，下面大數字）
+    var PX = 60, PW = SHARE_W - PX * 2, PY = 792, PH = 162, cellW = (PW - 32) / 4;
+    pxBox(g, PX, PY, PW, PH, '#fff7e6', 8, '#f3dcae');
+    var cells = [
+      { ico: 'icons.timer', lab: '時間', val: fmtTime(d.time) },
+      { ico: 'icons.crown', lab: '擊倒', val: fmtNum(d.kills) },
+      { ico: 'pegs.attack', lab: '最大一擊', val: fmtNum(d.maxHit) },
+      { ico: 'pegs.crit', lab: '最大連擊', val: fmtNum(d.maxCombo) }
+    ];
+    for (var ci = 0; ci < 4; ci++) {
+      var cx0 = PX + 16 + cellW * ci, ccx = cx0 + cellW / 2;
+      if (ci) { g.fillStyle = '#2a184022'; g.fillRect(Math.round(cx0) - 2, PY + 24, 4, PH - 48); }
+      var lt = pxText(cells[ci].lab, 13, '#6a5a85', { ink: null }), ic = spriteCv(cells[ci].ico, 0);
+      var ik = ic ? Math.max(1, Math.floor(36 / ic.width)) : 0, iw = ic ? ic.width * ik + 8 : 0, lw = lt.width * 2, rowW = iw + lw;
+      if (ic) g.drawImage(ic, Math.round(ccx - rowW / 2), PY + 26, ic.width * ik, ic.height * ik);
+      pxDraw(g, lt, ccx - rowW / 2 + iw, PY + 26 + Math.max(0, (ic ? ic.height * ik : 0) - lt.height * 2) / 2, 2, 'left');
+      var vt = pxText(cells[ci].val, 20, '#2a1840', { ink: null });
+      var vk = clamp(Math.min(Math.floor((cellW - 24) / vt.width), Math.floor(72 / vt.height)), 1, 4);
+      pxDraw(g, vt, ccx, PY + 74 + (72 - vt.height * vk) / 2, vk, 'center');
+    }
+
+    // 5. 拿到的天賦（最多兩排；同一個天賦疊加顯示 ×N）
+    var FOOT = SHARE_H - FR - 8 - 128;   // 底部網址列的頂端
+    var tal = d.talents || [], TS = 68, TG = 12, perRow = Math.floor((SHARE_W - 120 + TG) / (TS + TG)), y = 974;
+    var tLab = pxText(tal.length ? '拿到的天賦' : '這局還沒拿到天賦', 13, '#ffffff');
+    pxDraw(g, tLab, CX, y, 3, 'center'); y += tLab.height * 3 + 12;
+    var rows = Math.min(2, Math.ceil(tal.length / perRow)), shown = Math.min(tal.length, rows * perRow);
+    if (rows === 2 && y + TS * 2 + TG > FOOT - 10) { TS = 64; TG = 10; perRow = Math.floor((SHARE_W - 120 + TG) / (TS + TG)); shown = Math.min(tal.length, 2 * perRow); }
+    var more = tal.length - shown;
+    if (more > 0) shown--;   // 最後一格改放「+N」
+    for (var ti = 0; ti < shown + (more > 0 ? 1 : 0); ti++) {
+      var rr = (ti / perRow) | 0, inRow = Math.min(perRow, (shown + (more > 0 ? 1 : 0)) - rr * perRow);
+      var tx = CX - (inRow * (TS + TG) - TG) / 2 + (ti % perRow) * (TS + TG), ty = y + rr * (TS + TG);
+      if (ti === shown) { pxBox(g, tx, ty, TS, TS, '#46306a', 5, null); var mt = pxText('+' + (more + 1), 14, '#ffffff'); pxDraw(g, mt, tx + TS / 2, ty + (TS - mt.height * 3) / 2, 3, 'center'); break; }
+      var tt = tal[ti], bgc = tt.rarity === 'g' ? '#ffe066' : (tt.rarity === 'b' ? '#cfe9ff' : '#ffffff');
+      pxBox(g, tx, ty, TS, TS, bgc, 5, tt.rarity === 'g' ? '#e0a92a' : (tt.rarity === 'b' ? '#8fc3ee' : '#d9d3e3'));
+      var tic = spriteCv('icons.' + tt.id, 0);
+      if (tic) { var tk = Math.max(1, Math.floor((TS - 14) / tic.width)); g.drawImage(tic, Math.round(tx + (TS - tic.width * tk) / 2), Math.round(ty + (TS - tic.height * tk) / 2), tic.width * tk, tic.height * tk); }
+      else { var def = talentDef(tt.id), ft = pxText(((def && def.name) || tt.id).charAt(0), 16, INK, { ink: null }); pxDraw(g, ft, tx + TS / 2, ty + (TS - ft.height * 3) / 2, 3, 'center'); }
+      if (tt.n > 1) { var nt = pxText('×' + tt.n, 12, '#ffffff', { ink: null }), nbw = nt.width * 2 + 12, nbh = nt.height * 2 + 8; g.fillStyle = INK; g.fillRect(tx + TS - nbw + 6, ty + TS - nbh + 6, nbw, nbh); pxDraw(g, nt, tx + TS - nbw / 2 + 6, ty + TS - nbh + 10, 2, 'center'); }
+    }
+
+    // 6. 底部：挑戰句＋網址
+    g.fillStyle = INK; g.fillRect(FR + 8, FOOT, SHARE_W - 2 * FR - 16, SHARE_H - FR - 8 - FOOT);
+    g.fillStyle = ui[1]; g.fillRect(FR + 8, FOOT, SHARE_W - 2 * FR - 16, 6);
+    var q = pxText('你能打到哪？', 16, ['#fff07a', '#ffb822']);
+    pxDraw(g, q, CX, FOOT + 14, 3, 'center');
+    var ut = pxText(d.url.replace(/^https?:\/\//, '').replace(/\/$/, ''), 13, '#ffffff', { ink: null, weight: 700 });
+    pxDraw(g, ut, CX, FOOT + 14 + q.height * 3 + 6, pxFitK(ut, SHARE_W - 2 * FR - 60, 3), 'center');
+    return c;
+  }
+
+  /* ---- 產生圖檔（同步：按鈕的使用者手勢不會因為等待 toBlob 而失效，iOS 分享需要） ---- */
+  function dataUrlBlob(u) {
+    var b64 = u.slice(u.indexOf(',') + 1), bin = atob(b64), n = bin.length, a = new Uint8Array(n);
+    for (var i = 0; i < n; i++) a[i] = bin.charCodeAt(i);
+    return new Blob([a], { type: 'image/png' });
+  }
+  function shareGet() {
+    var d = shareData();
+    if (SH.out && SH.out.d === d) return SH.out;
+    var o = { d: d, canvas: null, url: '', blob: null, file: null, objUrl: null, name: 'marble-legend-' + d.label + '.png' };
+    try { o.canvas = shareRender(d); o.url = o.canvas.toDataURL('image/png'); } catch (e) { errOnce('share.render', e); o.url = ''; }
+    if (o.url) {
+      try { o.blob = dataUrlBlob(o.url); } catch (e) { o.blob = null; }
+      try { if (o.blob && typeof File === 'function') o.file = new File([o.blob], o.name, { type: 'image/png', lastModified: Date.now() }); } catch (e) { o.file = null; }
+    }
+    if (SH.out && SH.out.objUrl) { try { URL.revokeObjectURL(SH.out.objUrl); } catch (e) { } }
+    SH.out = o;
+    return o;
+  }
+  function canShareFiles(o) {
+    try { return !!(o && o.file && navigator.share && navigator.canShare && navigator.canShare({ files: [o.file] })); } catch (e) { return false; }
+  }
+  function onShareClick() {
+    gesture();
+    var o = shareGet();
+    if (canShareFiles(o)) {
+      SH.mode = 'native';
+      var p = null;
+      try { p = navigator.share({ files: [o.file], title: '彈珠傳說', text: o.d.text }); } catch (e) { p = null; }
+      if (p && typeof p.then === 'function') {
+        p.then(function () { SH.mode = 'shared'; }, function (err) {
+          if (err && err.name === 'AbortError') { SH.mode = 'aborted'; return; }   // 使用者自己取消：留在結束畫面
+          SH.mode = 'fallback'; sharePreview(o, '沒辦法直接分享，改用下面的方法');
+        });
+        return;
+      }
+    }
+    SH.mode = 'preview';
+    sharePreview(o, '');
+  }
+  function sharePreview(o, note) {
+    o = o || shareGet();
+    if (o.url) { if (SE.shareImg.getAttribute('src') !== o.url) SE.shareImg.src = o.url; SE.shareImg.hidden = false; }
+    else SE.shareImg.hidden = true;
+    SE.shareText.textContent = o.d.text;
+    SE.btnShareNative.hidden = !(navigator.share);
+    SE.btnShareDl.disabled = !o.url;
+    shareMsg(note || (o.url ? '' : '圖片產生失敗，可以先複製文字分享'));
+    SH.open = true;
+    SE.sharePanel.hidden = false;
+    var pnl = SE.sharePanel.querySelector('.panel');
+    pnl.classList.remove('pop'); void pnl.offsetWidth; pnl.classList.add('pop');
+    Au.sfx('ui_tap');
+    focusLater(SE.btnShareClose, 60);
+  }
+  function shareClose(silent) {
+    if (!SH.open) return;
+    SH.open = false;
+    SE.sharePanel.hidden = true;
+    if (!silent) { Au.sfx('ui_back'); if (screen === 'over') focusLater(SE.btnShare, 0); }
+  }
+  var shareMsgTimer = 0;
+  function shareMsg(t) {
+    SE.shareMsg.textContent = t || '';
+    clearTimeout(shareMsgTimer);
+    if (t) shareMsgTimer = setTimeout(function () { SE.shareMsg.textContent = ''; }, 6000);
+  }
+  function shareDownload() {
+    var o = shareGet();
+    if (!o.url) { shareMsg('圖片產生失敗，請先複製文字'); return; }
+    try {
+      if (!o.objUrl && o.blob && window.URL && URL.createObjectURL) o.objUrl = URL.createObjectURL(o.blob);
+      var a = doc.createElement('a');
+      a.href = o.objUrl || o.url; a.download = o.name; a.rel = 'noopener'; a.style.display = 'none';
+      doc.body.appendChild(a); a.click();
+      setTimeout(function () { if (a.parentNode) a.parentNode.removeChild(a); }, 0);
+      shareMsg('已開始下載；沒反應的話請長按上面的圖片儲存');
+    } catch (e) { shareMsg('這個瀏覽器不能下載，請長按上面的圖片儲存'); }
+  }
+  function legacyCopy(txt) {
+    try {
+      var ta = doc.createElement('textarea');
+      ta.value = txt; ta.setAttribute('readonly', ''); ta.className = 'allowsave';
+      ta.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;';
+      doc.body.appendChild(ta); ta.focus(); ta.select(); try { ta.setSelectionRange(0, txt.length); } catch (e) { }
+      var ok = doc.execCommand && doc.execCommand('copy');
+      doc.body.removeChild(ta);
+      return !!ok;
+    } catch (e) { return false; }
+  }
+  function selectShareText() {
+    try { var r = doc.createRange(); r.selectNodeContents(SE.shareText); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) { }
+  }
+  function shareCopy() {
+    var txt = shareData().text;
+    var done = function () { SH.copied = txt; shareMsg('已複製文字！貼到脆或 IG 就能分享'); };
+    var fail = function () { if (legacyCopy(txt)) done(); else { selectShareText(); shareMsg('請長按上面的文字手動複製'); } };
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') { navigator.clipboard.writeText(txt).then(done, fail); return; }
+    } catch (e) { }
+    fail();
+  }
+  function shareNativeText() {
+    var d = shareData();
+    try { var p = navigator.share({ title: '彈珠傳說', text: d.text }); if (p && p.catch) p.catch(function () { }); } catch (e) { shareMsg('不能分享，請複製文字'); }
+  }
+  // 預覽圖與分享文字允許長按（儲存圖片／選取文字）；其他地方照樣擋
+  function shareAllow(t) {
+    while (t && t !== doc.body && t !== doc.documentElement) { if (t.classList && t.classList.contains('allowsave')) return true; t = t.parentNode; }
+    return false;
+  }
+  function shareHooks(dbg) {
+    dbg.shareImage = function () { var o = shareGet(); return o.url; };
+    dbg.shareInfo = function () {
+      var o = SH.out, d = shareData();
+      return { w: o && o.canvas ? o.canvas.width : 0, h: o && o.canvas ? o.canvas.height : 0, text: d.text, url: d.url, open: SH.open, mode: SH.mode,
+               hasFile: !!(o && o.file), canShareFiles: canShareFiles(o), copied: SH.copied || '', data: JSON.parse(JSON.stringify(d)) };
+    };
+    dbg.sharePreview = function () { sharePreview(shareGet(), ''); return SH.open; };
+    dbg.shareClose = function () { shareClose(true); return SH.open; };
+  }
+  if (SE.btnShare) SE.btnShare.addEventListener('click', onShareClick);
+  tap(SE.btnShareClose, function () { shareClose(); });
+  tap(SE.btnShareDl, shareDownload, 'ui_tap');
+  tap(SE.btnShareCopy, shareCopy, 'ui_tap');
+  tap(SE.btnShareNative, shareNativeText, 'ui_tap');
+  SE.sharePanel.addEventListener('click', function (e) { if (e.target === SE.sharePanel) shareClose(); });   // 點暗色背景也能關
+  SE.shareImg.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  // 預覽開著時 Esc 只關預覽（比結束畫面「Esc 回標題」先處理）
+  window.addEventListener('keydown', function (e) {
+    if (!SH.open) return;
+    if (e.key === 'Escape' || e.key === 'Esc') { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) shareClose(); }
+  }, true);
 
   /* ================= 測試掛鉤 ================= */
   function ensureSim() { if (!sim) startRun(1); return sim; }
@@ -12450,9 +13806,14 @@ root.MARBLE_ART =
       fps: function () { return fpsValue(); },
       // 以下為用戶端自己加的檢查用掛鉤
       layout: function () { return { s: L.s, N: L.N, crisp: L.crisp, cssW: L.cssW, cssH: L.cssH, offX: L.offX, offY: L.offY }; },
-      save: function () { return JSON.parse(JSON.stringify(save)); }
+      save: function () { return JSON.parse(JSON.stringify(save)); },
+      // 狂熱模式：fever() 立刻啟動、feverEnd() 立刻結束、setFever(0～1) 設能量
+      fever: function () { var r = false; if (sim && sim.debug && sim.debug.fever) { try { r = sim.debug.fever(); } catch (e) { errOnce('debug.fever', e); } pumpEvents(); } return r; },
+      feverEnd: function () { var r = false; if (sim && sim.debug && sim.debug.feverEnd) { try { r = sim.debug.feverEnd(); } catch (e) { errOnce('debug.feverEnd', e); } pumpEvents(); } return r; },
+      setFever: function (v) { var r = false; if (sim && sim.debug && sim.debug.setFever) { try { r = sim.debug.setFever(v); } catch (e) { errOnce('debug.setFever', e); } pumpEvents(); } return r; }
     }
   };
+  shareHooks(window.__ML__.debug);   // 分享圖測試掛鉤：shareImage() shareInfo() sharePreview() shareClose()
 
   /* ================= 啟動 ================= */
   REGROW_T = cfgNum(['REGROW_TIME', 'REGROW_T', 'regrowTime', 'PEG_REGROW'], 3);
