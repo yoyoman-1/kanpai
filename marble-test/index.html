@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2a1f3d">
 <link rel="icon" href="data:,">
-<meta name="ml-build" content="20261122-033300">
+<meta name="ml-build" content="20261122-181623">
 <title>彈珠傳說</title>
 </head>
 <body>
@@ -472,7 +472,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
     </div>
   </section>
 </div>
-<script>window.ML_BUILD="20261122-033300";</script>
+<script>window.ML_BUILD="20261122-181623";</script>
 <script>/* art/sprites.js */
 /* 彈珠傳說 像素美術資料 window.MARBLE_ART（由 art/gen/build.js 產生，請改產生器後重新產生，不要手改）
    格式：sprite = { w, h, palette, frames:[ [字串列...] ... ], fps?, loop?, weak? }，字元對照 palettes[palette]，"." 透明。
@@ -7582,6 +7582,18 @@ root.MARBLE_ART =
   defSfx('wall', { label: '撞牆', group: 'ball', step: 0.02, vol: 0.18, rand: 1.5, gap: 0.05, pri: 0, max: 2, tracks: [
     { inst: P_('tri', 0.001, 0.05, 0, 0.015, { slide: -5 }), data: 'G4:2' },
     { inst: N_('bp', 1.2, 0.001, 0.02, 0, 0.01), vol: 0.3, data: 'C6:1' } ] });
+  // ---- 鐵片機關（feat/rails；原創）：鍍鉻鐵片「鏘」、黃銅跳板「鏗」、風車「喀啦」、凹槽送出「叮」。都很短、很輕、有節流
+  defSfx('rail', { label: '鐵片（鏘）', group: 'ball', step: 0.02, vol: 0.16, rand: 1.2, gap: 0.07, pri: 0, max: 2, tracks: [
+    { inst: P_('p12', 0.001, 0.05, 0, 0.02), data: 'A6:1 E7:1' },
+    { inst: N_('bp', 6, 0.001, 0.03, 0, 0.01), vol: 0.35, data: 'C7:1' } ] });
+  defSfx('rail_ramp', { label: '黃銅跳板（鏗）', group: 'ball', step: 0.02, vol: 0.17, rand: 1, gap: 0.07, pri: 0, max: 2, tracks: [
+    { inst: P_('p25', 0.001, 0.06, 0, 0.02), data: 'E6:1 B6:2' },
+    { inst: P_('tri', 0.001, 0.05, 0, 0.02), vol: 0.5, data: 'E5:2' } ] });
+  defSfx('spinner', { label: '風車（喀啦）', group: 'ball', step: 0.018, vol: 0.18, rand: 0.8, gap: 0.08, pri: 0, max: 2, tracks: [
+    { inst: N_('bp', 4, 0.001, 0.015, 0, 0.005), data: 'G6:1 -:1 D6:1 -:1 A5:1' },
+    { inst: P_('p25', 0.001, 0.02, 0, 0.01), vol: 0.4, data: 'D6:1 -:1 A5:1' } ] });
+  defSfx('stage_out', { label: '凹槽送出（叮）', group: 'ball', step: 0.025, vol: 0.16, gap: 0.12, pri: 1, max: 1, tracks: [
+    { inst: P_('tri', 0.001, 0.08, 0, 0.03), data: 'C7:1 G6:2' } ] });
   defSfx('miss', { label: '落空', group: 'ball', step: 0.02, vol: 0.20, rand: 1.5, gap: 0.06, pri: 0, max: 2, tracks: [
     { inst: N_('lp', 0, 0.004, 0.08, 0, 0.03, { slide: -7 }), data: 'E4:3' },
     { inst: P_('tri', 0.002, 0.05, 0, 0.02, { slide: -7 }), vol: 0.5, data: 'C3:2' } ] });
@@ -8613,7 +8625,38 @@ root.MARBLE_ART =
     ATTACKER_DY: 16,             // 在釘子區下緣往下幾格
     // 每顆回饋＝max(ATTACKER_GIVE_MIN, ceil(上限×ATTACKER_GIVE_CAP))。第 2 章起是彈珠消耗戰，回饋多一點一局就會變長很多
     //   （autoplay：每顆 5～8 顆時一般玩家中位 12 分、2 成打到第 3～4 章）→ 定案每顆 2 顆（淨 +1），一次大當最多 +16
-    ATTACKER_GIVE_MIN: 2, ATTACKER_GIVE_CAP: 0
+    ATTACKER_GIVE_MIN: 2, ATTACKER_GIVE_CAP: 0,
+
+    // ---------- 鐵片機關（feat/rails）：弧形導軌 rail、凹槽平台 stage、風車 spinner、斜鐵片跳板 ramp ----------
+    // 每次重排盤面（genBoard）依章節挑 1～3 種；MECH:false＝完全關掉（autoplay 對照用）。造型原創。
+    MECH: true,
+    // ★ 防卡住：機關和「永久物件」（固定釘、入賞口柱、牆、其他機關）的表面縫隙一律 ≥ MECH_GAP
+    //   ＝最大彈珠直徑（r 7×1.8＝12.6 → 25.2）＋6.8 餘量；最窄處都比鋼珠寬，就不會有夾住鋼珠的楔形縫。
+    //   技能釘一碰就消失，只要離機關表面 ≥ MECH_PEG_GAP（好看、不疊在鐵片上）。
+    MECH_GAP: 32, MECH_PEG_GAP: 8,
+    // 每盤幾種：依章節 [第1章, 第2章, 第3章起]；第 1 章前 MECH_EASY_TO 關只出 1 種、只從 MECH_EASY_KINDS 挑
+    MECH_N: [[1, 1], [1, 2], [2, 3]], MECH_EASY_TO: 3, MECH_EASY_KINDS: ['rail', 'ramp'],
+    MECH_W: { rail: 1.0, stage: 0.6, spinner: 0.8, ramp: 1.0 },   // 種類權重（stage 要有入賞口才會出現；凹槽會讓入賞率變高，權重壓低一點）
+    MECH_ZONE_BOTTOM: 12,        // 機關最低點離釘子區下緣至少這麼多（不擋怪物、跳跳怪）
+    // 鐵片（線段＝膠囊碰撞）：粗細半徑、反彈、滑行阻力、最低速度保護
+    RAIL_R: 3, REST_RAIL: 0.28,
+    RAIL_FRIC: 2.5,              // 貼著鐵片滑的時候切線速度每秒衰減比例（導軌出口不會飛太遠）
+    RAIL_VMIN: 45, RAIL_PUSH: 420, // 貼著鐵片而速度 < RAIL_VMIN → 沿鐵片的出口方向推（每秒加速度）：保證離開、不會停在上面
+    RAIL_JITTER: 5,              // 撞擊時的切線小亂數（平衡點保險）
+    RAIL_EVENT_SPEED: 80, RAIL_EVENT_GAP: 0.07,
+    // 弧形導軌：從牆邊開始的彎軌（段數、每段長、起訖角度°：靠牆陡、出口緩，永遠是往中間的下坡）
+    RAIL_SEGS: 6, RAIL_SEG_LEN: [8, 10], RAIL_ANG: [60, 22], RAIL_Y: [0.04, 0.42], RAIL_ONE_SIDE: 0.3,
+    // 凹槽平台：正對入賞口上方；中間洞口（左右內端膠囊中心 ±STAGE_HOLE → 表面縫隙 33 ≥ MECH_GAP）
+    STAGE_HOLE: 19.5, STAGE_ABOVE: 50, STAGE_SEGS: 4, STAGE_SEG_LEN: 9, STAGE_ANG: [14, 50],
+    // 斜鐵片跳板：長度、角度°
+    RAMP_LEN: [34, 42], RAMP_ANG: [24, 34],
+    // 風車：4 片葉片（膠囊）繞軸轉；被打會加速，平常慢慢回到怠速（永遠在轉，不會停住擋路）
+    // 怠速 4 rad/s、轉向固定（被打只會變快）：葉片之間的 V 字缺口最多約 0.4 秒就轉開（太慢或會倒轉的話鋼珠會坐在 V 裡面）
+    SPIN_L: 17, SPIN_BLADE_R: 3, SPIN_HUB_R: 5, SPIN_IDLE: 4, SPIN_MAX: 13, SPIN_I: 1600, SPIN_DAMP: 0.9, REST_SPIN: 0.45,
+    SPIN_GRIP: 0.5,              // 撞到葉片時，相對切線速度被葉片帶走的比例（風車把鋼珠往轉動方向撥）
+    SPIN_EVENT_SPEED: 60, SPIN_EVENT_GAP: 0.08,
+    PIN_VMIN: 40, PIN_KICK: 30,  // 停在／彈在固定釘、入賞口柱正上方（切線速度 < 40）→ 往偏的那一邊推（彈跳時一次 +30、貼著時同 RAIL_PUSH）
+    STUCK_ASSIST: true           // false＝關掉 stuckCheck 的「推一下／移除」（防卡住測試用，確認不是靠保險）
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -8934,10 +8977,15 @@ root.MARBLE_ART =
         attacker: { open: false, x: 180, y: 0, w: C.ATTACKER_W, t: 0, dur: C.ATTACKER_T, count: 0, max: C.ATTACKER_MAX, give: 2 },
         gap: 0
       },
+      // 鐵片機關（feat/rails）：用戶端唯讀，見 ARCHITECTURE.md「鐵片機關」
+      //   kinds：本盤有哪幾種；rails：線段類 { id, kind:'rail'|'stage'|'ramp', pts:[[x,y],…] 折線, r 粗細, dir 出口方向 ±1, side, flashT, fx, fy }
+      //   spinners：風車 { id, x, y, L, br, hub, a（角度 rad）, w（角速度 rad/s）, flashT }；stage：凹槽洞口 { x, y, hw } 或 null
+      mech: { on: !!C.MECH, kinds: [], rails: [], spinners: [], stage: null },
       over: null
     };
     S.stats.entries = 0; S.stats.spins = 0; S.stats.reaches = 0; S.stats.jackpots = 0; S.stats.kakuhens = 0;
     S.stats.maxChain = 0; S.stats.sures = 0; S.stats.attackerBalls = 0;
+    S.stats.railHits = 0; S.stats.spinHits = 0; S.stats.stageOut = 0;
     var M = {};                       // 天賦加成（sim.mods）
 
     // ---------------- 內部狀態 ----------------
@@ -9439,6 +9487,21 @@ root.MARBLE_ART =
         pts = keep;
         posts.push({ x: round1(pk.x - pk.postDx), y: round1(pk.y - 2) }, { x: round1(pk.x + pk.postDx), y: round1(pk.y - 2) });
       }
+      // 鐵片機關（feat/rails）：放在入賞口之後、固定釘之前；技能釘／固定釘都避開機關。
+      // 被機關擠掉的技能釘在別處補回（只補擠掉的數量，盤面不會變空，沒有機關時跟舊版一樣）
+      placeMechs(Z, pk, posts);
+      if (S.mech.rails.length || S.mech.spinners.length) {
+        var nBefore = pts.length, keepM = [];
+        for (i = 0; i < pts.length; i++) if (mechClear(pts[i].x, pts[i].y, C.PEG_R) >= C.MECH_PEG_GAP) keepM.push(pts[i]);
+        pts = keepM;
+        for (var mt = 0; pts.length < nBefore && mt < 3000; mt++) {
+          var mp = { x: Z.x0 + r() * Z.w, y: Z.y0 + r() * Z.h };
+          if (!farFrom(pts, mp, C.PEG_MIN_DIST + 2)) continue;
+          if (pk && !farFrom([pk], mp, C.POCKET_CLEAR)) continue;
+          if (mechClear(mp.x, mp.y, C.PEG_R) < C.MECH_PEG_GAP) continue;
+          pts.push(mp);
+        }
+      }
       // 種類：保底＋權重隨機
       // 本關清盤獎勵用完後重排的盤面不再放補彈釘（長時間的魔王戰不會靠清盤無限補彈）
       var kinds = [], g = C.PEG_GUARANTEE, noRefill = boardNo > 1 && boardBonusLeft <= 0;
@@ -9455,7 +9518,8 @@ root.MARBLE_ART =
       var okPin = function (p) {
         return p.x >= PZ.x0 && p.x <= PZ.x1 && p.y >= PZ.y0 && p.y <= PZ.y1 &&
           farFrom(pins, p, C.PIN_MIN_DIST) && farFrom(pts, p, C.PIN_SKILL_MIN) &&
-          (!pk || farFrom([pk], p, C.POCKET_CLEAR));
+          (!pk || farFrom([pk], p, C.POCKET_CLEAR)) && farFrom(posts, p, C.PIN_R * 2 + C.MECH_GAP) &&   // 固定釘↔入賞口柱也要 ≥ MECH_GAP（巨大化鋼珠會卡在兩者之間）
+          mechClear(p.x, p.y, C.PIN_R) >= C.MECH_GAP;
       };
       var hints = res.pins || [];
       for (i = 0; i < hints.length && pins.length < pinN; i++) if (okPin(hints[i])) pins.push(hints[i]);
@@ -9482,6 +9546,335 @@ root.MARBLE_ART =
         var c0 = clamp(Math.floor((p.x - reach) / GCELL), 0, GCOLS - 1), c1 = clamp(Math.floor((p.x + reach) / GCELL), 0, GCOLS - 1);
         var r0 = clamp(Math.floor((p.y - reach) / GCELL), 0, GROWS - 1), r1 = clamp(Math.floor((p.y + reach) / GCELL), 0, GROWS - 1);
         for (var ry = r0; ry <= r1; ry++) for (var cx = c0; cx <= c1; cx++) grid[ry * GCOLS + cx].push(p);
+      }
+      // 鐵片線段也放進同樣的格子（另一個陣列）：AABB 往外擴「線段粗細＋彈珠可能半徑」
+      segGrid = new Array(GCOLS * GROWS);
+      for (i = 0; i < segGrid.length; i++) segGrid[i] = [];
+      for (i = 0; i < segs.length; i++) {
+        var sg = segs[i], rs = sg.r + reachBall;
+        var a0 = clamp(Math.floor((sg.minx - rs) / GCELL), 0, GCOLS - 1), a1 = clamp(Math.floor((sg.maxx + rs) / GCELL), 0, GCOLS - 1);
+        var b0 = clamp(Math.floor((sg.miny - rs) / GCELL), 0, GROWS - 1), b1 = clamp(Math.floor((sg.maxy + rs) / GCELL), 0, GROWS - 1);
+        for (var gy = b0; gy <= b1; gy++) for (var gx = a0; gx <= a1; gx++) segGrid[gy * GCOLS + gx].push(sg);
+      }
+    }
+
+    // ---------------- 鐵片機關（feat/rails） ----------------
+    // 四種：弧形導軌 rail（兩側從牆邊彎向中間）、凹槽平台 stage（入賞口正上方的凹鐵片，中間有洞）、
+    //       風車 spinner（會轉的四葉，撞到會被撥開）、斜鐵片跳板 ramp（短斜片，導向入賞口或某一側）。
+    // 碰撞：線段＝膠囊（中心線＋半徑 r），弧線用多段線段近似；風車＝4 根會旋轉的膠囊（撞擊時把葉片切線速度算進反彈）。
+    // 防卡住：放置時檢查所有機關彼此、機關與固定釘／入賞口柱／牆的表面縫隙 ≥ MECH_GAP（比最大彈珠直徑還寬），
+    //         所有鐵片都是往出口的下坡（沒有平的地方），貼著鐵片又太慢時沿出口方向推（RAIL_VMIN／RAIL_PUSH），風車永遠在轉。
+    var segs = [], segGrid = [];
+    var railCd = 0, spinCd = 0, stageCd = 0;
+    var forcedMechs = null;           // debug.mechs(['rail','stage','spinner','ramp']) 強制之後每盤的機關種類
+    var MECH_KINDS = ['rail', 'stage', 'spinner', 'ramp'];
+
+    // 點到線段的距離平方（順便回傳最近點參數 t）
+    var segT = 0;
+    function ptSeg2(px, py, x1, y1, x2, y2) {
+      var dx = x2 - x1, dy = y2 - y1, l2 = dx * dx + dy * dy, t = 0;
+      if (l2 > 1e-9) t = clamp(((px - x1) * dx + (py - y1) * dy) / l2, 0, 1);
+      segT = t;
+      var qx = x1 + dx * t - px, qy = y1 + dy * t - py;
+      return qx * qx + qy * qy;
+    }
+    function segSegDist(a, b) {
+      // 兩線段相交 → 0；否則四個端點到對方線段的最短距離
+      var d1x = a.x2 - a.x1, d1y = a.y2 - a.y1, d2x = b.x2 - b.x1, d2y = b.y2 - b.y1;
+      var den = d1x * d2y - d1y * d2x;
+      if (Math.abs(den) > 1e-9) {
+        var ex = b.x1 - a.x1, ey = b.y1 - a.y1, u = (ex * d2y - ey * d2x) / den, v = (ex * d1y - ey * d1x) / den;
+        if (u >= 0 && u <= 1 && v >= 0 && v <= 1) return 0;
+      }
+      return Math.sqrt(Math.min(ptSeg2(a.x1, a.y1, b.x1, b.y1, b.x2, b.y2), ptSeg2(a.x2, a.y2, b.x1, b.y1, b.x2, b.y2),
+        ptSeg2(b.x1, b.y1, a.x1, a.y1, a.x2, a.y2), ptSeg2(b.x2, b.y2, a.x1, a.y1, a.x2, a.y2)));
+    }
+    function capsOf(pts, r) {
+      var out = [];
+      for (var i = 0; i + 1 < pts.length; i++) out.push({ x1: pts[i][0], y1: pts[i][1], x2: pts[i + 1][0], y2: pts[i + 1][1], r: r });
+      return out;
+    }
+    function diskCap(x, y, r) { return { x1: x, y1: y, x2: x, y2: y, r: r }; }
+    // 兩組膠囊之間的最小表面縫隙
+    function capsGap(A, B) {
+      var g = 1e9;
+      for (var i = 0; i < A.length; i++) for (var j = 0; j < B.length; j++) g = Math.min(g, segSegDist(A[i], B[j]) - A[i].r - B[j].r);
+      return g;
+    }
+    // 機關形狀（已放好的）到一個圓（x,y,r）的最小表面縫隙；沒有機關＝很大
+    function mechClear(x, y, r) {
+      var g = 1e9, i, MX = S.mech;
+      for (i = 0; i < placedShapes.length; i++) {
+        var A = placedShapes[i].caps;
+        for (var j = 0; j < A.length; j++) g = Math.min(g, Math.sqrt(ptSeg2(x, y, A[j].x1, A[j].y1, A[j].x2, A[j].y2)) - A[j].r - r);
+        // 凹槽平台的碗裡面也不放釘子（鋼珠在裡面滾）
+        var bb = placedShapes[i].bowl;
+        if (bb && x > bb.x0 - r && x < bb.x1 + r && y > bb.y0 - r && y < bb.y1 + r) g = Math.min(g, -1);
+      }
+      return MX ? g : 1e9;
+    }
+    var placedShapes = [];            // [{ kind, caps:[膠囊], wallOk:'L'|'R'|null, bowl }]
+    // 這個形狀放得下嗎：在釘子區內、離牆（導軌自己那一側除外）、入賞口柱、其他機關的表面縫隙都 ≥ MECH_GAP
+    function shapeOk(sh, Z, posts) {
+      var G = C.MECH_GAP, i, c;
+      for (i = 0; i < sh.caps.length; i++) {
+        c = sh.caps[i];
+        var minx = Math.min(c.x1, c.x2) - c.r, maxx = Math.max(c.x1, c.x2) + c.r, miny = Math.min(c.y1, c.y2) - c.r, maxy = Math.max(c.y1, c.y2) + c.r;
+        if (miny < Z.y0 - 4 || maxy > Z.y1 - C.MECH_ZONE_BOTTOM) return false;
+        if (sh.wallOk !== 'L' && minx < G) return false;
+        if (sh.wallOk !== 'R' && maxx > W - G) return false;
+      }
+      for (i = 0; i < posts.length; i++) if (capsGap(sh.caps, [diskCap(posts[i].x, posts[i].y, C.PIN_R)]) < G) return false;
+      for (i = 0; i < placedShapes.length; i++) if (capsGap(sh.caps, placedShapes[i].caps) < G) return false;
+      return true;
+    }
+    // 折線：從 (x0,y0) 出發，每段長 len，角度從 a0 漸變到 a1（度；0＝水平往 sx 方向，正＝往下）
+    function bendPts(x0, y0, sx, n, len, a0, a1) {
+      var pts = [[round1(x0), round1(y0)]], x = x0, y = y0;
+      for (var i = 0; i < n; i++) {
+        var a = (a0 + (a1 - a0) * (n > 1 ? i / (n - 1) : 0)) * Math.PI / 180;
+        x += sx * len * Math.cos(a); y += len * Math.sin(a);
+        pts.push([round1(x), round1(y)]);
+      }
+      return pts;
+    }
+    function addRail(kind, pts, dir, side, extra) {
+      var o = { id: uid++, kind: kind, pts: pts, r: C.RAIL_R, dir: dir, side: side || 0, flashT: 0, fx: 0, fy: 0 };
+      if (extra) for (var k in extra) o[k] = extra[k];
+      S.mech.rails.push(o);
+      return o;
+    }
+    function pickMechKinds(r, L, hasPocket) {
+      if (forcedMechs) { var f = []; for (var q = 0; q < forcedMechs.length; q++) if (forcedMechs[q] !== 'stage' || hasPocket) f.push(forcedMechs[q]); return f; }
+      if (!C.MECH) return [];
+      var easy = L.chapter === 1 && L.stage <= C.MECH_EASY_TO;
+      var nr = perCh(C.MECH_N, L.chapter), n = easy ? 1 : nr[0] + Math.floor(r() * (nr[1] - nr[0] + 1));
+      var pool = [], i;
+      for (i = 0; i < MECH_KINDS.length; i++) {
+        var k = MECH_KINDS[i];
+        if (easy && C.MECH_EASY_KINDS.indexOf(k) < 0) continue;
+        if (k === 'stage' && !hasPocket) continue;
+        pool.push(k);
+      }
+      var out = [];
+      while (out.length < n && pool.length) {
+        var sum = 0; for (i = 0; i < pool.length; i++) sum += C.MECH_W[pool[i]] || 0;
+        var u = r() * sum;
+        for (i = 0; i < pool.length - 1; i++) { u -= C.MECH_W[pool[i]] || 0; if (u < 0) break; }
+        out.push(pool.splice(i, 1)[0]);
+      }
+      return out;
+    }
+    // 每盤重排：挑種類 → 依序放（凹槽 → 跳板 → 導軌 → 風車），放不下就換位置重試，還是不行就跳過
+    function placeMechs(Z, pk, posts) {
+      var MX = S.mech;
+      MX.kinds = []; MX.rails = []; MX.spinners = []; MX.stage = null;
+      placedShapes = []; segs = [];
+      if (!MX.on && !forcedMechs) return;
+      var L = S.level, r = mulberry32(mix(mix(seed ^ 0x3E7A11, L.index), boardNo));
+      var want = pickMechKinds(r, L, !!pk), i, t, sh;
+      var order = ['stage', 'ramp', 'rail', 'spinner'], got = [];
+      for (var oi = 0; oi < order.length; oi++) {
+        var kind = order[oi];
+        if (want.indexOf(kind) < 0) continue;
+        var ok = 0;
+        if (kind === 'stage' && pk) {
+          // 凹槽平台：洞口正對入賞口（洞底在入賞口上方 STAGE_ABOVE），左右兩半各一條往洞口的下坡
+          var hb = pk.y - C.STAGE_ABOVE, hx = C.STAGE_HOLE;
+          var lp = bendPts(pk.x - hx, hb, -1, C.STAGE_SEGS, C.STAGE_SEG_LEN, -C.STAGE_ANG[0], -C.STAGE_ANG[1]).reverse();
+          var rp = bendPts(pk.x + hx, hb, 1, C.STAGE_SEGS, C.STAGE_SEG_LEN, -C.STAGE_ANG[0], -C.STAGE_ANG[1]).reverse();
+          var caps = capsOf(lp, C.RAIL_R).concat(capsOf(rp, C.RAIL_R));
+          var top = Math.min(lp[0][1], rp[0][1]);
+          sh = { kind: 'stage', caps: caps, wallOk: null, bowl: { x0: lp[0][0], x1: rp[0][0], y0: top - 16, y1: hb + 2 } };
+          if (shapeOk(sh, Z, posts)) {
+            placedShapes.push(sh);
+            addRail('stage', lp, 1, -1, { hole: pk.x }); addRail('stage', rp, -1, 1, { hole: pk.x });
+            MX.stage = { x: pk.x, y: hb, hw: hx - C.RAIL_R };
+            ok = 1;
+          }
+        } else if (kind === 'ramp') {
+          // 跳板：第一片對準入賞口（有凹槽時改成從外側把鋼珠送進凹槽），第二片（第 2 章起 50%）導向某一側
+          var nRamp = L.chapter >= 2 && r() < 0.5 ? 2 : 1;
+          for (var ri = 0; ri < nRamp; ri++) {
+            for (t = 0; t < 30; t++) {
+              var len = C.RAMP_LEN[0] + r() * (C.RAMP_LEN[1] - C.RAMP_LEN[0]), ang = (C.RAMP_ANG[0] + r() * (C.RAMP_ANG[1] - C.RAMP_ANG[0])) * Math.PI / 180;
+              var side = r() < 0.5 ? -1 : 1, lx, ly, dir;
+              if (ri === 0 && pk && MX.stage) { lx = pk.x + side * (68 + r() * 10); ly = MX.stage.y - 23 - (44 + r() * 14); dir = -side; }
+              else if (ri === 0 && pk) { lx = pk.x + side * (32 + r() * 14); ly = pk.y - (58 + r() * 26); dir = -side; }
+              else { lx = Z.x0 + 50 + r() * (Z.w - 100); ly = Z.y0 + 40 + r() * (Z.h - 90); dir = r() < 0.5 ? -1 : 1; side = -dir; }
+              // dir＝鋼珠滑出去的方向（低的那一端）；高端在反方向
+              var hxp = lx - dir * len * Math.cos(ang), hyp = ly - len * Math.sin(ang);
+              var rpPts = [[round1(hxp), round1(hyp)], [round1(lx), round1(ly)]];
+              sh = { kind: 'ramp', caps: capsOf(rpPts, C.RAIL_R), wallOk: null };
+              if (shapeOk(sh, Z, posts)) { placedShapes.push(sh); addRail('ramp', rpPts, dir, side, { aim: ri === 0 && pk ? (MX.stage ? 'stage' : 'pocket') : 'side' }); ok++; break; }
+            }
+          }
+        } else if (kind === 'rail') {
+          // 弧形導軌：靠牆那端陡、出口緩，永遠往中間下坡；30% 只有一側，兩側高度各自隨機
+          var sides = r() < C.RAIL_ONE_SIDE ? [r() < 0.5 ? -1 : 1] : [-1, 1];
+          for (var si = 0; si < sides.length; si++) {
+            var sd = sides[si];
+            for (t = 0; t < 20; t++) {
+              var y0 = Z.y0 + Z.h * (C.RAIL_Y[0] + r() * (C.RAIL_Y[1] - C.RAIL_Y[0]));
+              var sl = C.RAIL_SEG_LEN[0] + r() * (C.RAIL_SEG_LEN[1] - C.RAIL_SEG_LEN[0]);
+              var x0 = sd < 0 ? -2 : W + 2;
+              var pts = bendPts(x0, y0, -sd, C.RAIL_SEGS, sl, C.RAIL_ANG[0], C.RAIL_ANG[1]);
+              sh = { kind: 'rail', caps: capsOf(pts, C.RAIL_R), wallOk: sd < 0 ? 'L' : 'R' };
+              if (shapeOk(sh, Z, posts)) { placedShapes.push(sh); addRail('rail', pts, -sd, sd); ok++; break; }
+            }
+          }
+        } else if (kind === 'spinner') {
+          var nSp = L.chapter >= 3 && r() < 0.4 ? 2 : 1, RS = C.SPIN_L + C.SPIN_BLADE_R;
+          for (var pi = 0; pi < nSp; pi++) {
+            for (t = 0; t < 40; t++) {
+              var sx = Z.x0 + 40 + r() * (Z.w - 80), sy = Z.y0 + 34 + r() * (Z.h - 90);
+              if (pk && Math.abs(sx - pk.x) < 30 && sy > pk.y - 90 && sy < pk.y + 10) continue;   // 不要正好蓋住入賞口
+              if (MX.stage && Math.abs(sx - MX.stage.x) < 80 && sy < MX.stage.y && sy > MX.stage.y - 120) continue;   // 也不要蓋在凹槽正上方（擋住進碗的路）
+              sh = { kind: 'spinner', caps: [diskCap(sx, sy, RS)], wallOk: null };
+              if (shapeOk(sh, Z, posts)) {
+                placedShapes.push(sh);
+                var w0 = (r() < 0.5 ? -1 : 1) * C.SPIN_IDLE;
+                MX.spinners.push({ id: uid++, x: round1(sx), y: round1(sy), L: C.SPIN_L, br: C.SPIN_BLADE_R, hub: C.SPIN_HUB_R, a: r() * Math.PI, w: w0, dir0: w0 > 0 ? 1 : -1, flashT: 0, fx: sx, fy: sy });
+                ok++; break;
+              }
+            }
+          }
+        }
+        if (ok) got.push(kind);
+      }
+      MX.kinds = got;
+      // 線段（碰撞用）：每條折線拆成膠囊，記住所屬機關（出口方向、閃光）
+      for (i = 0; i < MX.rails.length; i++) {
+        var o = MX.rails[i];
+        for (var k = 0; k + 1 < o.pts.length; k++) {
+          var x1 = o.pts[k][0], y1 = o.pts[k][1], x2 = o.pts[k + 1][0], y2 = o.pts[k + 1][1], dx = x2 - x1, dy = y2 - y1, l2 = dx * dx + dy * dy;
+          segs.push({ x1: x1, y1: y1, x2: x2, y2: y2, dx: dx, dy: dy, il2: l2 > 1e-9 ? 1 / l2 : 0, r: o.r, o: o,
+                      minx: Math.min(x1, x2), maxx: Math.max(x1, x2), miny: Math.min(y1, y2), maxy: Math.max(y1, y2) });
+        }
+      }
+    }
+    function clearMechs() { var MX = S.mech; MX.kinds = []; MX.rails = []; MX.spinners = []; MX.stage = null; placedShapes = []; segs = []; }
+
+    function railEvent(kind, x, y, sp) {
+      if (sp > C.RAIL_EVENT_SPEED && railCd <= 0) { railCd = C.RAIL_EVENT_GAP; emit({ t: 'rail', kind: kind, x: round1(x), y: round1(y), speed: Math.round(sp) }); }
+    }
+    // 彈珠 vs 鐵片線段（膠囊）；回傳碰到的機關（給最低速度保護用）或 null
+    function collideSegs(b, h) {
+      if (!segs.length) return null;
+      var cx = clamp(Math.floor(b.x / GCELL), 0, GCOLS - 1), cy = clamp(Math.floor(b.y / GCELL), 0, GROWS - 1);
+      var cell = segGrid[cy * GCOLS + cx], touched = null;
+      for (var i = 0; i < cell.length; i++) {
+        var s = cell[i], R = b.r + s.r;
+        if (b.x < s.minx - R || b.x > s.maxx + R || b.y < s.miny - R || b.y > s.maxy + R) continue;
+        var t = clamp(((b.x - s.x1) * s.dx + (b.y - s.y1) * s.dy) * s.il2, 0, 1);
+        var qx = s.x1 + s.dx * t, qy = s.y1 + s.dy * t, dx = b.x - qx, dy = b.y - qy, d2 = dx * dx + dy * dy;
+        if (d2 >= R * R) continue;
+        var d = Math.sqrt(d2), nx, ny;
+        if (d < 1e-6) { var ln = Math.sqrt(s.dx * s.dx + s.dy * s.dy) || 1; nx = s.dy / ln; ny = -s.dx / ln; if (ny > 0) { nx = -nx; ny = -ny; } }
+        else { nx = dx / d; ny = dy / d; }
+        b.x = qx + nx * R; b.y = qy + ny * R;
+        var vn = b.vx * nx + b.vy * ny;
+        if (vn < 0) {
+          b.vx -= (1 + C.REST_RAIL) * vn * nx; b.vy -= (1 + C.REST_RAIL) * vn * ny;
+          if (-vn > 40) { var j = (rng() * 2 - 1) * C.RAIL_JITTER; b.vx += -ny * j; b.vy += nx * j; }
+          // 彈在鐵片端點圓頭的正上方（原地垂直彈跳）→ 跟固定釘一樣往偏的那一邊撥一下
+          if ((t <= 0 || t >= 1) && ny < -0.6 && -vn > 20) {
+            var vtc = b.vx * -ny + b.vy * nx;
+            if (Math.abs(vtc) < C.PIN_VMIN) { var sgc = nx > 0.02 ? 1 : nx < -0.02 ? -1 : s.o.dir; b.vx += sgc * C.PIN_KICK * -ny; b.vy += sgc * C.PIN_KICK * nx; }
+          }
+          if (-vn > 60) { s.o.flashT = 0.16; s.o.fx = qx; s.o.fy = qy; S.stats.railHits++; }
+          railEvent(s.o.kind, qx, qy, -vn);
+        }
+        // 貼著滑：切線速度慢慢衰減（導軌出口不會飛太遠）
+        var fk = Math.max(0, 1 - C.RAIL_FRIC * h);
+        var vt = b.vx * -ny + b.vy * nx;
+        b.vx -= -ny * vt * (1 - fk); b.vy -= nx * vt * (1 - fk);
+        if (ny < -0.3) { touched = s.o; cnx = nx; cny = ny; }   // 壓在鐵片上面（底下碰到的會自己掉開，不用推）
+      }
+      return touched;
+    }
+    var cnx = 0, cny = -1;
+    // 最低速度保護：壓在鐵片上又幾乎不動 → 沿接觸面的下坡方向推（凹槽推向洞口、導軌推向中間、跳板推向低端；
+    //   停在鐵片端點的圓頭上就往偏的那一邊推下去，不會跟重力互相抵銷）。接觸面幾乎是平的才用機關的出口方向
+    function railAssist(b, o, h) {
+      var v2 = b.vx * b.vx + b.vy * b.vy;
+      if (v2 >= C.RAIL_VMIN * C.RAIL_VMIN) return;
+      var sg = cnx > 0.05 ? 1 : cnx < -0.05 ? -1 : o.dir, k = C.RAIL_PUSH * h;
+      b.vx += sg * k * -cny; b.vy += sg * k * cnx;
+    }
+    function collideSpinners(b) {
+      var SP = S.mech.spinners;
+      for (var i = 0; i < SP.length; i++) {
+        var sp = SP[i], dx = b.x - sp.x, dy = b.y - sp.y, RR = sp.L + sp.br + b.r;
+        if (dx * dx + dy * dy >= RR * RR) continue;
+        // 軸心（不動的圓）
+        var Rh = sp.hub + b.r, d2 = dx * dx + dy * dy, nx, ny, vn, d;
+        if (d2 < Rh * Rh) {
+          d = Math.sqrt(d2); if (d < 1e-6) { nx = 0; ny = -1; } else { nx = dx / d; ny = dy / d; }
+          b.x = sp.x + nx * Rh; b.y = sp.y + ny * Rh;
+          vn = b.vx * nx + b.vy * ny;
+          if (vn < 0) { b.vx -= (1 + C.REST_SPIN) * vn * nx; b.vy -= (1 + C.REST_SPIN) * vn * ny; }
+          // 跟固定釘一樣：坐在軸心正上方（被葉片一直往上撥、原地彈）→ 往偏的那一邊推下去
+          var vt = b.vx * -ny + b.vy * nx;
+          if (ny < -0.6 && Math.abs(vt) < C.PIN_VMIN) {
+            var sg = nx > 0.02 ? 1 : nx < -0.02 ? -1 : (sp.w > 0 ? 1 : -1), kick = vn < -20 ? C.PIN_KICK : C.RAIL_PUSH * DT;
+            b.vx += sg * kick * -ny; b.vy += sg * kick * nx;
+          }
+        }
+        // 4 片葉片（從軸心到葉尖的膠囊）
+        for (var k = 0; k < 4; k++) {
+          var a = sp.a + k * Math.PI / 2, ex = sp.x + sp.L * Math.cos(a), ey = sp.y + sp.L * Math.sin(a);
+          var R = sp.br + b.r, q2 = ptSeg2(b.x, b.y, sp.x, sp.y, ex, ey);
+          if (q2 >= R * R) continue;
+          var qx = sp.x + (ex - sp.x) * segT, qy = sp.y + (ey - sp.y) * segT;
+          d = Math.sqrt(q2);
+          if (d < 1e-6) { nx = -Math.sin(a); ny = Math.cos(a); if (ny > 0) { nx = -nx; ny = -ny; } } else { nx = (b.x - qx) / d; ny = (b.y - qy) / d; }
+          b.x = qx + nx * R; b.y = qy + ny * R;
+          // 葉片在接觸點的速度 ω×r
+          var rx = qx - sp.x, ry = qy - sp.y, vbx = -sp.w * ry, vby = sp.w * rx;
+          vn = (b.vx - vbx) * nx + (b.vy - vby) * ny;
+          if (vn < 0) {
+            var J = -(1 + C.REST_SPIN) * vn;
+            b.vx += J * nx; b.vy += J * ny;
+            // 反作用力矩：葉片被打得轉快／轉慢（τ＝r×F，F＝−J·n）
+            //   只會被打得轉快或慢，不會倒轉、不會低於怠速（倒轉的話鋼珠卡在兩片葉片的 V 字裡會被來回搖，出不去）
+            sp.w = sp.dir0 * clamp(sp.dir0 * (sp.w - J * (rx * ny - ry * nx) / C.SPIN_I), C.SPIN_IDLE, C.SPIN_MAX);
+            // 葉片表面「抓」一點切線速度（撥向葉片轉動的方向）＋停在葉尖正上方時往旁邊撥：不會被葉尖原地一直往上頂
+            var tx = -ny, ty = nx, vt2 = (b.vx - vbx) * tx + (b.vy - vby) * ty;
+            b.vx -= tx * vt2 * C.SPIN_GRIP; b.vy -= ty * vt2 * C.SPIN_GRIP;
+            var vt3 = b.vx * tx + b.vy * ty;
+            if (ny < -0.3 && Math.abs(vt3) < C.PIN_VMIN) {
+              var sgb = vbx > 1 ? 1 : vbx < -1 ? -1 : (nx >= 0 ? 1 : -1);
+              b.vx += sgb * C.PIN_KICK * tx; b.vy += sgb * C.PIN_KICK * ty;
+            }
+            if (J > 80) { sp.flashT = 0.18; sp.fx = qx; sp.fy = qy; S.stats.spinHits++; }
+            if (-vn > C.SPIN_EVENT_SPEED && spinCd <= 0) { spinCd = C.SPIN_EVENT_GAP; emit({ t: 'spinner', id: sp.id, x: round1(qx), y: round1(qy), speed: Math.round(-vn), w: round1(sp.w) }); }
+          }
+        }
+      }
+    }
+    // 凹槽平台：鋼珠從洞口往下掉出去（stageOut 事件；正下方就是入賞口）
+    function stageCheck(b, py) {
+      var st = S.mech.stage;
+      if (!st || b._so) return;
+      if (py < st.y + 2 && b.y >= st.y + 2 && Math.abs(b.x - st.x) < st.hw + 1) {
+        b._so = true; S.stats.stageOut++;
+        if (stageCd <= 0) { stageCd = 0.12; emit({ t: 'stageOut', x: round1(b.x), y: round1(st.y) }); }
+      }
+    }
+    function updateMechs(dt) {
+      if (railCd > 0) railCd -= dt;
+      if (spinCd > 0) spinCd -= dt;
+      if (stageCd > 0) stageCd -= dt;
+      var MX = S.mech, i;
+      for (i = 0; i < MX.rails.length; i++) if (MX.rails[i].flashT > 0) MX.rails[i].flashT -= dt;
+      for (i = 0; i < MX.spinners.length; i++) {
+        var sp = MX.spinners[i];
+        if (sp.flashT > 0) sp.flashT -= dt;
+        // 怠速：被打快之後慢慢回到 SPIN_IDLE（轉向固定 dir0）→ 永遠在轉
+        sp.w += (sp.dir0 * C.SPIN_IDLE - sp.w) * Math.min(1, C.SPIN_DAMP * dt);
+        sp.a += sp.w * dt;
+        if (sp.a > 1000 || sp.a < -1000) sp.a = sp.a % (Math.PI * 2);
       }
     }
 
@@ -9535,7 +9928,7 @@ root.MARBLE_ART =
       if (b.y < b.r) { b.y = b.r; if (b.vy < 0) b.vy = -b.vy * C.REST_WALL; }
     }
 
-    function collidePegs(b) {
+    function collidePegs(b, h) {
       var cx = clamp(Math.floor(b.x / GCELL), 0, GCOLS - 1), cy = clamp(Math.floor(b.y / GCELL), 0, GROWS - 1);
       var cell = grid[cy * GCOLS + cx];
       for (var i = 0; i < cell.length; i++) {
@@ -9543,6 +9936,8 @@ root.MARBLE_ART =
         if (!p.alive) continue;
         var dx = b.x - p.x, dy = b.y - p.y, R = b.r + p.r, d2 = dx * dx + dy * dy;
         if (d2 >= R * R) continue;
+        // 入賞口柱子：彈珠（巨大化）大到塞不進兩柱之間時，球心在兩柱中間就直接穿過，避免卡在洞口
+        if (p.post && S.pachi.pocket && b.r >= S.pachi.pocket.postDx - p.r - 1 && Math.abs(b.x - S.pachi.pocket.x) < S.pachi.pocket.postDx) continue;
         var d = Math.sqrt(d2), nx, ny;
         if (d < 1e-6) { nx = rng() < 0.5 ? -0.6 : 0.6; ny = -0.8; } else { nx = dx / d; ny = dy / d; }
         b.x = p.x + nx * R; b.y = p.y + ny * R;
@@ -9550,10 +9945,17 @@ root.MARBLE_ART =
         if (vn < 0) {
           var e = p.kind === 'pin' ? C.REST_PIN : C.REST_PEG;
           b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny;
-          var j = (rng() * 2 - 1) * C.JITTER;
-          b.vx += -ny * j; b.vy += nx * j;
+          if (-vn > 20) { var j = (rng() * 2 - 1) * C.JITTER; b.vx += -ny * j; b.vy += nx * j; }   // 貼著不動時不亂抖（交給下面的最低速度保護往下推）
         }
         if (p.kind === 'pin') {
+          // 最低速度保護（feat/rails）：停在固定釘／入賞口柱正上方幾乎不動（不穩定平衡點，靠亂數要晃很久）→ 往偏的那一邊推下去
+          //   （正上方反覆垂直彈跳也算：切線速度太小就補一下，彈跳時一次補 PIN_KICK、貼著時每秒 RAIL_PUSH）
+          var vt = b.vx * -ny + b.vy * nx;
+          if (ny < -0.6 && Math.abs(vt) < C.PIN_VMIN) {
+            var sg = nx > 0.02 ? 1 : nx < -0.02 ? -1 : (vt > 0 ? 1 : vt < 0 ? -1 : (rng() < 0.5 ? -1 : 1));
+            var kick = vn < -20 ? C.PIN_KICK : C.RAIL_PUSH * h;
+            b.vx += sg * kick * -ny; b.vy += sg * kick * nx;
+          }
           if (-vn > C.PIN_EVENT_SPEED && pinCd <= 0) { pinCd = C.PIN_EVENT_GAP; emit({ t: 'pin', x: p.x, y: p.y, speed: Math.round(-vn) }); }
         } else trigger(p, b, 'ball', null);
         if (b._dead) return;
@@ -9584,11 +9986,11 @@ root.MARBLE_ART =
         b._cpT = 0;
         if (b.y - b._cpY < C.STUCK_MIN_DY) {
           b._stuck++;
-          if (b._stuck >= 2) { b.vx += (rng() < 0.5 ? -1 : 1) * (60 + rng() * 80); b.vy -= 40; }
+          if (b._stuck >= 2 && C.STUCK_ASSIST) { b.vx += (rng() < 0.5 ? -1 : 1) * (60 + rng() * 80); b.vy -= 40; }
         } else b._stuck = 0;
         b._cpY = b.y;
       }
-      if (b._life > C.BALL_MAX_LIFE || b._stuck >= C.STUCK_KILL) missBall(b);
+      if (C.STUCK_ASSIST && (b._life > C.BALL_MAX_LIFE || b._stuck >= C.STUCK_KILL)) missBall(b);
     }
 
     function stepBalls(dt) {
@@ -9606,8 +10008,11 @@ root.MARBLE_ART =
           var py = b.y;
           b.x += b.vx * h; b.y += b.vy * h;
           collideWalls(b);
-          collidePegs(b);
+          collidePegs(b, h);
           if (b._dead) break;
+          if (segs.length) { var tr = collideSegs(b, h); if (tr) railAssist(b, tr, h); }   // 鐵片機關
+          if (S.mech.spinners.length) collideSpinners(b);
+          if (S.mech.stage) stageCheck(b, py);
           if (pachiCatch(b, py)) break;     // 小鋼珠：入賞口、大入賞口
           if (collideMonsters(b)) break;
           if (b.y >= FLOOR_Y - b.r) { missBall(b); break; }
@@ -10258,6 +10663,7 @@ root.MARBLE_ART =
       if (S.combo.n > 0) { S.combo.t -= dt; if (S.combo.t <= 0) { S.combo.n = 0; S.combo.t = 0; comboMs = 0; } }
       feverTick(dt);
       pachiTick(dt);
+      updateMechs(dt);
 
       updateMonsters(dt);
       updatePegs(dt);
@@ -10308,6 +10714,7 @@ root.MARBLE_ART =
 
     function tickClear(dt) {
       S.time += dt;
+      updateMechs(dt);
       updateMonsters(dt);
       clearT -= dt;
       if (clearT <= 0) {
@@ -10500,6 +10907,7 @@ root.MARBLE_ART =
         }
         S.pegs = pegs; boardClearT = -1; boardPattern = 'custom';
         S.pachi.pocket = null;          // 自訂盤面沒有入賞口（要入賞口用 newBoard）
+        clearMechs();                   // 也沒有鐵片機關
         buildGrid();
       },
       // 狂熱模式：fever() 立刻啟動（能量直接集滿）；feverEnd() 立刻結束；setFever(e) 設定能量 0～1（不會自動啟動以外的副作用）
@@ -10560,6 +10968,25 @@ root.MARBLE_ART =
                  attacker: copyObj(PA.attacker), force: pachiForce };
       },
       // 怪物花樣：之後的關卡每隻普通／精英怪都帶這些 trait（boss:true 連魔王也帶）；null 取消。搭配 gotoLevel 截圖／測試用
+      // 鐵片機關：mechs(['rail','stage','spinner','ramp'] | null) 強制之後每盤的機關種類（[]＝都不放、null＝照章節規則），在 play 時立刻重排一盤
+      mechs: function (list) {
+        forcedMechs = list ? [].concat(list).filter(function (k) { return MECH_KINDS.indexOf(k) >= 0; }) : null;
+        if (S.level && (S.phase === 'play' || S.phase === 'clear')) genBoard();
+        return S.mech.kinds.slice();
+      },
+      mechInfo: function () {
+        var MX = S.mech;
+        return { on: MX.on, kinds: MX.kinds.slice(), force: forcedMechs && forcedMechs.slice(), rails: MX.rails.map(function (o) { return { kind: o.kind, n: o.pts.length, dir: o.dir, aim: o.aim || null }; }),
+                 spinners: MX.spinners.map(function (s) { return { x: s.x, y: s.y, a: s.a, w: s.w }; }), stage: MX.stage && copyObj(MX.stage), segs: segs.length,
+                 stats: { railHits: S.stats.railHits, spinHits: S.stats.spinHits, stageOut: S.stats.stageOut } };
+      },
+      // 測試用：在 (x, y) 放一顆彈珠（r 省略＝目前大小），不扣彈珠；回傳 id
+      spawnBall: function (x, y, r, vx, vy) {
+        if (S.phase !== 'play') return 0;
+        var b = newBall(clamp(Number(x) || 180, 1, W - 1), Number(y) || C.SPAWN_Y, Number(vx) || 0, Number(vy) || 0, null);
+        b._canSplit = false; if (r > 0) b.r = Number(r);
+        S.balls.push(b); return b.id;
+      },
       forceTraits: function (list, opt) { forcedTraits = list ? { list: [].concat(list), boss: !!(opt && opt.boss) } : null; return true; },
       info: function () {
         return { seed: seed, boardNo: boardNo, pattern: boardPattern, zoneY1: zoneY1, fireCd: fireCd, pendingShot: pendingShot,
@@ -11527,6 +11954,23 @@ root.MARBLE_ART =
     S.sfx('attacker_in', { pitch: Math.min(10, num(e.count, 0) * 0.6) });
   };
   HANDLERS.attackerClose = function () { S.sfx('attacker_close'); };
+  // ---- 鐵片機關（feat/rails）：sim 已經節流（rail 每 0.07 秒、spinner 每 0.08 秒最多一次），這裡再依速度調音量、只放少量火花
+  HANDLERS.rail = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 300), sp = num(e.speed, 100);
+    var n = sp > 260 ? 4 : sp > 150 ? 2 : 1;
+    burst(x, y, budget(n), ['#ffffff', '#fff6b0', '#ffe24a'], 40, 120 + sp * 0.2, 300, 0.12, 0.26, [1, 2], 0.7, K_SPARK);
+    S.sfx(e.kind === 'ramp' ? 'rail_ramp' : 'rail', { volume: clamp(sp / 420, 0.25, 0.85), pitch: e.kind === 'stage' ? 2 : 0, pan: clamp((x - W / 2) / (W / 2), -0.7, 0.7) });
+  };
+  HANDLERS.spinner = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 300), sp = num(e.speed, 100);
+    burst(x, y, budget(sp > 200 ? 3 : 2), ['#ffffff', '#ff8a9a', '#ffe24a'], 50, 150, 260, 0.14, 0.3, [1, 2], 0.5, K_SPARK);
+    S.sfx('spinner', { volume: clamp(sp / 380, 0.3, 0.9), pitch: clamp(Math.abs(num(e.w, 4)) / 3 - 1, -1, 4), pan: clamp((x - W / 2) / (W / 2), -0.7, 0.7) });
+  };
+  HANDLERS.stageOut = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 300);
+    burst(x, y + 4, budget(3), ['#ffe24a', '#fff6b0'], 30, 80, 200, 0.18, 0.32, [1, 2], 0.2, K_SPARK);
+    S.sfx('stage_out', { volume: 0.7 });
+  };
   // talentOffer / reroll / talentPick / gameOver：音效由用戶端負責，Juice 不出聲
 
   var inited = false;
@@ -13617,6 +14061,7 @@ root.MARBLE_ART =
     drawBackground(th, va);
     ctx.save(); Jz.call('drawUnder', ctx); ctx.restore(); resetCtx(); worldXf(sx, sy);
     drawLcd(st, animT);
+    drawMechs(st, animT);
     drawPegs(st.pegs, animT);
     drawPocket(st, animT);
     drawAttacker(st, animT);
@@ -13773,6 +14218,85 @@ root.MARBLE_ART =
     ctx.fillStyle = 'rgba(255,230,120,0.75)'; ctx.fillRect(x - 3, ay, 6, 2); ctx.fillRect(x - 2, ay + 2, 4, 2); ctx.fillRect(x - 1, ay + 4, 2, 2);
     var lab = pxText('入賞', 9, '#ffffff', { font: FONT_JP });
     ctx.drawImage(lab, Math.round(x - lab.width / 2), y + 11, lab.width, lab.height);
+  }
+  /* ---- 鐵片機關（feat/rails）：弧形導軌、凹槽平台、斜鐵片跳板（鍍鉻／黃銅膠囊折線）、風車（旋轉四葉） ----
+   * 跟機台外框、黃銅釘同一套金屬色：深色描邊 INK → 本體 → 上緣高光 → 下緣暗面；被撞時接觸點小閃光（sim 的 flashT）。
+   * 造型原創：導軌是有鉚釘的鍍鉻彎軌、凹槽是兩片鍍鉻碗＋洞口金色燈、跳板是黃銅斜片、風車是紅白四葉＋黃銅軸。 */
+  var METAL = {
+    chrome: { body: '#9aa6bc', hi: '#f4f7fc', lo: '#58607a', rivet: '#ffd76a' },
+    brass: { body: '#d9a33a', hi: '#fff0b0', lo: '#7a4a12', rivet: '#fff6c8' }
+  };
+  var stageFlashT = -9, mechSeen = {};
+  function strokePts(pts, w, col, dx, dy) {
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath();
+    for (var i = 0; i < pts.length; i++) { var x = pts[i][0] + (dx || 0), y = pts[i][1] + (dy || 0); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }
+    ctx.stroke();
+  }
+  // 沿折線每一段的「上方法線」偏移畫一條細線（高光／暗面）
+  function edgeLine(pts, off, w, col) {
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath();
+    for (var i = 0; i + 1 < pts.length; i++) {
+      var x1 = pts[i][0], y1 = pts[i][1], x2 = pts[i + 1][0], y2 = pts[i + 1][1], dx = x2 - x1, dy = y2 - y1, l = Math.sqrt(dx * dx + dy * dy) || 1;
+      var nx = dy / l, ny = -dx / l; if (ny > 0) { nx = -nx; ny = -ny; }
+      ctx.moveTo(x1 + nx * off, y1 + ny * off); ctx.lineTo(x2 + nx * off, y2 + ny * off);
+    }
+    ctx.stroke();
+  }
+  function drawRailObj(o, t) {
+    var m = o.kind === 'ramp' ? METAL.brass : METAL.chrome, r = o.r || 3, pts = o.pts, fl = clamp((o.flashT || 0) / 0.16, 0, 1);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    strokePts(pts, r * 2 + 2.4, INK, 0, 0.6);
+    strokePts(pts, r * 2, m.body);
+    edgeLine(pts, -r * 0.55, 1.4, m.lo);
+    edgeLine(pts, r * 0.5, 1.3, fl > 0 ? '#ffffff' : m.hi);
+    // 鉚釘：導軌每隔一個節點、跳板兩端
+    ctx.fillStyle = m.rivet;
+    for (var i = (o.kind === 'rail' ? 1 : 0); i < pts.length; i += (o.kind === 'rail' ? 2 : pts.length - 1 || 1)) {
+      if (o.kind === 'stage') break;
+      var px = pts[i][0], py = pts[i][1];
+      if (px < 1 || px > W - 1) continue;
+      ctx.fillRect(Math.round(px) - 1, Math.round(py) - 1, 2, 2);
+    }
+    if (fl > 0) { ctx.globalAlpha = 0.7 * fl; ctx.drawImage(glow('gold'), o.fx - 12, o.fy - 12, 24, 24); ctx.globalAlpha = 1; }
+    ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
+  }
+  function drawStageLamp(st, t) {
+    var sg = st.mech && st.mech.stage;
+    if (!sg) return;
+    // 洞口：兩側黃銅小擋片＋中間金色燈（鋼珠掉下去時亮一下），下方淡淡的導引光柱指向入賞口
+    var f = clamp(1 - (animT - stageFlashT) / 0.3, 0, 1), x = sg.x, y = sg.y;
+    ctx.globalAlpha = 0.16 + 0.1 * Math.sin(t * 4) + 0.4 * f;
+    ctx.fillStyle = '#ffe680'; ctx.fillRect(Math.round(x - 4), Math.round(y + 4), 8, 30);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = INK; ctx.fillRect(Math.round(x - 7), Math.round(y - 9), 14, 5);
+    ctx.fillStyle = f > 0 ? '#ffffff' : (Math.floor(t * 2.5) % 2 ? '#ffd23f' : '#ffb020'); ctx.fillRect(Math.round(x - 6), Math.round(y - 8), 12, 3);
+    if (f > 0) { ctx.globalAlpha = 0.6 * f; ctx.drawImage(glow('gold'), x - 20, y - 22, 40, 40); ctx.globalAlpha = 1; }
+  }
+  function drawSpinner(s, t) {
+    var fl = clamp((s.flashT || 0) / 0.18, 0, 1), L2 = s.L, br = s.br;
+    ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.a);
+    for (var k = 0; k < 4; k++) {
+      ctx.save(); ctx.rotate(k * Math.PI / 2);
+      ctx.fillStyle = INK; ctx.fillRect(-1, -br - 1.2, L2 + br + 1.2, br * 2 + 2.4);
+      ctx.fillStyle = k % 2 ? '#f4f0f8' : '#ff4a5e'; ctx.fillRect(L2 * 0.45, -br, L2 * 0.55 + br * 0.5, br * 2);   // 葉片外半段紅白交錯
+      ctx.fillStyle = METAL.chrome.body; ctx.fillRect(0, -br, L2 * 0.45, br * 2);
+      ctx.fillStyle = fl > 0 ? '#ffffff' : (k % 2 ? '#ffffff' : '#ffc0c8'); ctx.fillRect(L2 * 0.45, -br, L2 * 0.55 + br * 0.5, 1);
+      ctx.fillStyle = METAL.chrome.hi; ctx.fillRect(0, -br, L2 * 0.45, 1);
+      ctx.restore();
+    }
+    ctx.restore();
+    // 軸心：黃銅圓＋高光（不跟著轉，看起來是固定在盤面上）
+    ctx.fillStyle = INK; circle(s.x, s.y, s.hub + 1.4);
+    ctx.fillStyle = METAL.brass.body; circle(s.x, s.y, s.hub);
+    ctx.fillStyle = METAL.brass.hi; ctx.fillRect(Math.round(s.x - 2), Math.round(s.y - 3), 2, 2);
+    if (fl > 0) { ctx.globalAlpha = 0.65 * fl; ctx.drawImage(glow('gold'), s.fx - 14, s.fy - 14, 28, 28); ctx.globalAlpha = 1; }
+  }
+  function drawMechs(st, t) {
+    var MX = st && st.mech;
+    if (!MX || (!MX.rails.length && !MX.spinners.length)) return;
+    for (var i = 0; i < MX.rails.length; i++) { drawRailObj(MX.rails[i], t); mechSeen[MX.rails[i].kind] = 1; }
+    drawStageLamp(st, t);
+    for (i = 0; i < MX.spinners.length; i++) { drawSpinner(MX.spinners[i], t); mechSeen.spinner = 1; }
   }
   // 大入賞口（開著才畫）：兩片黃銅蓋往外打開，裡面紅金色閃爍，旁邊剩餘顆數與時間條
   function drawAttacker(st, t) {
@@ -14076,6 +14600,7 @@ root.MARBLE_ART =
   function onPachiEvent(ev) {
     switch (ev.t) {
       case 'pocket': pocketFlashT = animT; break;
+      case 'stageOut': stageFlashT = animT; break;
       case 'jackpot': startShow(ev); break;
       case 'kakuhenStart': if (ev.chain > 1) caption('確変継続！', '繼續高機率！', 'red'); else caption('確変突入！', '機率大幅提升！', 'red'); break;
       case 'kakuhenEnd': caption('確変終了', '高機率結束了', 'gray', 1.3); break;
@@ -14708,7 +15233,13 @@ root.MARBLE_ART =
       skipShow: function () { var was = JP.on; endShow(true); return was; },
       captions: function () { var a = []; if (capCur) a.push({ jp: capCur.jp, zh: capCur.zh, now: true }); for (var i = 0; i < CAPS.length; i++) a.push({ jp: CAPS[i].jp, zh: CAPS[i].zh, now: false }); return a; },
       glyphCheck: function (text, font) { return glyphCheck(String(text || ''), font); },
-      frameInfo: function () { var n = 0, full = 0; for (var i = 0; i < FR.bulbs.length; i++) { n++; if (FR.bulbs[i].full) full++; } return { sides: FR.sides, bulbs: n, full: full, mode: FR.mode }; }
+      frameInfo: function () { var n = 0, full = 0; for (var i = 0; i < FR.bulbs.length; i++) { n++; if (FR.bulbs[i].full) full++; } return { sides: FR.sides, bulbs: n, full: full, mode: FR.mode }; },
+      // 鐵片機關（feat/rails）：mechs(['rail','stage','spinner','ramp'] | [] | null) 強制之後每盤的機關（立刻重排一盤）；
+      // mechInfo() 目前盤面的機關；spawnBall(x, y, r) 放一顆測試彈珠；mechDrawn() 畫過哪些機關（版面檢查用）
+      mechs: function (list) { return pachiDbg('mechs', list); },
+      mechInfo: function () { return sim && sim.debug && sim.debug.mechInfo ? sim.debug.mechInfo() : null; },
+      spawnBall: function (x, y, r, vx, vy) { return sim && sim.debug && sim.debug.spawnBall ? sim.debug.spawnBall(x, y, r, vx, vy) : 0; },
+      mechDrawn: function (reset) { var o = {}; for (var k in mechSeen) o[k] = mechSeen[k]; if (reset) mechSeen = {}; return o; }
     }
   };
   function pachiDbg(name, a, b) {
