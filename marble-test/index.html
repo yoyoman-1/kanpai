@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2a1f3d">
 <link rel="icon" href="data:,">
-<meta name="ml-build" content="20261122-181623">
+<meta name="ml-build" content="20261122-222315">
 <title>彈珠傳說</title>
 </head>
 <body>
@@ -84,6 +84,23 @@ img{-webkit-user-drag:none;user-select:none}
 #banner.clear .bt{color:#fff27a;font-size:46px;letter-spacing:.12em}
 #toast{position:absolute;left:0;right:0;top:12%;z-index:6;pointer-events:none;text-align:center;font-size:24px;font-weight:900;color:#8dffb8;text-shadow:var(--tw);white-space:nowrap;opacity:0}
 #toast.show{animation:toastIn 1.4s ease both}
+/* ===== feat/ux：畫面分區（詳見 ARCHITECTURE.md「畫面分區與文字優先順序」）=====
+   #banner／#feverText 的 top 由 main.js layoutZones() 依 canvas 位置換算成世界 y（不再用舞台百分比），避免和液晶、魔王血條、聽牌大字打架 */
+/* 新手提示：一行小膠囊，貼在盤面最底（地面＋機台下框），不壓釘子區、液晶、HUD；位置由 layoutZones() 設定 */
+#tip{position:absolute;left:8px;right:8px;bottom:4px;z-index:5;pointer-events:none;display:flex;justify-content:center;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s}
+#tip.show{opacity:1;transform:none}
+#tip .tipIn{display:flex;align-items:center;gap:6px;max-width:100%;padding:4px 10px 5px 5px;background:#1a1030eb;color:#fff;font-size:13px;line-height:1.25;white-space:nowrap;
+  box-shadow:0 -2px 0 0 #ffd23f,0 2px 0 0 #ffd23f,-2px 0 0 0 #ffd23f,2px 0 0 0 #ffd23f,0 0 0 4px var(--ink)}
+#tip .tipIco{flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;color:var(--ink);background:#ffd23f}
+#tip .tipTx{overflow:hidden}
+/* HUD 收入字（+50、+10、已滿）：飄在 HUD 彈珠數右下，不進舞台（以前畫在世界 y≈26，會壓到魔王血條與掉落點箭頭） */
+#hudM{position:relative}
+#hudGain{position:absolute;right:-6px;bottom:-4px;font-size:12px;font-weight:900;line-height:1;color:#8dffb8;text-shadow:var(--tw1);white-space:nowrap;pointer-events:none;opacity:0}
+#hudGain.gray{color:#d8d2e6}
+#hudGain.show{animation:gainIn 1.1s ease-out both}
+@keyframes gainIn{0%{opacity:0;transform:translateY(6px) scale(.7)}15%{opacity:1;transform:translateY(0) scale(1.15)}30%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
+#talentSub.tip{color:#ffe24a;font-size:13px;white-space:normal;text-align:center;max-width:100%}
+#btnTips{font-size:13px}
 #coreMsg{position:absolute;left:var(--edge);right:var(--edge);bottom:16px;z-index:7;text-align:center;font-size:14px;padding:8px 10px;background:#2a1840e6;box-shadow:var(--o3);pointer-events:none}
 
 /* ---------- 下方操作區 ---------- */
@@ -351,6 +368,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
       <div id="hudMarbleRow"><i class="ico none" data-ico="marble"></i><i class="mi"></i><span id="hudMarbles">0 / 0</span></div>
       <span id="hudRefill">補彈 1:00</span>
       <span id="feverTimer" hidden></span>
+      <span id="hudGain" aria-hidden="true"></span>
     </div>
     <div id="hudR"><button id="btnPause" class="pbtn sq blue" type="button" aria-label="暫停"><i class="ico none" data-ico="pause"></i><b class="pz"></b></button></div>
   </header>
@@ -359,6 +377,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
     <canvas id="frame" aria-hidden="true"></canvas>
     <div id="banner" aria-live="polite"><i class="stripe"></i><span class="bt"></span><span class="bs"></span><i class="stripe"></i></div>
     <div id="toast"></div>
+    <div id="tip" aria-live="polite"><div class="tipIn"><b class="tipIco">!</b><span class="tipTx"></span></div></div>
     <div id="coreMsg" hidden></div>
     <div id="feverGlow" aria-hidden="true"></div>
     <div id="feverText" aria-hidden="true">狂熱！<small>傷害 ×2・連發加速</small></div>
@@ -431,6 +450,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
         <button id="btnRestart" class="pbtn sm pink" type="button">重新開始</button>
         <button id="btnHome" class="pbtn sm gray" type="button">回標題</button>
       </div>
+      <button id="btnTips" class="pbtn sm gray" type="button">重新顯示新手提示</button>
       <div id="pauseTalentsBox"><h3>已獲得的天賦</h3><div id="pauseTalents"></div></div>
     </div>
   </section>
@@ -472,7 +492,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
     </div>
   </section>
 </div>
-<script>window.ML_BUILD="20261122-181623";</script>
+<script>window.ML_BUILD="20261122-222315";</script>
 <script>/* art/sprites.js */
 /* 彈珠傳說 像素美術資料 window.MARBLE_ART（由 art/gen/build.js 產生，請改產生器後重新產生，不要手改）
    格式：sprite = { w, h, palette, frames:[ [字串列...] ... ], fps?, loop?, weak? }，字元對照 palettes[palette]，"." 透明。
@@ -8445,6 +8465,11 @@ root.MARBLE_ART =
  *     精英約 20 秒、魔王約 29 秒；1-9 → 2-1 約 22 → 23 秒（沒有牆）；第 2 章每關 23～36 秒、精英（帶護盾）約 49 秒、魔王約 75 秒；
  *     一局中位約 9.1 分（p10 7.2、p90 18）、約 86% 死在第 2 章、12% 到第 3～4 章；新手第 1 章死亡約 4%；
  *     狂熱第 1 章約每 2.4 關、第 2 章約每關一次（全局每 1.3 關）；高手中位約 31 分、死在第 4～5 章。
+ *   後段曲線（feat/curve 2026-11-22；--games 120 --seed 50000 定案、--seed 77000 複驗）：
+ *     第 3 章起場上幾乎一直 50 顆（分裂＋雙重射擊＋弱點回收），打怪速度被「場上 50 顆」卡住，彈珠每秒淨消耗約 3 顆，
+ *     所以「死掉的那一章」大約要打 上限÷3 秒（第 4 章約 18 分、第 5 章約 25 分），怎麼調血量都一樣 → 只能讓章內平均、不要有牆：
+ *     第 4 章起每關 ×1.13（原 ×1.25）、精英／魔王倍率降低；FIRE_RATE_CH 第 4 章起加快連發＝彈珠消耗變快（打怪速度幾乎不變），
+ *     高手才不會在第 5 章以後磨到 1 小時以上。一般玩家：第 2 章連發 ×1.25（沒塞滿場上，同樣彈珠更快打完，一局變短、死在哪不變）。
  *   普通怪每隻 = B × HP_SHARE[隻數−1] × species.hpMul
  *   精英       = B × ELITE_HP(章) × hpMul；精英關的普通護衛 = B × ESCORT_HP × hpMul
  *   魔王       = B × BOSS_HP(章) × hpMul
@@ -8482,6 +8507,10 @@ root.MARBLE_ART =
     FIELD_MAX: 50,               // 場上同時最多 50 顆（分裂多出來的排隊）
     FIRE_RATE: 6,                // 每秒發射數（快手 +%），上限 FIRE_RATE_MAX
     FIRE_RATE_MAX: 20,
+    // 依章節的連發倍率（[第1章, 第2章, …]，最後一個值之後沿用；乘在快手之後、不受 FIRE_RATE_MAX 限制，仍受場上 50 顆限制）
+    //   第 2 章 ×1.25：一般玩家沒塞滿場上，連發快＝同樣的彈珠更快打完（死在哪關不變、一局變短）
+    //   第 4 章起 ×2.2／×3：後段場上幾乎一直 50 顆，打怪速度不變，但彈珠消耗變快 → 高手不會在第 5 章以後磨到打不死
+    FIRE_RATE_CH: [1, 1.25, 1.3, 2.2, 3],
     QUEUE_GAP: 0.05,             // 排隊彈珠補出的最短間隔
     QUEUE_MAX: 50,               // 排隊上限（超過的分身直接消失）
     EMPTY_GAP: 0.5,              // empty 事件節流
@@ -8510,9 +8539,12 @@ root.MARBLE_ART =
     DROP_CHAPTER: [12, 0.2],     // 章節掉落倍率 [第1章, 第2章起]：第 1 章關卡變長（10～23 秒），靠擊倒掉落把收支拉平、存到接近上限；第 2 章起掉落減少，回到消耗戰
 
     // ---------- 怪物血量（平衡槓桿） ----------
-    HP_BASE: 40, HP_GROWTH: [1.37, 1.37, 1.25], HP_CHAPTER: [16.9, 13, 7.5], HP_LOOP: 0.3,
+    // 曲線調整（feat/curve 2026-11-22）：第 4 章起每關只 ×1.13、每章 ×4.3（原本每關 ×1.25、每章 ×7.5 → 4-9、5-x 一關 3～10 分鐘）；
+    //   第 4 章開頭比較硬（×12.5）但章內平：高手第 4 章每關約 75～130 秒、魔王約 175 秒。HP_BASE 40→35（新手少死在 1-2），第 2 章倍率跟著換算
+    HP_BASE: 35, HP_GROWTH: [1.383, 1.37, 1.25, 1.13], HP_CHAPTER: [21.14, 11.87, 12.5, 4.3], HP_LOOP: 0.3,
     HP_SHARE: [1, 0.62, 0.46],   // 1/2/3 隻時每隻分到的比例
-    ELITE_HP: [1.6, 1.7], ESCORT_HP: 0.45, BOSS_HP: [1.15, 2.6], // [第1章, 第2章起]；第 2 章精英帶護盾，1.7 讓 2-5 不要變成牆（2.2→1.7）；第 1 章魔王 1.15 讓新手少死在 1-10
+    // [第1章, 第2章, 第3章, 第4章起]：2-5 護盾精英 1.7→0.8、護盾 0.28→0.16（原本一般玩家死亡約 2 成在 2-5）；第 3 章起精英／魔王也降（原本一關要鄰關的 2 倍時間）；第 1 章魔王 1.15→0.85（1-10 約 23 秒）
+    ELITE_HP: [1.6, 0.8, 1.3, 1.1], ESCORT_HP: 0.45, BOSS_HP: [0.85, 2.4, 2.0],
     ELITE_ESCORT_CHANCE: 0.5,    // 精英關多一隻普通護衛的機率
     MONSTER_RX: 0.44, MONSTER_RY: 0.44,
     LANE_MARGIN: 4,
@@ -8527,7 +8559,7 @@ root.MARBLE_ART =
     TRAIT2_BASE: -0.16, TRAIT2_CH: 0.1, TRAIT2_STAGE: 0.025, TRAIT2_MAX: 0.6, // 第 2 種 trait（組合）：CH×(章−1)＋STAGE×關＋BASE
     // 護盾：護盾值＝原本血量×SHIELD_FRAC；有護盾的怪本體血量 ×SHIELD_HP_MUL（公平補償：總量約 1.1 倍，但護盾在時不能弱點回收）
     //   打在弱點正上方的護盾照弱點倍率算（不回收）；破盾後暈眩 SHIELD_STUN 秒（停住、弱點打開）
-    SHIELD_FRAC: { normal: 0.32, elite: 0.28, boss: 0.16 }, SHIELD_HP_MUL: { normal: 0.78, elite: 0.76, boss: 0.7 }, SHIELD_STUN: 0.9,
+    SHIELD_FRAC: { normal: 0.32, elite: 0.16, boss: 0.16 }, SHIELD_HP_MUL: { normal: 0.78, elite: 0.76, boss: 0.7 }, SHIELD_STUN: 0.9,
     SHIELD_RX: 1.16, SHIELD_RY: 1.2,          // 護盾泡泡碰撞橢圓（相對本體 rx/ry）
     SHIELD_REUP: 0.5, SHIELD_REUP_FROM: 3,    // 魔王的護盾在血量 50% 時再張開一次（第 3 章起；第 2 章魔王是第一次見到護盾，只有一層）
     // 閉殼：弱點開 GUARD_OPEN 秒 → 預兆 GUARD_WARN 秒 → 關 GUARD_SHUT 秒（關著時打弱點＝打身體，不回收）
@@ -10468,7 +10500,11 @@ root.MARBLE_ART =
       F.energy = Math.max(0, F.t / F.dur);
       if (F.t <= 0) feverEnd();
     }
-    function fireIntervalNow() { return M.fireInterval * (S.fever.active ? C.FEVER_RATE : 1); }
+    // FIRE_RATE_CH：依章節的連發倍率（陣列＝[第1章, 第2章, …]，最後一個值之後沿用；不受 FIRE_RATE_MAX 限制，仍受場上 50 顆限制）
+    function fireIntervalNow() {
+      var k = C.FIRE_RATE_CH != null && S.level ? perCh(C.FIRE_RATE_CH, S.level.chapter) : 1;
+      return M.fireInterval / k * (S.fever.active ? C.FEVER_RATE : 1);
+    }
 
     // ---------------- 小鋼珠機制（feat/pachinko） ----------------
     // 入賞口（每盤重排）→ 抽獎（入賞當下決定結果；保留燈顏色依結果預告）→ 液晶轉 3 個數字（時間軸在 S.pachi.spin，用戶端照 t 畫）
@@ -11721,9 +11757,8 @@ root.MARBLE_ART =
   HANDLERS.income = function (e) {
     var n = num(e.n, 0) | 0, src = e.src;
     if (n <= 0) return;
-    var h = hudPoint();
     hudSparkle(src === 'timer' ? 10 : 3);
-    if (src === 'timer') { infoNum(h.x, h.y + 18, '+' + n, 'green', 3, 1.15, 26); S.sfx('refill_timer'); }
+    if (src === 'timer') S.sfx('refill_timer');               // feat/ux：「+50」改由用戶端顯示在 HUD 裡（原本畫在世界 y≈26，會壓魔王血條／掉落點箭頭）
     else if (src === 'kill') later(0.42, 'income');             // 等飛回去的彈珠到 HUD 再叮
     else if (src === 'board') S.sfx('income');
     else if (src === 'peg') {
@@ -11735,8 +11770,7 @@ root.MARBLE_ART =
   HANDLERS.capped = function () {
     if (clock - lastCapped < 1.2) return;
     lastCapped = clock;
-    var h = hudPoint();
-    labelFx('滿', 'gray', 13, h.x + 30, h.y + 14, 0.8, 10);
+    // feat/ux：「已滿」改由用戶端顯示在 HUD 裡（不在舞台頂端畫字）
   };
 
   HANDLERS.regrow = function (e) {
@@ -11749,8 +11783,10 @@ root.MARBLE_ART =
   HANDLERS.boardClear = function (e) {
     var bonus = num(e.bonus, 10) | 0, i;
     SCR.board = 1;
-    labelFx('清盤！', 'gold', 30, W / 2, 250, 1.3, -14, 1.6);
-    if (bonus > 0) infoNum(W / 2, 290, '+' + bonus, 'green', 3, 1.25, -14);
+    // feat/ux 分區：清盤大字放在盤面中下段（世界 y 340；避開液晶 61～96、字幕帶、聽牌 100～300、狂熱大字 205～295），
+    // 獎勵彈珠飛向 HUD（數字 +N 由用戶端在 HUD 顯示）
+    labelFx('清盤！', 'gold', 30, W / 2, 340, 1.3, -14, 1.6);
+    if (bonus > 0) flyers(W / 2, 340, Math.min(bonus, 8), true, 40);
     for (i = 0; i < 26; i++) P(i & 1 ? K_SPARK : K_STAR, rr(24, W - 24), rr(70, 430), rr(-15, 15), rr(-30, -5), 0, 1, rr(0.5, 1.0), 2, '#fff6b0', true);
     vib(15, 100);
     S.sfx('board_clear');
@@ -12690,6 +12726,7 @@ root.MARBLE_ART =
     if (crisp) cv.classList.add('crisp'); else cv.classList.remove('crisp');
     ctx.imageSmoothingEnabled = false;
     L.s = cssW / W; L.N = N; L.k = N / 2; L.cssW = cssW; L.cssH = cssH; L.offX = offX; L.offY = offY; L.crisp = crisp; L.sw = sw; L.sh = sh; L.dpr = dpr;
+    layoutZones();
     backdropKey = '';
     updateBackdrop();
     frameLayout();
@@ -13036,6 +13073,7 @@ root.MARBLE_ART =
     Jz.call('reset');
     feverHide();
     resetPachiFx();
+    tipRunReset();
     var lv = sim.state.level || DEF_LEVEL;
     setTheme(lv.theme || themeIdx(lv.chapter), lv.variant | 0);
     setScreen(sim.state.phase === 'talent' ? 'talent' : 'play');
@@ -13062,6 +13100,7 @@ root.MARBLE_ART =
   function onEvent(ev) {
     shareTrack(ev);   // 分享圖：記錄最強戰果
     onPachiEvent(ev);
+    uxEvent(ev);      // feat/ux：新手提示、HUD 收入字
     switch (ev.t) {
       case 'levelStart': onLevelStart(ev); break;
       case 'fire': firePulse(); break;
@@ -13072,7 +13111,6 @@ root.MARBLE_ART =
         clearedLabel = (ev.level && ev.level.label) || (sim && sim.state.level && sim.state.level.label) || '';
         showBanner('clear', '過關！', ev.refund > 0 ? ('場上彈珠退回 +' + ev.refund) : '');
         break;
-      case 'boardClear': showToast('清盤！+' + (ev.bonus != null ? ev.bonus : 10)); break;
       case 'feverStart': if (JP.on) JP.feverPending = true; else feverShow(); break;
       case 'feverEnd': feverHide(); break;
       case 'talentOffer': talentSig = ''; break;
@@ -13093,26 +13131,18 @@ root.MARBLE_ART =
     var label = lv.label || (ch + '-' + lv.stage);
     var mons = ev.monsters || [], bossNm = '', eliteNm = '';
     for (var i = 0; i < mons.length; i++) { if (mons[i].kind === 'boss' && !bossNm) bossNm = mons[i].name || ''; if (mons[i].kind === 'elite' && !eliteNm) eliteNm = mons[i].name || ''; }
-    var tip = traitTip(mons), bigT = traitNames(mons, lv.kind === 'boss' ? 'boss' : 'elite');
-    if (lv.kind === 'boss') showBanner('boss', label + ' 魔王 · ' + (bossNm || '章節魔王'), tip || (bigT ? bigT + '　弱點會移動！' : '弱點會移動，瞄準發光處！'));
-    else if (lv.kind === 'elite') showBanner('elite', label + ' 精英來襲！', tip || (eliteNm + (bigT ? ' · ' + bigT : '')));
-    else if (lv.swarm) showBanner('elite', label + ' 群體來襲！', tip || (mons.length + ' 隻小怪一起上'));
-    else showBanner('start', label + ' ' + themeName(t, v), tip);
-    if (tip && E.banner.className.indexOf(' long') < 0) E.banner.className += ' long';
+    // feat/ux：怪物花樣第一次出現的說明改由「新手提示」（盤面底部、存檔記住只講一次）負責；橫幅副標只列名稱
+    var bigT = traitNames(mons, lv.kind === 'boss' ? 'boss' : 'elite'), nT = traitNames(mons, 'normal');
+    tipLevelStart(lv, mons);
+    if (lv.kind === 'boss') showBanner('boss', label + ' 魔王 · ' + (bossNm || '章節魔王'), bigT ? bigT + '　弱點會移動！' : '弱點會移動，瞄準發光處！');
+    else if (lv.kind === 'elite') showBanner('elite', label + ' 精英來襲！', eliteNm + (bigT ? ' · ' + bigT : ''));
+    else if (lv.swarm) showBanner('elite', label + ' 群體來襲！', mons.length + ' 隻小怪一起上');
+    else showBanner('start', label + ' ' + themeName(t, v), nT ? '怪物花樣：' + nT : '');
     syncMusic();
   }
 
-  /* ================= 怪物花樣：提示字（data.js traits） ================= */
-  var traitSeenSim = null, traitSeen = {};
+  /* ================= 怪物花樣：名稱（data.js traits） ================= */
   function traitDefs() { var D = window.ML_DATA; return (D && D.traits) || {}; }
-  // 這一局第一次出現的 trait → 回傳提示字（一次只提示一種，其餘下次再說）
-  function traitTip(mons) {
-    if (traitSeenSim !== sim) { traitSeenSim = sim; traitSeen = {}; }
-    var T = traitDefs(), list = [];
-    for (var i = 0; i < mons.length; i++) { if (mons[i].mini) list.push('swarm'); var tr = mons[i].traits || []; for (var j = 0; j < tr.length; j++) list.push(tr[j]); }
-    for (i = 0; i < list.length; i++) if (!traitSeen[list[i]] && T[list[i]]) { traitSeen[list[i]] = true; return T[list[i]].tip || ''; }
-    return '';
-  }
   function traitNames(mons, kind) {
     var T = traitDefs(), out = [];
     for (var i = 0; i < mons.length; i++) if (mons[i].kind === kind) { var tr = mons[i].traits || []; for (var j = 0; j < tr.length; j++) if (T[tr[j]] && out.indexOf(T[tr[j]].name) < 0) out.push(T[tr[j]].name); }
@@ -13128,17 +13158,15 @@ root.MARBLE_ART =
   function showBanner(kind, text, sub) {
     var b = E.banner;
     b.className = kind;
+    // feat/ux 分區：平常在液晶下方（世界 y 160）；聽牌演出中（液晶放大在盤面中間）改到盤面下段（世界 y 380）
+    bannerWy = reachSoon() ? ZONE.bannerLow : ZONE.banner;
+    b.style.top = zoneTop(bannerWy) + 'px';
+    bannerUntil = animT + (kind === 'boss' || kind === 'elite' ? 2.6 : 1.9);
     bannerBt.textContent = text; bannerBs.textContent = sub || '';
     bannerBs.style.display = sub ? '' : 'none';
     fitText(bannerBt, kind === 'boss' ? 28 : kind === 'elite' ? 32 : kind === 'clear' ? 46 : 34);
     void b.offsetWidth;
     b.className = kind + ' show' + (kind === 'boss' || kind === 'elite' ? ' long' : '');
-  }
-  function showToast(text) {
-    var t = E.toast;
-    t.textContent = text; t.className = '';
-    void t.offsetWidth;
-    t.className = 'show';
   }
 
   /* ================= HUD ================= */
@@ -13175,9 +13203,13 @@ root.MARBLE_ART =
   var fvc = { on: null, ready: null, fe: -1, sec: -1, hurry: null };
   function feverShow() {
     var t = FVE.text;
+    if (reachSoon()) { feverPendReach = true; return; }   // feat/ux 分區：聽牌放大的液晶也在盤面中間，狂熱大字等聽牌結束再出
+    feverPendReach = false;
     if (t) { t.className = ''; void t.offsetWidth; t.className = 'show'; }
   }
+  var feverPendReach = false;
   function feverHide() {
+    feverPendReach = false;
     if (FVE.text) FVE.text.className = '';
     fvc.on = null; fvc.sec = -1;
   }
@@ -13524,7 +13556,9 @@ root.MARBLE_ART =
     else { title = (clearedLabel || (st.level && st.level.label) || '') + ' 過關！選擇一個天賦'; ribbon = 'green'; }
     E.talentTitle.textContent = title;
     E.talentTitle.className = 'ribbon ' + ribbon;
-    var sub = finePointer ? '按 1 / 2 / 3 選擇，R 重抽' : '點一張卡片拿走它';
+    var sub = finePointer ? '按 1 / 2 / 3 選擇，R 重抽' : '點一張卡片拿走它', subTip = false;
+    if (src !== 'start' && !tipSeen('talent')) { sub = TIP_TEXT.talent; subTip = true; tipMark('talent'); }   // feat/ux：第一次三選一直接寫在選卡畫面
+    if (subTip) E.talentSub.classList.add('tip'); else E.talentSub.classList.remove('tip');
     // 章節補償：前面章節的天賦已自動補給（sim 開局就加好了），這裡只提示張數
     if (src === 'start' && off.auto > 0) sub = '已自動補上前 ' + Math.max(1, runChapter - 1) + ' 章的 ' + off.auto + ' 張天賦，' + (finePointer ? '金卡按 1/2/3 選' : '金卡由你挑');
     E.talentSub.textContent = sub;
@@ -14244,11 +14278,13 @@ root.MARBLE_ART =
   }
   function drawRailObj(o, t) {
     var m = o.kind === 'ramp' ? METAL.brass : METAL.chrome, r = o.r || 3, pts = o.pts, fl = clamp((o.flashT || 0) / 0.16, 0, 1);
+    // feat/ux：窄手機（每世界單位 < 1.1 CSS px）畫粗一點，看得清楚；只改畫法，碰撞仍是 sim 的 r
+    var rv = r + (L.s < 1.1 ? 0.9 : 0);
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    strokePts(pts, r * 2 + 2.4, INK, 0, 0.6);
-    strokePts(pts, r * 2, m.body);
-    edgeLine(pts, -r * 0.55, 1.4, m.lo);
-    edgeLine(pts, r * 0.5, 1.3, fl > 0 ? '#ffffff' : m.hi);
+    strokePts(pts, rv * 2 + 2.4, INK, 0, 0.6);
+    strokePts(pts, rv * 2, m.body);
+    edgeLine(pts, -rv * 0.55, 1.4, m.lo);
+    edgeLine(pts, rv * 0.5, 1.3, fl > 0 ? '#ffffff' : m.hi);
     // 鉚釘：導軌每隔一個節點、跳板兩端
     ctx.fillStyle = m.rivet;
     for (var i = (o.kind === 'rail' ? 1 : 0); i < pts.length; i += (o.kind === 'rail' ? 2 : pts.length - 1 || 1)) {
@@ -14338,13 +14374,13 @@ root.MARBLE_ART =
     ctx.globalAlpha = 1;
   }
   function updateCaptions(dt) {
-    if (JP.on) return;
+    if (JP.on || capBlocked()) return;   // feat/ux：聽牌演出、關卡橫幅期間字幕排隊等候（同一個區域）
     if (!capCur && CAPS.length) capCur = CAPS.shift();
     if (capCur) { capCur.t += dt; if (capCur.t >= capCur.dur) capCur = null; }
   }
   function drawCaptions() {
     var c = capCur;
-    if (!c) return;
+    if (!c || capBlocked()) return;
     var pop = clamp(c.t / 0.18, 0, 1), fade = clamp((c.dur - c.t) / 0.25, 0, 1);
     var y = 150;
     ctx.fillStyle = 'rgba(16,8,36,' + (0.45 * fade).toFixed(3) + ')'; ctx.fillRect(0, y - 26, W, 58);
@@ -14358,6 +14394,7 @@ root.MARBLE_ART =
   }
   function drawReachDim(st) {
     var pa = pachiState(st), a = pa ? reachAmt(pa.spin) : 0;
+    if (a > 0) reachSeenT = animT;
     if (a <= 0) return;
     ctx.fillStyle = 'rgba(8,4,24,' + (0.55 * a).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H);
   }
@@ -14757,6 +14794,9 @@ root.MARBLE_ART =
       updateTitleScene(dt);
     }
     if (screen !== 'pause') { Jz.call('update', dt); updateCaptions(dt); }
+    tipUpdate(dt);
+    if (feverPendReach && !reachSoon() && sim && sim.state && sim.state.fever && sim.state.fever.active) feverShow();
+    else if (FVE.text && FVE.text.className && reachSoon()) FVE.text.className = '';   // 狂熱大字還在飄時開始聽牌：大字先收掉（同一區）
     renderShow(screen === 'pause' ? 0 : dt);
     if (sim && sim.state && inGame()) {
       var st = sim.state;
@@ -14767,6 +14807,197 @@ root.MARBLE_ART =
       syncKnob(st.aimX);
       drawFrame(st, animT);
     } else { renderTitle(); drawFrame(null, animT); }
+  }
+
+  /* ================= feat/ux：畫面分區＋新手提示＋HUD 收入字 =================
+   * 分區（世界 y，規則寫在 ARCHITECTURE.md「畫面分區與文字優先順序」）：
+   *   0～24 掉落點箭頭｜25～58 魔王／精英大血條、右上連擊數｜61～96 液晶＋保留燈（不放任何飄字）｜
+   *   110～210 液晶下方字幕帶：關卡橫幅（DOM）、小鋼珠字幕（日文＋中文）— 同一時間只出一個，字幕等橫幅／聽牌結束才出｜
+   *   100～300 聽牌演出（盤面變暗、液晶放大）；這時關卡橫幅改到 y 380｜205～295 狂熱大字（DOM）｜
+   *   316～364 清盤大字（Juice；+N 改成飛向 HUD、HUD 顯示 +N）｜怪物附近：傷害數字、掉落 +N、破盾等｜
+   *   盤面最底（地面＋機台下框）：新手提示（一行，DOM）。HUD 收入（+50 補彈、+10 清盤、已滿）只在 HUD 裡。 */
+  var ZONE = { aim: [0, 24], bigBar: [25, 58], lcd: [61, 96], caption: [110, 210], reach: [100, 300], fever: [205, 295], board: [316, 364], banner: 160, bannerLow: 380, feverY: 250 };
+  var bannerWy = 160, bannerUntil = -9, reachSeenT = -9;
+  var TIPE = { box: $('tip'), tx: null, btn: $('btnTips'), gain: $('hudGain'), btnT: 0 };
+  TIPE.tx = TIPE.box ? TIPE.box.querySelector('.tipTx') : null;
+  function zoneTop(wy) { return Math.round(L.offY + wy * L.s); }
+  function layoutZones() {
+    E.banner.style.top = zoneTop(bannerWy) + 'px';
+    var ft = $('feverText'); if (ft) ft.style.top = zoneTop(ZONE.feverY) + 'px';
+    var b = TIPE.box;
+    if (b) {
+      var gapB = L.sh - L.offY - L.cssH;              // canvas 下緣到舞台底的空白（機台下框）
+      b.style.left = (L.offX + 6) + 'px';
+      b.style.right = Math.max(0, L.sw - L.offX - L.cssW + 6) + 'px';
+      b.style.bottom = Math.max(3, Math.round(gapB - 12)) + 'px';   // 膠囊中線約在 canvas 底邊：壓地面與下框，不進釘子區
+    }
+  }
+  // 聽牌（已決定、快要／正在放大液晶）
+  function reachSoon() { var st = sim && sim.state, pa = st && pachiState(st); return !!(pa && pa.spin && pa.spin.reach); }
+  function capBlocked() { return animT < bannerUntil || animT - reachSeenT < 0.15; }
+
+  // ---- 新手提示：每種東西第一次發生時（sim 事件）在盤面底部跳一行，看過存 localStorage，只講一次 ----
+  var TIP_KEY = 'marble_legend_tips_v1';
+  var TIP_TEXT = {
+    marbles: '彈珠＝生命！用完就結束，打倒怪物會掉彈珠',
+    weak: '打中頭上發光的弱點：傷害加倍、彈珠再掉一次',
+    pocket: '打進中間的入賞口就會轉數字，三個一樣＝大當',
+    hold: '轉動中再進珠會存成保留燈，最多 4 顆',
+    reach: '聽牌！最後一格也對上就中大獎',
+    jackpot: '大當＝狂熱：傷害 ×2、連發變快，猛打！',
+    attacker: '大入賞口打開了！打進去換彈珠',
+    kakuhen: '確變中：接下來幾次轉動超容易再中',
+    energy: '打怪會集左邊的能量條，集滿送一顆必中',
+    board: '技能釘全打光＝清盤：重排一盤再送彈珠',
+    refill: '彈珠變少了？上面倒數到 0 會補 50 顆',
+    last: '彈珠用完了！場上的彈珠落完就結束',
+    combo: '連擊！一直打中不中斷，能量集得更快',
+    peg_attack: '紅色劍釘：這顆彈珠傷害 +1',
+    peg_crit: '星星釘：傷害 ×2，可以一直疊',
+    peg_split: '分裂釘：一顆變三顆！',
+    peg_fire: '火焰釘：怪物著火會一直掉血',
+    peg_ice: '冰凍釘：怪物和弱點都會停住',
+    peg_bomb: '炸彈釘：碰到就爆炸，附近一起炸',
+    peg_refill: '補彈釘：碰到就補彈珠',
+    trait_shield: '護盾要先打破，才傷得到牠',
+    trait_guard: '閉殼：弱點會定時關起來，閃爍時快打',
+    trait_dash: '衝刺：閃白光之後會衝到別處',
+    trait_hop: '跳跳：蹲下之後會跳到影子那裡',
+    trait_blink: '瞬移：地上出現光圈，牠就會移過去',
+    trait_twin: '分身：打倒後會分裂成兩隻小的',
+    trait_swarm: '群體關：小怪多又脆，炸彈和分裂最好用',
+    mech_rail: '鐵片導軌會把靠牆的彈珠送回中間',
+    mech_ramp: '黃銅跳板會把彈珠彈向入賞口',
+    mech_stage: '凹槽：滾一滾就掉進正下方的入賞口',
+    mech_spinner: '風車會把彈珠撥向轉動的方向',
+    talent: '新手提示：天賦整局有效，不滿意可以重抽 1 次'
+  };
+  // 優先順序（大的先講）與排隊最久等幾秒（過期就丟掉、不算看過，下次再發生時再講）
+  function tipPri(id) { return /^trait_/.test(id) ? 5 : /^(reach|jackpot|attacker|kakuhen|last|marbles|weak|pocket)$/.test(id) ? 4 : /^(hold|energy|refill)$/.test(id) ? 3 : /^(board|mech_)/.test(id) ? 2 : 1; }
+  function tipTtl(id) { return /^(peg_|combo$)/.test(id) ? 5 : /^(trait_|jackpot$)/.test(id) ? 30 : 12; }
+  var TIP = { seen: null, q: [], cur: null, gap: 0, shown: false, log: [], firstLv: true };
+  function tipLoad() {
+    if (TIP.seen) return TIP.seen;
+    TIP.seen = {};
+    try { var o = JSON.parse(store.get(TIP_KEY) || '{}'); if (o && typeof o === 'object') for (var k in o) if (o[k]) TIP.seen[k] = 1; } catch (e) { }
+    return TIP.seen;
+  }
+  function tipSeen(id) { return !!tipLoad()[id]; }
+  function tipMark(id) { tipLoad()[id] = 1; try { store.set(TIP_KEY, JSON.stringify(TIP.seen)); } catch (e) { } }
+  function tipAdd(id, opt) {
+    if (!TIP_TEXT[id] || tipSeen(id)) return false;
+    if (TIP.cur && TIP.cur.id === id) return false;
+    for (var i = 0; i < TIP.q.length; i++) if (TIP.q[i].id === id) return false;
+    TIP.q.push({ id: id, pri: tipPri(id), wait: (opt && opt.delay) || 0, age: 0, ttl: tipTtl(id) });
+    TIP.q.sort(function (a, b) { return b.pri - a.pri; });
+    return true;
+  }
+  function tipBlocked() {
+    var st = sim && sim.state;
+    return screen !== 'play' || JP.on || !st || st.phase === 'over' || st.phase === 'talent';
+  }
+  function tipShowDom(on) {
+    if (!TIPE.box || on === TIP.shown) return;
+    TIP.shown = on;
+    if (on) TIPE.box.classList.add('show'); else TIPE.box.classList.remove('show');
+  }
+  function tipUpdate(dt) {
+    if (tipBlocked()) { tipShowDom(false); return; }   // 暫停／選天賦／大當演出：不出、計時也停
+    var i, q;
+    for (i = TIP.q.length - 1; i >= 0; i--) {
+      q = TIP.q[i];
+      if (q.wait > 0) { q.wait -= dt; continue; }
+      q.age += dt;
+      if (q.age > q.ttl) TIP.q.splice(i, 1);
+    }
+    if (TIP.cur) {
+      TIP.cur.t += dt;
+      if (TIP.cur.t >= TIP.cur.dur) { TIP.cur = null; TIP.gap = 0.9; tipShowDom(false); }
+      else { tipShowDom(true); return; }
+    }
+    if (TIP.gap > 0) { TIP.gap -= dt; return; }
+    for (i = 0; i < TIP.q.length; i++) {
+      q = TIP.q[i];
+      if (q.wait > 0) continue;
+      TIP.q.splice(i, 1);
+      if (tipSeen(q.id)) { i--; continue; }
+      var txt = TIP_TEXT[q.id];
+      TIP.cur = { id: q.id, t: 0, dur: 2.6 + txt.length * 0.07 };
+      tipMark(q.id);
+      TIP.log.push({ id: q.id, at: +animT.toFixed(2) });
+      if (TIP.log.length > 40) TIP.log.shift();
+      if (TIPE.tx) {
+        TIPE.tx.textContent = txt; TIPE.tx.style.fontSize = '';
+        var maxW = (L.cssW || 300) - 50;                 // 太長就縮字（最小 11px），一定維持一行
+        if (TIPE.tx.scrollWidth > maxW) TIPE.tx.style.fontSize = Math.max(11, Math.floor(13 * maxW / TIPE.tx.scrollWidth)) + 'px';
+      }
+      tipShowDom(true);
+      return;
+    }
+  }
+  function tipRunReset() { TIP.q.length = 0; TIP.cur = null; TIP.gap = 0; TIP.firstLv = true; tipShowDom(false); }
+  function tipResetAll() {
+    TIP.seen = {};
+    try { store.del(TIP_KEY); } catch (e) { }
+    tipRunReset(); TIP.firstLv = false;
+    if (TIPE.btn) { TIPE.btn.textContent = '已重設：提示會再出現'; clearTimeout(TIPE.btnT); TIPE.btnT = setTimeout(function () { TIPE.btn.textContent = '重新顯示新手提示'; }, 1800); }
+  }
+  function tipLevelStart(lv, mons) {
+    if (TIP.firstLv) {            // 這一局第一關：基本規則（等關卡橫幅退場再講）
+      TIP.firstLv = false;
+      tipAdd('marbles', { delay: 2.2 });
+      tipAdd('weak', { delay: 9 });
+      var st = sim && sim.state;
+      if (st && st.pachi && st.pachi.on && st.pachi.pocket) tipAdd('pocket', { delay: 18 });
+    }
+    var seenT = {};
+    for (var i = 0; i < mons.length; i++) {
+      var tr = mons[i].traits || [];
+      if (mons[i].mini || (lv && lv.swarm)) seenT.swarm = 1;
+      for (var j = 0; j < tr.length; j++) seenT[tr[j]] = 1;
+    }
+    for (var k in seenT) tipAdd('trait_' + k, { delay: 1.2 });
+  }
+  var gainLast = -9;
+  function hudGain(text, gray) {
+    var g = TIPE.gain; if (!g) return;
+    g.textContent = text; g.className = gray ? 'gray' : '';
+    void g.offsetWidth;
+    g.className = 'show' + (gray ? ' gray' : '');
+  }
+  function uxEvent(ev) {
+    var st = sim && sim.state;
+    switch (ev.t) {
+      case 'peg': if (ev.kind && ev.kind !== 'pin') tipAdd('peg_' + ev.kind); break;
+      case 'hit': case 'shieldHit':
+        if (ev.weak && ev.t === 'hit') tipAdd('weak');
+        else if (st && st.fever && !st.fever.active && st.fever.energy >= 0.3) tipAdd('energy');
+        break;
+      case 'weakBack': tipAdd('weak'); break;
+      case 'pocket': tipAdd('pocket'); break;
+      case 'holdAdd': if (!ev.sure) tipAdd('hold'); break;
+      case 'reach': tipAdd('reach'); break;
+      case 'jackpot': tipAdd('jackpot'); break;
+      case 'attackerOpen': tipAdd('attacker'); break;
+      case 'kakuhenStart': tipAdd('kakuhen'); break;
+      case 'combo': tipAdd('combo'); break;
+      case 'boardClear': tipAdd('board'); if ((ev.bonus | 0) > 0) hudGain('+' + (ev.bonus | 0)); break;
+      case 'income': if (ev.src === 'timer') { tipAdd('refill'); if (ev.n > 0) hudGain('+' + ev.n); } break;
+      case 'capped': if (animT - gainLast > 1.2) { gainLast = animT; hudGain('已滿', true); } break;
+      case 'fire':
+        if (st && (st.marbles | 0) === 0) tipAdd('last');
+        else if (st && st.cap >= 100 && st.marbles < st.cap * 0.3) tipAdd('refill');
+        break;
+      case 'rail': tipAdd(ev.kind === 'ramp' ? 'mech_ramp' : ev.kind === 'stage' ? 'mech_stage' : 'mech_rail'); break;
+      case 'spinner': tipAdd('mech_spinner'); break;
+      case 'stageOut': tipAdd('mech_stage'); break;
+    }
+  }
+  function tipInfo() {
+    var r = null;
+    if (TIPE.box && TIP.shown) { var b = TIPE.box.querySelector('.tipIn').getBoundingClientRect(); r = { l: b.left, t: b.top, r: b.right, b: b.bottom }; }
+    return { cur: TIP.cur ? TIP.cur.id : null, text: TIP.cur ? TIP_TEXT[TIP.cur.id] : '', shown: TIP.shown, rect: r,
+      queue: TIP.q.map(function (q) { return q.id; }), seen: Object.keys(tipLoad()), log: TIP.log.slice(), ids: Object.keys(TIP_TEXT) };
   }
 
   /* ================= 按鈕綁定 ================= */
@@ -14783,6 +15014,7 @@ root.MARBLE_ART =
   tap(E.btnResume, resumeGame);
   tap(E.btnRestart, function () { startRun(runChapter); }, 'ui_tap');
   tap(E.btnHome, goTitle, 'ui_back');
+  tap(TIPE.btn, tipResetAll, 'ui_tap');
   tap(E.btnReroll, doReroll);
   tap(E.btnRetry, function () { startRun(runChapter); }, 'ui_tap');
   tap(E.btnOverChapters, function () { openChapters('over'); }, 'ui_tap');
@@ -15239,7 +15471,12 @@ root.MARBLE_ART =
       mechs: function (list) { return pachiDbg('mechs', list); },
       mechInfo: function () { return sim && sim.debug && sim.debug.mechInfo ? sim.debug.mechInfo() : null; },
       spawnBall: function (x, y, r, vx, vy) { return sim && sim.debug && sim.debug.spawnBall ? sim.debug.spawnBall(x, y, r, vx, vy) : 0; },
-      mechDrawn: function (reset) { var o = {}; for (var k in mechSeen) o[k] = mechSeen[k]; if (reset) mechSeen = {}; return o; }
+      mechDrawn: function (reset) { var o = {}; for (var k in mechSeen) o[k] = mechSeen[k]; if (reset) mechSeen = {}; return o; },
+      // feat/ux：新手提示 tips() 狀態／tipAdd(id) 手動觸發／tipReset() 等同暫停選單的「重新顯示新手提示」；zones() 分區（世界 y）
+      tips: function () { return tipInfo(); },
+      tipAdd: function (id) { var r = tipAdd(String(id)); return r; },
+      tipReset: function () { tipResetAll(); return true; },
+      zones: function () { return JSON.parse(JSON.stringify(ZONE)); }
     }
   };
   function pachiDbg(name, a, b) {
