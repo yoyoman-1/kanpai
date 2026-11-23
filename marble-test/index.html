@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2a1f3d">
 <link rel="icon" href="data:,">
-<meta name="ml-build" content="20261123-093813">
+<meta name="ml-build" content="20261123-094647">
 <title>彈珠傳說</title>
 </head>
 <body>
@@ -503,7 +503,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
     </div>
   </section>
 </div>
-<script>window.ML_BUILD="20261123-093813";</script>
+<script>window.ML_BUILD="20261123-094647";</script>
 <script>/* art/sprites.js */
 /* 彈珠傳說 像素美術資料 window.MARBLE_ART（由 art/gen/build.js 產生，請改產生器後重新產生，不要手改）
    格式：sprite = { w, h, palette, frames:[ [字串列...] ... ], fps?, loop?, weak? }，字元對照 palettes[palette]，"." 透明。
@@ -13941,6 +13941,38 @@ root.MARBLE_ART =
     pinHaloCv[kind] = c;
     return c;
   }
+  // 能力釘被碰到時：跳出該種類的大圖示（火焰、雪花…），從釘子大小放大到 1.2 倍並淡出
+  var PIN_FX = {
+    fire: ['....#....', '...##....', '..###.#..', '..####...', '.##+###.#', '.#++++##.', '##+++++##', '.#+++++#.', '..#####..'],
+    ice: ['#...#...#', '.#..#..#.', '..#+#+#..', '...+++...', '####+####', '...+++...', '..#+#+#..', '.#..#..#.', '#...#...#'],
+    attack: ['....#....', '...#+#...', '...#+#...', '...#+#...', '...#+#...', '.#######.', '....#....', '...###...', '....#....'],
+    crit: ['....#....', '...#+#...', '#########', '.##+++##.', '..#+++#..', '..##.##..', '.##...##.', '.#.....#.', '.........'],
+    split: ['...###...', '...#+#...', '...###...', '.........', '###...###', '#+#...#+#', '###...###', '.........', '.........'],
+    bomb: ['.......+.', '......#..', '...###...', '..#+###..', '.#+#####.', '.#######.', '.#######.', '..#####..', '...###...'],
+    recycle: ['..####...', '.#....#..', '#....###.', '#.....#..', '#.......#', '..#.....#', '.###....#', '..#....#.', '...####..']
+  };
+  var pinFxCv = {}, pinHitAt = {}, pinLastFlash = {};
+  function pinFxCanvas(kind) {
+    var c = pinFxCv[kind];
+    if (c !== undefined) return c;
+    var rows = PIN_FX[kind];
+    if (!rows) { pinFxCv[kind] = null; return null; }
+    var P = PIN_PAL[kind] || PIN_PAL.attack, light = kind === 'fire' ? '#ffe14a' : kind === 'bomb' ? '#ffd23f' : P[1], n = rows.length, N = n + 2;
+    c = doc.createElement('canvas'); c.width = c.height = N;
+    var g = c.getContext('2d'), on = function (x, y) { return x >= 0 && y >= 0 && x < n && y < n && rows[y].charAt(x) !== '.'; };
+    for (var y = -1; y <= n; y++) for (var x = -1; x <= n; x++) {   // 深色外框
+      if (on(x, y)) continue;
+      if (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)) { g.fillStyle = INK; g.fillRect(x + 1, y + 1, 1, 1); }
+    }
+    for (y = 0; y < n; y++) for (x = 0; x < n; x++) {
+      var ch = rows[y].charAt(x);
+      if (ch === '.') continue;
+      g.fillStyle = ch === '+' ? light : P[0]; g.fillRect(x + 1, y + 1, 1, 1);
+    }
+    pinFxCv[kind] = c;
+    return c;
+  }
+  var PIN_FX_T = 0.38;
   var freshUntil = {};   // 剛新增的能力釘：發光到這個時間（animT）
   function drawPegs(pegs, t) {
     if (!pegs) return;
@@ -13954,6 +13986,13 @@ root.MARBLE_ART =
         continue;
       }
       var steel = p.kind === 'pin', fl = (p.flashT || 0) > 0.06 || (p.flash || 0) > 0;
+      if (!steel) {   // 偵測剛被碰到（flashT 往上跳）
+        var pf = p.flashT || 0;
+        if (pf > (pinLastFlash[p.id] || 0) + 0.01) pinHitAt[p.id] = t;
+        pinLastFlash[p.id] = pf;
+      }
+      var ha = steel ? 1 : (t - (pinHitAt[p.id] === undefined ? -9 : pinHitAt[p.id])) / PIN_FX_T;
+      var pop = ha >= 0 && ha < 1 ? 1 + 0.2 * Math.sin(Math.PI * ha) : 1;   // 釘子本身彈一下到 1.2 倍
       var mode = fl ? 1 : (!steel && p.cdT > 0 ? 2 : 0);
       var c = pinCanvas(steel ? 'pin' : p.kind, mode), s = c.width;
       // 深色底影：亮背景（草原、冰原）上也看得清楚
@@ -13973,7 +14012,16 @@ root.MARBLE_ART =
           ctx.globalAlpha = clamp(p.flashT / 0.16, 0, 1) * 0.7; ctx.drawImage(glow(p.kind === 'ice' ? 'ice' : p.kind === 'attack' || p.kind === 'fire' || p.kind === 'recycle' ? 'red' : 'gold'), p.x - 13, p.y - 13, 26, 26); ctx.globalAlpha = 1;
         }
       }
-      ctx.drawImage(c, p.x - s, p.y - s, s * 2, s * 2);
+      ctx.drawImage(c, p.x - s * pop, p.y - s * pop, s * 2 * pop, s * 2 * pop);
+      if (ha >= 0 && ha < 1) {   // 種類大圖示：從釘子外環大小放大到 1.2 倍、淡出
+        var fxc = pinFxCanvas(p.kind);
+        if (fxc) {
+          var e1 = 1 - (1 - ha) * (1 - ha), D = (s * 2 + 4) * (1 + 0.2 * e1);
+          ctx.globalAlpha = 0.95 * (1 - ha * ha);
+          ctx.drawImage(fxc, p.x - D / 2, p.y - D / 2 - 1, D, D);
+          ctx.globalAlpha = 1;
+        }
+      }
       if (steel && !fl) {           // 鋼釘：偶爾閃一下金屬光，讓整盤釘子看得出來
         var ph = (t * 0.6 + p.id * 0.137) % 1;
         if (ph < 0.08) { var gk = 1 - Math.abs(ph - 0.04) / 0.04; ctx.globalAlpha = 0.85 * gk; ctx.fillStyle = '#ffffff'; ctx.fillRect(p.x - 3.5, p.y - 0.6, 7, 1.2); ctx.fillRect(p.x - 0.6, p.y - 3.5, 1.2, 7); ctx.globalAlpha = 1; }
