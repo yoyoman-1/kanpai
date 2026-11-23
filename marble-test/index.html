@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2a1f3d">
 <link rel="icon" href="data:,">
-<meta name="ml-build" content="20261123-092142">
+<meta name="ml-build" content="20261123-093813">
 <title>彈珠傳說</title>
 </head>
 <body>
@@ -503,7 +503,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
     </div>
   </section>
 </div>
-<script>window.ML_BUILD="20261123-092142";</script>
+<script>window.ML_BUILD="20261123-093813";</script>
 <script>/* art/sprites.js */
 /* 彈珠傳說 像素美術資料 window.MARBLE_ART（由 art/gen/build.js 產生，請改產生器後重新產生，不要手改）
    格式：sprite = { w, h, palette, frames:[ [字串列...] ... ], fps?, loop?, weak? }，字元對照 palettes[palette]，"." 透明。
@@ -13899,7 +13899,7 @@ root.MARBLE_ART =
     var key = kind + mode, c = pinCv[key];
     if (c) return c;
     var steel = kind === 'pin', rows = steel ? PIN_STEEL : PIN_HEAD, n = rows.length;
-    var P = steel ? ['#c9d2e2', '#ffffff', '#7d879c', '#ffffff'] : (PIN_PAL[kind] || PIN_PAL.attack);
+    var P = steel ? ['#e4ecf8', '#ffffff', '#8f9bb4', '#ffffff'] : (PIN_PAL[kind] || PIN_PAL.attack);
     c = doc.createElement('canvas'); c.width = c.height = n;
     var g = c.getContext('2d'), gl = steel ? null : PIN_GLYPH[kind];
     for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
@@ -13928,6 +13928,19 @@ root.MARBLE_ART =
     pinIcoCache[kind] = u;
     return u;
   }
+  // 能力釘常駐色光（依種類主色），讓它在任何背景都跳出來
+  var pinHaloCv = {};
+  function pinHalo(kind) {
+    var c = pinHaloCv[kind];
+    if (c) return c;
+    var m = (PIN_PAL[kind] || PIN_PAL.attack)[0], r = parseInt(m.substr(1, 2), 16), g0 = parseInt(m.substr(3, 2), 16), b0 = parseInt(m.substr(5, 2), 16), col = r + ',' + g0 + ',' + b0;
+    c = doc.createElement('canvas'); c.width = c.height = 64;
+    var g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(' + col + ',0.95)'); gr.addColorStop(0.35, 'rgba(' + col + ',0.55)'); gr.addColorStop(1, 'rgba(' + col + ',0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    pinHaloCv[kind] = c;
+    return c;
+  }
   var freshUntil = {};   // 剛新增的能力釘：發光到這個時間（animT）
   function drawPegs(pegs, t) {
     if (!pegs) return;
@@ -13943,6 +13956,14 @@ root.MARBLE_ART =
       var steel = p.kind === 'pin', fl = (p.flashT || 0) > 0.06 || (p.flash || 0) > 0;
       var mode = fl ? 1 : (!steel && p.cdT > 0 ? 2 : 0);
       var c = pinCanvas(steel ? 'pin' : p.kind, mode), s = c.width;
+      // 深色底影：亮背景（草原、冰原）上也看得清楚
+      ctx.globalAlpha = 0.45; ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(p.x + 1, p.y + 1.6, s + 0.8, 0, 6.2832); ctx.fill(); ctx.globalAlpha = 1;
+      if (!steel && mode !== 2) {   // 能力釘：常駐彩色光暈＋外圈亮環（慢慢呼吸）
+        var br = 0.75 + 0.25 * Math.sin(t * 3 + p.id * 1.7);
+        ctx.globalAlpha = 0.55 * br; ctx.drawImage(pinHalo(p.kind), p.x - 15, p.y - 15, 30, 30);
+        ctx.globalAlpha = 0.9; ctx.strokeStyle = (PIN_PAL[p.kind] || PIN_PAL.attack)[1]; ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.arc(p.x, p.y, s + 2.2, 0, 6.2832); ctx.stroke(); ctx.globalAlpha = 1;
+      }
       if (!steel) {
         var fu = freshUntil[p.id];
         if (fu > t) {           // 剛新增：金色光暈脈動
@@ -13953,6 +13974,10 @@ root.MARBLE_ART =
         }
       }
       ctx.drawImage(c, p.x - s, p.y - s, s * 2, s * 2);
+      if (steel && !fl) {           // 鋼釘：偶爾閃一下金屬光，讓整盤釘子看得出來
+        var ph = (t * 0.6 + p.id * 0.137) % 1;
+        if (ph < 0.08) { var gk = 1 - Math.abs(ph - 0.04) / 0.04; ctx.globalAlpha = 0.85 * gk; ctx.fillStyle = '#ffffff'; ctx.fillRect(p.x - 3.5, p.y - 0.6, 7, 1.2); ctx.fillRect(p.x - 0.6, p.y - 3.5, 1.2, 7); ctx.globalAlpha = 1; }
+      }
       if (mode === 2 && p.cd > 0) {   // 冷卻中：外圈充能弧
         var u = 1 - clamp(p.cdT / p.cd, 0, 1);
         ctx.strokeStyle = 'rgba(255,240,160,0.85)'; ctx.lineWidth = 1.2;
