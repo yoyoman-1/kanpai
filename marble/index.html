@@ -23,7 +23,7 @@ if (/github\.io$/.test(location.hostname)) {
   document.head.appendChild(sc);
 }
 </script>
-<meta name="ml-build" content="20261122-223112">
+<meta name="ml-build" content="20261123-101119">
 </head>
 <body>
 <style>
@@ -258,6 +258,8 @@ img{-webkit-user-drag:none;user-select:none}
 .card.r-w{--cbg:#fffaf0;--cbd:#dcd3e6;--cac:#8d84a3}
 .card.r-b{--cbg:linear-gradient(160deg,#eef8ff,#cfe9ff);--cbd:#8fc2ef;--cac:#2486e0}
 .card.r-g{--cbg:linear-gradient(140deg,#fff8c8 0,#ffe066 45%,#ffb43a 100%);--cbd:#df8f12;--cac:#ff7a00}
+.card.r-p{--cbg:linear-gradient(160deg,#f4f7ff,#d6deef);--cbd:#97a3bd;--cac:#5a6a8c}
+.card.r-p .cIco{background:#2a184024}
 .cIco{position:relative;z-index:1;flex:none;width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:#2a18400f;box-shadow:0 0 0 3px var(--cac),inset 0 -4px 0 0 #00000014}
 .card.r-g .cIco{background:#fff6;box-shadow:0 0 0 3px var(--cac),0 0 14px 4px #fff8}
 .cIco img{width:48px;height:48px;image-rendering:crisp-edges;image-rendering:pixelated}
@@ -303,6 +305,14 @@ img{-webkit-user-drag:none;user-select:none}
 #pauseTalents .pt b{position:absolute;right:-6px;bottom:-6px;font-size:10px;line-height:1;padding:2px 3px;color:#fff;background:var(--ink)}
 #pauseTalents .pt.r-g{background:#ffe066}#pauseTalents .pt.r-b{background:#cfe9ff}
 #pauseTalents .none{font-size:12px;color:#8d84a3}
+/* feat/pins：暫停畫面的能力釘（圖示＋名稱×數量，一行一行換行） */
+#pausePinsBox{background:#2a18400d;padding:8px 10px 8px;box-shadow:0 0 0 2px #2a184022}
+#pausePinsBox h3{margin:0 0 6px;font-size:13px;color:#6a5a85}
+#pausePins{display:flex;flex-wrap:wrap;gap:6px 10px}
+#pausePins .pp{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:700;color:var(--ink)}
+#pausePins .pp img{width:21px;height:21px;image-rendering:crisp-edges;image-rendering:pixelated}
+#pausePins .none,#pausePinsNote{font-size:12px;color:#8d84a3}
+#pausePinsNote{margin:5px 0 0}
 
 /* ---------- 結束 ---------- */
 #overPanel .panel{gap:12px}
@@ -467,6 +477,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
         <button id="btnHome" class="pbtn sm gray" type="button">回標題</button>
       </div>
       <button id="btnTips" class="pbtn sm gray" type="button">重新顯示新手提示</button>
+      <div id="pausePinsBox"><h3>能力釘（整局都在盤面上）</h3><div id="pausePins"></div><p id="pausePinsNote"></p></div>
       <div id="pauseTalentsBox"><h3>已獲得的天賦</h3><div id="pauseTalents"></div></div>
     </div>
   </section>
@@ -508,7 +519,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
     </div>
   </section>
 </div>
-<script>window.ML_BUILD="20261122-223112";</script>
+<script>window.ML_BUILD="20261123-101119";</script>
 <script>/* art/sprites.js */
 /* 彈珠傳說 像素美術資料 window.MARBLE_ART（由 art/gen/build.js 產生，請改產生器後重新產生，不要手改）
    格式：sprite = { w, h, palette, frames:[ [字串列...] ... ], fps?, loop?, weak? }，字元對照 palettes[palette]，"." 透明。
@@ -8463,14 +8474,17 @@ root.MARBLE_ART =
  * 世界座標固定 W=360、H=600（見 ARCHITECTURE.md 第 4 節）。sim.create({ cfg:{...} }) 可以覆寫任何鍵（淺層覆寫）。
  *
  * ★ 使用者確認過的規則（不要改）：
- *   彈珠上限＝總關數×100（＋彈藥箱）、每 60 秒 +50、補彈釘 +3、同時最多 50 顆（超過排隊）、
- *   暴擊釘 ×2 可疊上限 ×8、弱點回收一顆最多 4 次、清盤 +10、每局重抽 1 次、所有來源都不超過上限。
+ *   彈珠上限＝總關數×100（＋彈藥箱）、每 60 秒 +50、同時最多 50 顆（超過排隊）、
+ *   暴擊釘 ×2 可疊上限 ×8、弱點回收一顆最多 4 次、每局重抽 1 次、所有來源都不超過上限。
+ *   鋼釘系統（feat/pins 2026-11-23，使用者的設計）：盤面是很多根不會消失的鋼釘，每過一關換一次盤面；
+ *   每關過關三選一「新增一根 X 釘」（整局永久 +1 根能力釘，換盤面時由系統隨機挑普通鋼釘改造）；
+ *   精英／魔王過關再多一次玩家天賦三選一；彈珠每碰一次能力釘疊一層、每種都有上限；沒有清盤、沒有補彈釘。
  *
  * ★ 平衡公式（autoplay 調整後定案，數字在下面「怪物血量」「掉落」區塊）：
  *   本關基準血量 B = HP_BASE × HP_GROWTH^(關−1) × 章節倍率(章) × (1 + HP_LOOP × variant)   關＝章內第幾關 1～10
  *   章節倍率：HP_CHAPTER=[a, b, c] → 第 2 章 ×a、第 3 章再 ×b、第 4 章起每章再 ×c（陣列最後一個值之後沿用）
  *     鋸齒：每章開頭約等於上一章 X-9 的 1.0～1.4 倍（第 3 章起每關只 ×1.25，所以第 4 章起每章只再 ×7.5；原本 ×13 會讓 4-1、5-1 變成牆）
- *   「依章節」的鍵（HP_GROWTH、ELITE_HP、BOSS_HP、DROP_CHAPTER、BOARD_BONUS_PER_LEVEL）可以是數字或陣列 [第1章, 第2章, …]，
+ *   「依章節」的鍵（HP_GROWTH、ELITE_HP、BOSS_HP、DROP_CHAPTER）可以是數字或陣列 [第1章, 第2章, …]，
  *   陣列最後一個值之後沿用。
  *   平衡修正（autoplay 2026-11-21，feat/balance）：
  *     第 1 章每關約 9～20 秒（越後面越久）、精英約 21～27 秒、魔王約 30～40 秒（舊版 3～9 秒三選一跳太頻繁）；第 1 章靠擊倒掉落（DROP_CHAPTER 12 倍）把收支拉平，
@@ -8486,6 +8500,12 @@ root.MARBLE_ART =
  *     所以「死掉的那一章」大約要打 上限÷3 秒（第 4 章約 18 分、第 5 章約 25 分），怎麼調血量都一樣 → 只能讓章內平均、不要有牆：
  *     第 4 章起每關 ×1.13（原 ×1.25）、精英／魔王倍率降低；FIRE_RATE_CH 第 4 章起加快連發＝彈珠消耗變快（打怪速度幾乎不變），
  *     高手才不會在第 5 章以後磨到 1 小時以上。一般玩家：第 2 章連發 ×1.25（沒塞滿場上，同樣彈珠更快打完，一局變短、死在哪不變）。
+ *   鋼釘系統（feat/pins 2026-11-23；--games 120 --seed 50000 定案、--seed 77000 複驗）：
+ *     鋼釘盤面命中率從 0.66 掉到約 0.5（彈珠被很多永久釘子打散），成長改成「每關 +1 根能力釘＋精英／魔王天賦」，
+ *     所以血量全部重訂：HP_BASE 35→14、第 2 章倍率 21.1→14、第 2 章每關 ×1.37、精英第 2 章 0.8、魔王第 2 章 2.5、第 3 章 ×28、第 4 章 ×12、第 5 章起每章 ×5。
+ *     分裂釘永久存在後場上很容易一直 50 顆（彈珠幾乎不消耗＝打不死）→ 分裂釘每根冷卻 SPLIT_CD、分身不能觸發回收釘、過關只退真的扣過的彈珠（REFUND_PAID_ONLY）。
+ *     一般玩家：一局中位 9.5／9.3 分、85% 死在第 2 章、第 1 章每關 10～26 秒、第 4 章每關約 40～130 秒、大當約每 1.7 關、入賞率 12%；新手第 1 章死亡 0.8%／0%；打不死 0%。
+ *     單一關卡死亡占比最高約 2 成（2-5、2-6），跟改版前（2-9、2-10 約 2 成）差不多，還沒壓到 12% 以下。
  *   普通怪每隻 = B × HP_SHARE[隻數−1] × species.hpMul
  *   精英       = B × ELITE_HP(章) × hpMul；精英關的普通護衛 = B × ESCORT_HP × hpMul
  *   魔王       = B × BOSS_HP(章) × hpMul
@@ -8502,7 +8522,7 @@ root.MARBLE_ART =
     AIM_MIN: 14, AIM_MAX: 346,   // 掉落點範圍
     PEG_X_MIN: 22, PEG_X_MAX: 338, PEG_Y_MIN: 64,
     PEG_GAP_ABOVE_MONSTER: 44,   // 釘子區下緣＝怪物頂端 − 44
-    PIN_X_MIN: 40, PIN_X_MAX: 320, // 固定釘離牆夠遠，巨大化彈珠也不會卡在牆與釘之間
+    PIN_X_MIN: 37, PIN_X_MAX: 323, // 鋼釘離牆 ≥ MECH_GAP（x−r ≥ 32），巨大化彈珠也不會卡在牆與釘之間
 
     // ---------- 物理（固定步長） ----------
     DT: 1 / 120,
@@ -8511,7 +8531,7 @@ root.MARBLE_ART =
     VMAX: 640,                   // 終端速度；640/120=5.3 < 最小碰撞半徑和 12，不會穿透
     MAX_MOVE: 6,                 // 單一步位移超過這個就切子步（防穿透保險）
     BALL_R: 7, PEG_R: 10, PIN_R: 5,
-    REST_PEG: 0.5, REST_PIN: 0.6, REST_WALL: 0.6, // 反彈係數
+    REST_PEG: 0.5, REST_PIN: 0.45, REST_WALL: 0.6, // 反彈係數
     JITTER: 16,                  // 每次撞釘的切線隨機速度（避免卡在釘子正上方）
     SPAWN_JITTER: 2, SPAWN_VX: 12, SPAWN_VY: 40,
     BALL_MAX_LIFE: 14,           // 單次掉落最長壽命（秒），超過算落空
@@ -8535,19 +8555,20 @@ root.MARBLE_ART =
     // ---------- 彈珠經濟（使用者確認過） ----------
     CAP_PER_LEVEL: 100,
     REFILL_INTERVAL: 60, REFILL_INTERVAL_MIN: 30, REFILL_AMOUNT: 50,
-    REFILL_PEG: 3,
-    BOARD_BONUS: 10,
-    BOARD_BONUS_PER_LEVEL: [3, 1], // 每關前 N 次清盤有 +10（之後重排的盤面也不放補彈釘），避免超長魔王戰靠清盤無限補彈；[第1章, 第2章起]
     REROLLS: 1,
+    REFUND_PAID_ONLY: true,      // feat/pins：過關退回只退真的扣過彈珠的那顆（分裂／雙重射擊多出來的不退；分裂釘永久存在後全部退回會讓後段打不死）
+    // （feat/pins：拿掉清盤獎勵與補彈釘；彈珠來源＝打怪掉落、入賞口／大當的大入賞口、回收釘、補彈倒數、過關退回、弱點回收）
 
-    // ---------- 章節補償（從第 N 章開始；總監整合定案，規格變更待使用者確認） ----------
-    // ① 自動補給：前面每章自動補 START_AUTO_PER_CHAPTER 次天賦（重播那幾關的三選一，照一般玩家偏好挑，含經濟天賦）
-    // ② 金卡三選一：min(START_PICKS_MAX, (N−1)×START_PICKS_PER_CHAPTER) 次 → 第 2 章 2、第 3 章 4、第 4 章起 6 次（不再點幾十次）
+    // ---------- 章節補償（從第 N 章開始；feat/pins 換算成能力釘＋玩家天賦） ----------
+    // 一般玩家每章拿到：10 根能力釘（每關過關）＋精英天賦 1 張（≥藍）＋魔王天賦 1 張（金）。從第 N 章開始時：
+    // ① 自動補上前 N−1 章的能力釘（每章 START_AUTO_PINS 次三選一，照一般玩家偏好 START_AUTO_PIN_PREF 挑）
+    //    與每章的精英天賦（照精英的稀有度抽三張、依 START_AUTO_PREF 挑一張）
+    // ② 每章的魔王金卡由玩家自己挑：min(START_PICKS_MAX, (N−1)×START_PICKS_PER_CHAPTER) 次，超過的部分也自動補（金卡）
     // 目標：從第 N 章開始的表現≈從 1-1 玩到第 N 章的一般玩家（autoplay typical_chN vs ref_chN）
-    //   autoplay --games 120 --seed 50000：每章補 8 張時 typical_ch3 多打 6.6 關（ref_ch3 6.9）、typical_ch2 9.8 關（ref_ch2 8.1）；補 9 張就偏強
-    START_AUTO_PER_CHAPTER: 8, START_PICKS_PER_CHAPTER: 2, START_PICKS_MAX: 6,
+    START_AUTO_PINS: 10, START_PICKS_PER_CHAPTER: 1, START_PICKS_MAX: 6,
     START_AUTO_PREF: { power: 1.5, double: 1.6, quick: 1.3, deadly: 1.3, golden: 1.3, ammo: 1.2, chain: 1.2, giant: 1.1, splitter: 1.1 },
     START_AUTO_RARITY: { w: 1, b: 1.15, g: 1.35 },
+    START_AUTO_PIN_PREF: { attack: 1.3, crit: 1.3, split: 1.2, fire: 1, ice: 0.9, bomb: 1, recycle: 1 },
 
     // ---------- 掉落（平衡槓桿） ----------
     DROP: { normal: 5, elite: 15, boss: 30 },
@@ -8557,10 +8578,10 @@ root.MARBLE_ART =
     // ---------- 怪物血量（平衡槓桿） ----------
     // 曲線調整（feat/curve 2026-11-22）：第 4 章起每關只 ×1.13、每章 ×4.3（原本每關 ×1.25、每章 ×7.5 → 4-9、5-x 一關 3～10 分鐘）；
     //   第 4 章開頭比較硬（×12.5）但章內平：高手第 4 章每關約 75～130 秒、魔王約 175 秒。HP_BASE 40→35（新手少死在 1-2），第 2 章倍率跟著換算
-    HP_BASE: 35, HP_GROWTH: [1.383, 1.37, 1.25, 1.13], HP_CHAPTER: [21.14, 11.87, 12.5, 4.3], HP_LOOP: 0.3,
+    HP_BASE: 14, HP_GROWTH: [1.37, 1.37, 1.2, 1.13], HP_CHAPTER: [14, 28, 12, 5], HP_LOOP: 0.3,
     HP_SHARE: [1, 0.62, 0.46],   // 1/2/3 隻時每隻分到的比例
     // [第1章, 第2章, 第3章, 第4章起]：2-5 護盾精英 1.7→0.8、護盾 0.28→0.16（原本一般玩家死亡約 2 成在 2-5）；第 3 章起精英／魔王也降（原本一關要鄰關的 2 倍時間）；第 1 章魔王 1.15→0.85（1-10 約 23 秒）
-    ELITE_HP: [1.6, 0.8, 1.3, 1.1], ESCORT_HP: 0.45, BOSS_HP: [0.85, 2.4, 2.0],
+    ELITE_HP: [1.15, 0.8, 1.56, 1.1], ESCORT_HP: 0.45, BOSS_HP: [0.94, 2.5, 1.6, 2.0, 1.4],
     ELITE_ESCORT_CHANCE: 0.5,    // 精英關多一隻普通護衛的機率
     MONSTER_RX: 0.44, MONSTER_RY: 0.44,
     LANE_MARGIN: 4,
@@ -8589,23 +8610,36 @@ root.MARBLE_ART =
     // 分身：倒下時分裂成 2 隻小的（各 maxHp×TWIN_HP，體型 ×TWIN_SCALE）；本體血量 ×TWIN_HP_MUL
     TWIN_HP: 0.28, TWIN_SCALE: 0.62, TWIN_HP_MUL: 0.8, SPAWN_INV: 0.25,
 
-    // ---------- 技能釘與盤面 ----------
-    PEG_COUNT: 28,               // 普通高度（406）盤面的技能釘數，魔王關依高度等比例
-    PIN_COUNT: 12,
-    PEG_REF_H: 406,
-    PEG_MIN_DIST: 34,            // 技能釘中心距（彈珠穿得過）
-    PIN_MIN_DIST: 56,            // 固定釘彼此距離（巨大化彈珠也不會卡在兩根中間）
-    PIN_SKILL_MIN: 26,
-    PEG_KINDS: ['attack', 'crit', 'split', 'fire', 'ice', 'bomb', 'refill'],
-    PEG_WEIGHTS: { attack: 30, crit: 13, split: 11, fire: 9, ice: 9, bomb: 7, refill: 0 },
-    PEG_GUARANTEE: { refill: 2, split: 1, crit: 1 }, // 補彈釘固定每盤 2 根（不隨機，經濟才穩定）
+    // ---------- 鋼釘盤面（feat/pins） ----------
+    // 盤面＝很多根不會消失的鋼釘（r＝PIN_R），排成小鋼珠台的樣式（天釘、道釘、成排斜列、命釘夾住入賞口），每關換一次。
+    // ★ 防卡住：任兩根釘子中心距 ≥ PIN_MIN_DIST（＝表面縫隙 ≥ MECH_GAP 32，比巨大化最大的鋼珠直徑 25.2 寬）；
+    //   釘子↔機關／入賞口柱／牆也都 ≥ MECH_GAP。能力釘就是被改造的鋼釘，碰撞一樣。
+    PIN_COUNT: 72,               // 普通高度（PIN_REF_H）盤面的鋼釘目標數，精英／魔王關依高度等比例（魔王約 56）
+    PIN_REF_H: 372,
+    PIN_MIN_DIST: 42.2,           // （座標四捨五入到 0.1，留 0.2 餘量）
+    PIN_SPACING: 42.25,          // 格子補滿用的間距（略大於 PIN_MIN_DIST）
+    PIN_TOP_Y: 76,               // 肩釘可以放到這麼高（液晶兩側；液晶 x 136～224、保留燈到 x≈275、確變字到 x≈104）
+    PIN_KATA: [[40, 80], [82.5, 80], [323, 80]],
+    MENKUGI_DX: 22, MENKUGI_DY: 44, // 命釘：入賞口正上方兩側（離入賞口柱中心距 ≥ 42）
+    // 能力釘：種類、三選一出現權重、盤面上最多幾成鋼釘可以改造（超過的那盤放不下，數量仍保留）
+    ABILITY_KINDS: ['attack', 'crit', 'split', 'fire', 'ice', 'bomb', 'recycle'],
+    PIN_OFFER_W: { attack: 1, crit: 1, split: 1, fire: 1, ice: 1, bomb: 1, recycle: 1 },
+    ABILITY_MAX_FRAC: 0.8,
+    PEG_FLASH: 0.16,             // 被碰到時閃一下（秒）
+    TOUCH_CD: 0.2,               // 同一顆彈珠連續碰同一根能力釘的最短間隔（貼著滾不會每一步都算；換一根就算新的一次）
     BASE_DMG: 1,                 // 彈珠基礎傷害（力量天賦加在這上面）
-    ATTACK_BONUS: 1, CRIT_MAX: 8,
+    // 疊加上限（每碰一次疊一層，到上限就不再加；避免在兩根釘子間來回彈就無限成長）
+    ATTACK_BONUS: 1, ATTACK_MAX: 6,   // 攻擊：每次 +1，每顆彈珠最多 +6
+    CRIT_MAX: 8,                      // 暴擊：每次 ×2，最多 ×8（使用者確認過）
+    FIRE_MAX: 3, ICE_MAX: 3,          // 火焰／冰凍：最多 3 層（燒傷量 ×層數；冰凍時間 ×(1+0.5×(層−1))）
+    ICE_LAYER_K: 0.5,
+    SPLIT_PER_BALL: 1,                // 分裂：每顆發射的彈珠最多分裂幾次；分出來的彈珠不會再分裂（仍受場上 50 顆、排隊 50 顆限制）
+    SPLIT_CD: 2,                      // 分裂：每根分裂釘觸發後冷卻（秒）：釘子很多時場上不會一直被免費的分身塞滿
+    BOMB_CD: 1.5,                    // 炸彈：每根炸彈釘爆炸後冷卻（秒）
+    RECYCLE_P: 0.15, RECYCLE_CD: 2, RECYCLE_PER_BALL: 1, // 回收：碰到時這個機率退回 1 顆；每根冷卻、每顆彈珠最多觸發幾次（含分身）
     SPLIT_SPEED: 200, SPLIT_ANG3: [-38, 38], SPLIT_ANG5: [-72, -36, 36, 72],
     BOMB_R: 56, BOMB_DMG: 3, BOMB_DELAY: 0.08, BOMB_PUSH: 260,
     CHAIN_R: 90,
-    REGROW_T: 3,
-    BOARD_CLEAR_DELAY: 1.0,
 
     // ---------- 狀態效果 ----------
     BURN_T: 3, BURN_TICK: 0.5, BURN_FACTOR: 0.5, // 每次火焰命中 burnDps += 0.5 ×（傷害×倍率）
@@ -8641,14 +8675,14 @@ root.MARBLE_ART =
     // 入賞口：每盤重排時跟著換位置（x 在盤面中間 ±POCKET_X_SPREAD、y 在釘子區 POCKET_Y 比例），兩側各一根黃銅柱（固定釘）
     POCKET_X_SPREAD: 62, POCKET_Y: [0.52, 0.66],
     POCKET_POST_DX: 16,          // 兩根柱子離中心的距離（柱子 r＝PIN_R 5；彈珠中心在 ±4 內才不碰柱子直接穿過）
-    POCKET_HW: 6,                // 彈珠中心在 ±6 內、往下穿過入賞口那條線＝入賞（一般玩家入賞率約 6%）
+    POCKET_HW: 4,                // 彈珠中心在 ±4 內、往下穿過入賞口那條線＝入賞（feat/pins：鋼釘盤面＋命釘之後 ±6 入賞率會到 2 成，±4 約 10～11%）
     POCKET_CLEAR: 46,            // 入賞口周圍這個距離內不放技能釘／一般固定釘
     // 入賞後彈珠怎麼辦（autoplay 比較過）：收走＋退 2 顆＝每局多 +600 顆、一局中位 +1.5 分；收走＋退 1 顆＝不扣彈珠但多出時間（中位 +0.5 分）
     // → 定案「通過型」：彈珠穿過入賞口照常往下打怪（不收走、不扣、不退），獎勵就是那一次抽獎（不懲罰也不改變彈珠經濟）
     POCKET_KEEP: true, POCKET_GIVE: 0, // POCKET_KEEP:false 時改成收走並退 POCKET_GIVE 顆
     // 抽獎（入賞當下就決定結果，保留燈的顏色依結果預告）。轉一次約 1.7 秒＋間隔 0.5 秒 → 保留滿的時候每 2.2 秒抽一次，
     // 所以中獎率要壓低（舊值 1/34 會讓第 2 章以後每關大當好幾次、彈珠滾雪球）；大當主要來源仍是能量條的必中（約 2/3）
-    PACHI_P: 0.009,              // 一般中獎率（約 1/111）
+    PACHI_P: 0.012,              // 一般中獎率（約 1/83；feat/pins 0.009→0.012，大當約每 1.5 關一次）
     PACHI_REACH_LOSE: 0.12,      // 沒中時出現聽牌（假聽牌）的機率 → 聽牌比大當常出現（一般玩家約每 20 秒一次）
     PACHI_PRANK: 0.5,            // 聽牌時「本章小怪物跑出來推數字」演出的機率（中：把差一格的數字推進來；沒中：把對上的數字推走）
     PACHI_KAKUHEN_DIGITS: [3, 7],// 中的是 3 或 7 → 確變（下一輪中獎率大幅提高，可以連莊）
@@ -8680,8 +8714,8 @@ root.MARBLE_ART =
     MECH: true,
     // ★ 防卡住：機關和「永久物件」（固定釘、入賞口柱、牆、其他機關）的表面縫隙一律 ≥ MECH_GAP
     //   ＝最大彈珠直徑（r 7×1.8＝12.6 → 25.2）＋6.8 餘量；最窄處都比鋼珠寬，就不會有夾住鋼珠的楔形縫。
-    //   技能釘一碰就消失，只要離機關表面 ≥ MECH_PEG_GAP（好看、不疊在鐵片上）。
-    MECH_GAP: 32, MECH_PEG_GAP: 8,
+    //   （feat/pins：鋼釘、能力釘都不會消失，所以一律跟機關保持 MECH_GAP）
+    MECH_GAP: 32,
     // 每盤幾種：依章節 [第1章, 第2章, 第3章起]；第 1 章前 MECH_EASY_TO 關只出 1 種、只從 MECH_EASY_KINDS 挑
     MECH_N: [[1, 1], [1, 2], [2, 3]], MECH_EASY_TO: 3, MECH_EASY_KINDS: ['rail', 'ramp'],
     MECH_W: { rail: 1.0, stage: 0.6, spinner: 0.8, ramp: 1.0 },   // 種類權重（stage 要有入賞口才會出現；凹槽會讓入賞率變高，權重壓低一點）
@@ -8737,18 +8771,20 @@ root.MARBLE_ART =
     { id: 'wildfire', name: '烈焰蔓延', icon: 'icons.wildfire', max: 1,
       tiers: { b: { v: 1 } }, desc: '燒傷會傳染給相鄰的怪物，燒傷傷害 +50%' },
     { id: 'chain', name: '連鎖閃電', icon: 'icons.chain', max: 2,
-      tiers: { g: { v: 1 } }, desc: '撞到技能釘時，閃電連到附近 2 根技能釘一起觸發',
-      descUp: '連鎖閃電升級：閃電改連到附近 3 根技能釘' },
-    { id: 'regrow', name: '重生釘', icon: 'icons.regrow', max: 1,
-      tiers: { b: { v: 1 } }, desc: '被撞掉的釘子 3 秒後長回來（補彈釘除外；有重生釘時不會清盤）' },
+      tiers: { g: { v: 1 } }, desc: '碰到能力釘時，閃電連到附近 2 根能力釘一起觸發（效果算在這顆彈珠上）',
+      descUp: '連鎖閃電升級：閃電改連到附近 3 根能力釘' },
+    // feat/pins：釘子不會消失了，「重生釘」改成「充能釘」：炸彈釘、回收釘的冷卻時間減半
+    { id: 'regrow', name: '充能釘', icon: 'icons.regrow', max: 1,
+      tiers: { b: { v: 1 } }, desc: '炸彈釘和回收釘的冷卻時間減半' },
     { id: 'ammo', name: '彈藥箱', icon: 'icons.ammo', max: 99,
       tiers: { w: { v: 50 }, b: { v: 100 }, g: { v: 200 } }, desc: '彈珠上限 +{v}，並立刻補 {v} 顆' },
     { id: 'recycle', name: '回收', icon: 'icons.recycle', max: 99, cap: 40,
       tiers: { w: { v: 20 }, b: { v: 30 } }, desc: '落空的彈珠有 {v}% 機率退回（最多 40%）' },
     { id: 'hunter', name: '獵人之眼', icon: 'icons.hunter', max: 1,
       tiers: { b: { v: 1 } }, desc: '弱點變大 ×1.5，弱點傷害再 ×1.5' },
+    // feat/pins：沒有補彈釘了，改成加強回收釘
     { id: 'supply', name: '補給專家', icon: 'icons.supply', max: 3,
-      tiers: { w: { v: 2 }, b: { v: 3 } }, desc: '補彈釘多給 {v} 顆' },
+      tiers: { w: { v: 10 }, b: { v: 15 } }, desc: '回收釘的退回機率 +{v}%' },
     { id: 'frost', name: '寒冰之心', icon: 'icons.frost', max: 2,
       tiers: { b: { v: 1 } }, desc: '冰凍時間 +1 秒，冰凍中的怪物受到傷害 +30%' },
     { id: 'blast', name: '爆破專家', icon: 'icons.blast', max: 1,
@@ -8758,9 +8794,10 @@ root.MARBLE_ART =
     { id: 'hourglass', name: '時光沙漏', icon: 'icons.hourglass', max: 99, cap: 30,
       tiers: { w: { v: 10 }, b: { v: 15 } }, desc: '補彈間隔 −{v} 秒（最短 30 秒）' },
     { id: 'loot', name: '戰利品', icon: 'icons.loot', max: 4,
-      tiers: { w: { v: 50 } }, desc: '打倒怪物掉落的彈珠 +{v}%' },
+      tiers: { w: { v: 50 }, b: { v: 50 }, g: { v: 100 } }, desc: '打倒怪物掉落的彈珠 +{v}%' },   // feat/pins：天賦只在精英（≥藍）／魔王（金）出現，補上藍／金
+    // feat/pins：「每盤多 6 根技能釘」改成立刻新增隨機能力釘（整局永久）
     { id: 'pegplus', name: '釘子增生', icon: 'icons.pegplus', max: 3,
-      tiers: { w: { v: 6 } }, desc: '每盤多 {v} 根技能釘' }
+      tiers: { w: { v: 2 }, b: { v: 2 }, g: { v: 3 } }, desc: '立刻新增 {v} 根隨機能力釘（整局永久）' }
   ];
 
   var rarities = {
@@ -8855,16 +8892,17 @@ root.MARBLE_ART =
   };
   var traitLoopSwarm = [4, 8];       // 第 6 章以後第 1 主題（草原）的群體關
 
-  // ---------- 釘子種類（UI 說明用） ----------
+  // ---------- 釘子種類（feat/pins：能力釘；UI 說明與三選一卡片用） ----------
+  // card＝三選一卡片說明（{n}＝分裂顆數、{max}＝上限、{cd}＝冷卻秒數、{p}＝機率%，由 sim 依 config 代入）；short＝暫停畫面一行說明
   var pegKinds = {
-    attack: { name: '攻擊', color: '#ff6b6b', desc: '這顆彈珠傷害 +1' },
-    crit: { name: '暴擊', color: '#ffd23f', desc: '這顆彈珠傷害 ×2（可疊，上限 ×8）' },
-    split: { name: '分裂', color: '#5ee0a0', desc: '彈珠分裂成 3 顆' },
-    fire: { name: '火焰', color: '#ff8a3d', desc: '彈珠著火，打到怪物造成燒傷' },
-    ice: { name: '冰凍', color: '#7fd8ff', desc: '彈珠帶冰，打到怪物使其冰凍' },
-    bomb: { name: '炸彈', color: '#8a7cff', desc: '範圍爆炸，連帶觸發附近的釘子' },
-    refill: { name: '補彈', color: '#b6f06a', desc: '彈珠 +3' },
-    pin: { name: '固定釘', color: '#9aa0b4', desc: '永遠不會消失的彈跳釘' }
+    attack: { name: '攻擊釘', color: '#ff5d5d', card: '彈珠每碰一次傷害 +1（每顆最多 +{max}）', short: '每碰一次傷害 +1' },
+    crit: { name: '暴擊釘', color: '#ffd23f', card: '彈珠每碰一次傷害 ×2（最多 ×{max}）', short: '每碰一次傷害 ×2' },
+    split: { name: '分裂釘', color: '#62d26f', card: '碰到就分裂成 {n} 顆（每根冷卻 {cd} 秒；分出來的不再分裂）', short: '分裂成 {n} 顆（冷卻 {cd} 秒）' },
+    fire: { name: '火焰釘', color: '#ff8a2a', card: '彈珠著火（最多 {max} 層），打到怪物持續燒傷', short: '著火，打到持續燒傷' },
+    ice: { name: '冰凍釘', color: '#79dcff', card: '彈珠帶冰（最多 {max} 層），打到怪物會冰凍停住', short: '帶冰，打到會冰凍' },
+    bomb: { name: '炸彈釘', color: '#8a7cff', card: '碰到就爆炸、波及怪物和附近的炸彈釘（每根冷卻 {cd} 秒）', short: '爆炸（冷卻 {cd} 秒）' },
+    recycle: { name: '回收釘', color: '#ff73b9', card: '碰到有 {p}% 機率退回 1 顆彈珠（每根冷卻 {cd} 秒）', short: '{p}% 退回 1 顆彈珠' },
+    pin: { name: '鋼釘', color: '#c9d2e2', desc: '普通鋼釘：不會消失，只負責彈跳' }
   };
 
   root.ML_DATA = {
@@ -8948,25 +8986,30 @@ root.MARBLE_ART =
     return tp.swarm;
   }
 
-  // 章節補償（總監整合定案 2026-11-21；規格變更，待使用者確認）：從第 N 章開始時
-  //   ① 自動補給：前面 N−1 章每章自動補 START_AUTO_PER_CHAPTER 次天賦（＝那幾關過關時本來會拿到的三選一：
-  //      照該關的稀有度機率抽三張、依 START_AUTO_PREF 偏好挑一張，跟一般玩家的拿法一樣，包含回收／補給這類經濟天賦）
-  //   ② 金卡三選一：min(START_PICKS_MAX, (N−1)×START_PICKS_PER_CHAPTER) 次，由玩家自己選（保留選卡樂趣與抽金卡特效）
-  //   → 天賦組成接近「從 1-1 一路玩到第 N 章」的一般玩家（autoplay ref_chN 對照），高章節也最多只點 START_PICKS_MAX 次。
-  //   （規格原本是 (N−1)×2 次金卡；feat/balance 改成 (N−1)×5＋(N−1)(N−2)×1.25，第 6 章要點 50 次、第 10 章 135 次，太多）
+  // 章節補償（feat/pins）：從第 N 章開始時，換算成一般玩家打到第 N 章時會有的東西
+  //   ① 自動補給：前 N−1 章每章 START_AUTO_PINS 根能力釘（重播每關過關的三選一、照一般玩家偏好挑）＋每章精英天賦 1 張
+  //   ② 每章魔王的金卡天賦由玩家自己挑：min(START_PICKS_MAX, (N−1)×START_PICKS_PER_CHAPTER) 次；超過的章節也自動補金卡
+  //   → 組成接近「從 1-1 一路玩到第 N 章」的一般玩家（autoplay ref_chN 對照），高章節也最多只點 START_PICKS_MAX 次。
   function startPicksFor(ch, C) {
     ch = Math.max(1, Math.floor(Number(ch) || 1));
     var k = C && C.START_PICKS_PER_CHAPTER != null ? C.START_PICKS_PER_CHAPTER : 2;
     var mx = C && C.START_PICKS_MAX != null ? C.START_PICKS_MAX : Infinity;
     return Math.max(0, Math.min(mx, Math.round((ch - 1) * k)));
   }
-  // 自動補給要重播的關卡（總關數 index 的清單）：每章前 START_AUTO_PER_CHAPTER 關（定案 8＝X-1～X-8；X-5 精英照精英的稀有度、設到 10 時 X-10 魔王是金卡）
+  // 自動補給要重播的「玩家天賦」關卡（總關數 index 的清單）：每章的精英關 X-5；魔王關 X-10 超過玩家自己挑的次數時也自動補
   function startAutoLevels(ch, C) {
     ch = Math.max(1, Math.floor(Number(ch) || 1));
-    var a = Math.max(0, Math.min(10, Math.round(C && C.START_AUTO_PER_CHAPTER != null ? C.START_AUTO_PER_CHAPTER : 0)));
-    var out = [];
-    for (var c = 1; c < ch; c++) for (var st = 1; st <= a; st++) out.push((c - 1) * 10 + st);
+    var out = [], picks = startPicksFor(ch, C), per = C && C.START_PICKS_PER_CHAPTER != null ? C.START_PICKS_PER_CHAPTER : 1;
+    for (var c = 1; c < ch; c++) {
+      out.push((c - 1) * 10 + 5);
+      if (per <= 0 || c > picks) out.push((c - 1) * 10 + 10);
+    }
     return out;
+  }
+  // 自動補給的能力釘次數（前 N−1 章每章 START_AUTO_PINS 次）
+  function startAutoPinsFor(ch, C) {
+    ch = Math.max(1, Math.floor(Number(ch) || 1));
+    return (ch - 1) * Math.max(0, Math.round(C && C.START_AUTO_PINS != null ? C.START_AUTO_PINS : 10));
   }
 
   // =====================================================================
@@ -9000,16 +9043,21 @@ root.MARBLE_ART =
       aimX: W / 2, firing: false,
       queue: 0,
       balls: [],
-      pegs: [],
+      pegs: [],                       // 鋼釘＋能力釘（kind:'pin'＝普通鋼釘；post:true＝入賞口柱；其他＝能力釘）
+      // 能力釘（feat/pins）：整局累積的數量（每種幾根），換盤面時由系統隨機挑鋼釘改造
+      abilities: {},
+      // 本盤資訊：pins＝釘子總數（含入賞口柱）、steel＝普通鋼釘、abil＝本盤放了幾根能力釘、overflow＝放不下的數量、pattern＝排列樣式、fresh＝這盤剛新增的能力釘 id
+      board: { pins: 0, steel: 0, abil: 0, overflow: 0, pattern: '', fresh: [] },
+      pinPicks: [],                   // 拿過的能力釘（順序）[{ kind, src:'pick'|'talent'|'start' }]
       monsters: [],
       combo: { n: 0, t: 0, best: 0 },
       talents: {},
       picks: [],
       rerollLeft: C.REROLLS,
       offer: null,
-      // 文件欄位＋額外：pegs（觸發釘子數）、boards（清盤次數）、misses（落空數）
+      // 文件欄位＋額外：pegs（碰能力釘次數）、misses（落空數）、touch（各種能力釘被碰次數）、recycled（回收釘退回的彈珠）、splits（分裂次數）
       stats: { fired: 0, hits: 0, weakHits: 0, damage: 0, kills: 0, maxCombo: 0, maxHit: 0, levelsCleared: 0, marblesGained: 0,
-               pegs: 0, boards: 0, misses: 0, shields: 0, fevers: 0 },
+               pegs: 0, misses: 0, shields: 0, fevers: 0, touch: {}, recycled: 0, splits: 0, capped: 0 },
       // 狂熱模式（feat/fever）：energy 0～1；active 時 energy＝剩餘比例 t/dur；count＝本局觸發次數
       fever: { energy: 0, active: false, t: 0, dur: C.FEVER_DUR, count: 0, ready: false },
       // 小鋼珠（feat/pachinko）：用戶端唯讀，見 ARCHITECTURE.md「小鋼珠機制」
@@ -9043,9 +9091,8 @@ root.MARBLE_ART =
     var fireCd = 0, pendingShot = false, emptyCd = 0, queueCd = 0;
     var firedBalls = 0;
     var clearT = 0;
-    var boardClearT = -1;
     var boardNo = 0, boardPattern = '', lastPattern = '';
-    var boardBonusLeft = 0;           // 本關還能拿幾次清盤獎勵（含補彈釘）
+    var freshPins = [];               // 剛新增、還沒放上盤面的能力釘種類（下一次換盤面時標成「新」）
     var zoneY1 = 470;
     var bombs = [];                   // 延遲觸發的釘子 { t, peg, ball, snap }
     var pinCd = 0, wallCd = 0;
@@ -9078,12 +9125,12 @@ root.MARBLE_ART =
       M.wildfire = !!T.wildfire;
       M.burnMult = T.wildfire ? 1.5 : 1;
       M.chainN = T.chain ? (T.chain >= 2 ? 3 : 2) : 0;
-      M.regrow = !!T.regrow;
+      M.cdMul = T.regrow ? 0.5 : 1;   // 充能釘：炸彈釘／回收釘冷卻減半
       M.capBonus = T.ammo || 0;
       M.recycle = Math.min(capOf('recycle', 60), T.recycle || 0) / 100;
       M.weakScale = T.hunter ? 1.5 : 1;
       M.weakDmg = C.WEAK_MULT * (T.hunter ? 1.5 : 1);
-      M.supply = T.supply || 0;
+      M.recycleP = Math.min(0.9, C.RECYCLE_P + (T.supply || 0) / 100);   // 補給專家：回收釘機率
       M.freezeT = C.FREEZE_T + (T.frost || 0);
       M.freezeMax = C.FREEZE_MAX + (T.frost || 0);
       M.frostDmg = 0.3 * (T.frost || 0);
@@ -9092,7 +9139,6 @@ root.MARBLE_ART =
       M.golden = !!T.golden;
       M.refillInterval = Math.max(C.REFILL_INTERVAL_MIN, C.REFILL_INTERVAL - (T.hourglass || 0));
       M.lootMult = 1 + (T.loot || 0) / 100;
-      M.pegPlus = T.pegplus || 0;
       S.refillInterval = M.refillInterval;
       if (S.refillT > S.refillInterval) S.refillT = S.refillInterval;
     }
@@ -9116,7 +9162,7 @@ root.MARBLE_ART =
       for (var c = 2; c <= ch; c++) m *= typeof st === 'number' ? st : st[Math.min(c - 2, st.length - 1)];
       return m;
     }
-    // 依章節取值：數字＝每章一樣；陣列＝[第1章, 第2章, …]，最後一個值之後沿用（HP_GROWTH、ELITE_HP、BOSS_HP、DROP_CHAPTER、BOARD_BONUS_PER_LEVEL）
+    // 依章節取值：數字＝每章一樣；陣列＝[第1章, 第2章, …]，最後一個值之後沿用（HP_GROWTH、ELITE_HP、BOSS_HP、DROP_CHAPTER）
     function perCh(v, ch) { return typeof v === 'number' ? v : v[Math.min(ch - 1, v.length - 1)]; }
     function levelHp(L) {
       // 章內依關（stage）成長、跨章乘上章節倍率：每章開頭相對好打（章節補償開局才不會一開就死），章尾很硬
@@ -9277,7 +9323,7 @@ root.MARBLE_ART =
       S.balls = []; S.queue = 0; bombs = []; spawnList = [];
       S.offer = null;
       S.combo.n = 0; S.combo.t = 0; comboMs = 0;
-      boardClearT = -1; boardNo = 0; boardBonusLeft = perCh(C.BOARD_BONUS_PER_LEVEL, L.chapter);
+      boardNo = 0;
       pendingShot = false; fireCd = 0;
       if (C.TRAITS === false) L.swarm = false;
       S.monsters = makeMonsters(L);
@@ -9290,6 +9336,7 @@ root.MARBLE_ART =
       zoneY1 = Math.min(top - C.PEG_GAP_ABOVE_MONSTER, hopTop - C.PEG_GAP_ABOVE_MONSTER + 16);
       monsterTopY = Math.min(top, hopTop) - 6;
       genBoard();
+      freshPins = [];                 // 剛拿到的能力釘已經放上這一盤（標成 fresh）
       if (S.pachi.attacker.open) { S.pachi.attacker.y = zoneY1 + C.ATTACKER_DY; S.pachi.attacker.x = attackerX(); }
       S.phase = 'play';
       if (refillNext) {               // 魔王後補滿到新上限
@@ -9302,7 +9349,16 @@ root.MARBLE_ART =
         ms.push({ id: m.id, species: m.species, name: m.name, kind: m.kind, traits: m.traits.slice(), mini: m.mini });
       }
       emit({ t: 'levelStart', level: copyObj(L), monsters: ms });
+      emitFresh();
     }
+    // 新的一關：剛新增的能力釘（用戶端標出來「＋火焰釘」）
+    function emitFresh() {
+      for (var i = 0; i < S.pegs.length; i++) {
+        var p = S.pegs[i];
+        if (p.fresh) emit({ t: 'pinNew', kind: p.kind, x: p.x, y: p.y, pegId: p.id, name: pegName(p.kind), count: S.abilities[p.kind] || 0 });
+      }
+    }
+    function pegName(k) { return (D.pegKinds && D.pegKinds[k] && D.pegKinds[k].name) || k; }
 
     function allDead() {
       for (var i = 0; i < S.monsters.length; i++) if (S.monsters[i].alive) return false;
@@ -9310,10 +9366,11 @@ root.MARBLE_ART =
     }
 
     function levelClear() {
-      var n = S.balls.length + S.queue;
+      // 過關退回：場上的彈珠各 +1（REFUND_PAID_ONLY：只退真的扣過彈珠的那顆；分裂／雙重射擊多出來的、排隊中的不退）
+      var n = 0;
+      if (C.REFUND_PAID_ONLY) { for (var i = 0; i < S.balls.length; i++) if (S.balls[i]._paid) n++; } else n = S.balls.length + S.queue;
       S.balls = []; S.queue = 0; bombs = []; spawnList = [];
       pendingShot = false;
-      boardClearT = -1;
       var e = emit({ t: 'levelClear', level: copyObj(S.level), refund: 0 });
       e.refund = addMarbles(n, 'refund');
       S.stats.levelsCleared++;
@@ -9330,259 +9387,200 @@ root.MARBLE_ART =
       emit({ t: 'gameOver', level: S.over.level, stats: S.over.stats, time: S.time });
     }
 
-    // ---------------- 盤面產生 ----------------
+    // ---------------- 盤面產生（feat/pins：小鋼珠台式的鋼釘盤面，每關換一次） ----------------
+    // 順序：入賞口（＋兩根黃銅柱）→ 鐵片機關 → 鋼釘（天釘、命釘 → 排列樣式的道釘／弧／斜列 → 交錯格子補滿 → 亂數補洞）
+    //       → 把目前累積的能力釘隨機改造到普通鋼釘上。所有釘子彼此中心距 ≥ PIN_MIN_DIST（表面縫隙 ≥ MECH_GAP）。
     function lineOut(out, x1, y1, x2, y2, sp, skipFirst) {
       var dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx * dx + dy * dy);
       var n = Math.max(1, Math.round(len / sp));
       for (var j = skipFirst ? 1 : 0; j <= n; j++) out.push({ x: x1 + dx * j / n, y: y1 + dy * j / n });
     }
-    function ringOut(out, cx, cy, R, sp, a0) {
-      var n = Math.max(4, Math.round(TAU * R / sp));
-      for (var j = 0; j < n; j++) { var a = a0 + j * TAU / n; out.push({ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) }); }
-    }
-    function diamondOut(out, cx, cy, hx, hy, sp) {
-      lineOut(out, cx, cy - hy, cx + hx, cy, sp, false);
-      lineOut(out, cx + hx, cy, cx, cy + hy, sp, true);
-      lineOut(out, cx, cy + hy, cx - hx, cy, sp, true);
-      lineOut(out, cx - hx, cy, cx, cy - hy, sp, true);
+    // 沿圓弧每 sp 一根（角度 rad，y 往下為正）
+    function arcOut(out, cx, cy, R, a0, a1, sp) {
+      var n = Math.max(1, Math.round(Math.abs(a1 - a0) * R / sp));
+      for (var j = 0; j <= n; j++) { var a = a0 + (a1 - a0) * j / n; out.push({ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) }); }
     }
     function farFrom(list, p, d) {
       var d2 = d * d;
       for (var i = 0; i < list.length; i++) {
         var dx = list[i].x - p.x, dy = list[i].y - p.y;
-        if (dx * dx + dy * dy < d2) return false;
+        if (dx * dx + dy * dy < d2 - 1e-6) return false;
       }
       return true;
     }
-    // 隨機丟點補到 count（與 list、others 都保持距離）
-    function poissonFill(r, Z, list, count, minD, others) {
-      var tries = 0;
-      while (list.length < count && tries++ < count * 80) {
-        var p = { x: Z.x0 + r() * (Z.x1 - Z.x0), y: Z.y0 + r() * (Z.y1 - Z.y0) };
-        if (farFrom(list, p, minD) && (!others || farFrom(others, p, minD))) list.push(p);
+    // 交錯格子（ゲージ）：隨機相位，打亂順序（數量到了就停，所以要打亂才會平均）
+    function latticePts(r, Z, sp) {
+      var dx = sp, dy = sp * 0.866, ox = r() * dx, oy = r() * dy * 0.6, pts = [];
+      for (var j = 0; j < 40; j++) {
+        var y = Z.y0 + oy + j * dy;
+        if (y > Z.y1 + 0.01) break;
+        for (var x = Z.x0 + ((ox + (j % 2 ? dx / 2 : 0)) % dx); x <= Z.x1 + 0.01; x += dx) pts.push({ x: x, y: y });
       }
-      return list;
+      return shuffle(pts, r);
     }
 
-    // 各種排列樣式：回傳 { pts: 技能釘候選點, pins: 固定釘建議點 }
+    // 排列樣式（回傳「這個樣式的特色釘」候選點，依優先順序；其餘位置由交錯格子補滿）
+    //   Z＝鋼釘區；F＝焦點（入賞口；沒有入賞口時是盤面中下）
     var PATTERNS = {
-      // 交錯格
-      stagger: function (r, Z, n) {
-        var dx = clamp(Math.sqrt(Z.w * Z.h / (n * 1.02) / 0.87), 40, 90), dy = dx * 0.87;
-        var cols = Math.floor(Z.w / dx) + 1, rows = Math.floor(Z.h / dy) + 1;
-        var ox = Z.x0 + (Z.w - (cols - 1) * dx) / 2, oy = Z.y0 + (Z.h - (rows - 1) * dy) / 2;
-        var pts = [], pins = [];
-        for (var j = 0; j < rows; j++) for (var i = 0; i < cols; i++) {
-          var x = ox + i * dx + (j % 2 ? dx / 2 : 0);
-          if (x > Z.x1 + 0.5) continue;
-          pts.push({ x: x, y: oy + j * dy });
-          if (j % 2 === 0 && j + 1 < rows && i % 2 === 1) pins.push({ x: ox + i * dx + dx / 2, y: oy + (j + 0.5) * dy });
-        }
-        return { pts: pts, pins: pins };
+      // 格子：整面交錯格子（最經典的ゲージ）
+      grid: function () { return []; },
+      // ハの字：兩條從上方兩側斜斜收向入賞口上方的道釘
+      gate: function (r, Z, F) {
+        var out = [], sp = C.PIN_SPACING, top = Z.y0 + 44 + r() * 30, ex = 60 + r() * 14, ey = F.y - 64 - r() * 20;
+        lineOut(out, Z.x0, top, F.x - ex, ey, sp); lineOut(out, Z.x1, top, F.x + ex, ey, sp);
+        return out;
       },
-      // 圓環
-      rings: function (r, Z, n) {
-        var pts = [], pins = [];
-        var R = Math.min(Z.w, Z.h) * (0.3 + 0.06 * r());
-        var cx = Z.cx + (r() - 0.5) * 30, cy = Z.y0 + Z.h * (0.4 + 0.2 * r());
-        ringOut(pts, cx, cy, R, 38, r() * TAU);
-        if (R > 84) ringOut(pts, cx, cy, R * 0.46, 36, r() * TAU);
-        pins.push({ x: cx, y: cy });
-        var corners = shuffle([[Z.x0 + 44, Z.y0 + 40], [Z.x1 - 44, Z.y0 + 40], [Z.x0 + 44, Z.y1 - 40], [Z.x1 - 44, Z.y1 - 40]], r);
-        for (var i = 0; i < corners.length && pts.length < n * 1.05; i++) {
-          ringOut(pts, corners[i][0], corners[i][1], 36, 36, r() * TAU);
-          pins.push({ x: corners[i][0], y: corners[i][1] });
-        }
-        return { pts: pts, pins: pins };
+      // V 字道釘：從上方兩角一路收到命釘
+      vee: function (r, Z, F) {
+        var out = [], sp = C.PIN_SPACING, top = Z.y0 + 4 + r() * 20;
+        lineOut(out, F.x - C.MENKUGI_DX, F.y - C.MENKUGI_DY, Z.x0, top, sp); lineOut(out, F.x + C.MENKUGI_DX, F.y - C.MENKUGI_DY, Z.x1, top, sp);
+        return out;
       },
-      // V 字（或倒 V）疊幾層
-      vee: function (r, Z, n) {
-        var pts = [], pins = [];
-        var rows = Z.h > 360 ? 4 : 3, inv = r() < 0.5, gy = Z.h / rows;
-        var depth = gy * (0.55 + 0.25 * r());
+      // 放射：從入賞口往上散開的 4 條道釘（扇形）
+      fan: function (r, Z, F) {
+        var out = [], sp = C.PIN_SPACING, sw = 0.42 + r() * 0.14, angs = [-Math.PI / 2 - sw * 2.4, -Math.PI / 2 - sw, -Math.PI / 2 + sw, -Math.PI / 2 + sw * 2.4];
+        for (var k = 0; k < angs.length; k++) {
+          for (var d = 76; d < 420; d += sp) {
+            var x = F.x + d * Math.cos(angs[k]), y = F.y + d * Math.sin(angs[k]);
+            if (x < Z.x0 - 1 || x > Z.x1 + 1 || y < Z.y0 - 1) break;
+            out.push({ x: x, y: y });
+          }
+        }
+        return out;
+      },
+      // 彩虹：圍著入賞口上方的兩道弧
+      arch: function (r, Z, F) {
+        var out = [], sp = C.PIN_SPACING, R1 = 92 + r() * 14;
+        arcOut(out, F.x, F.y, R1, Math.PI * 1.06, Math.PI * 1.94, sp);
+        arcOut(out, F.x, F.y, R1 + 74 + r() * 16, Math.PI * 1.04, Math.PI * 1.96, sp);
+        return out;
+      },
+      // 棚：一層層的橫排（每層留一個缺口），上下層錯開
+      steps: function (r, Z, F) {
+        var out = [], sp = C.PIN_SPACING, rows = Z.h > 330 ? 3 : 2;
         for (var k = 0; k < rows; k++) {
-          var yTop = Z.y0 + k * gy + (gy - depth) * 0.5;
-          var yA = inv ? yTop + depth : yTop, yB = inv ? yTop : yTop + depth;
-          lineOut(pts, Z.x0, yA, Z.cx, yB, 40, false);
-          lineOut(pts, Z.cx, yB, Z.x1, yA, 40, true);
-          pins.push({ x: Z.cx, y: yB + (inv ? 30 : -30) });
+          var y = Z.y0 + Z.h * (0.2 + 0.62 * k / Math.max(1, rows - 1)) + (r() - 0.5) * 16, ox = (k % 2 ? sp / 2 : 0) + r() * 6;
+          var gap = Math.floor(r() * 6);
+          for (var i = 0, x = Z.x0 + ox; x <= Z.x1 + 0.01; x += sp, i++) if (i !== gap) out.push({ x: x, y: y });
         }
-        return { pts: pts, pins: pins };
+        return out;
       },
-      // 菱形（同心菱形＋角落小菱形）
-      diamond: function (r, Z, n) {
-        var pts = [], pins = [];
-        var hx = Z.w * 0.48, hy = Z.h * (0.42 + 0.05 * r());
-        diamondOut(pts, Z.cx, Z.cy, hx, hy, 40);
-        diamondOut(pts, Z.cx, Z.cy, hx * 0.5, hy * 0.5, 38);
-        pins.push({ x: Z.cx, y: Z.cy });
-        var s = Math.min(Z.w, Z.h) * 0.12;
-        var cs = shuffle([[Z.x0 + s, Z.y0 + s], [Z.x1 - s, Z.y0 + s], [Z.x0 + s, Z.y1 - s], [Z.x1 - s, Z.y1 - s]], r);
-        for (var i = 0; i < cs.length && pts.length < n; i++) diamondOut(pts, cs[i][0], cs[i][1], s, s, 36);
-        return { pts: pts, pins: pins };
+      // 菱形：入賞口上方一個大菱形外框
+      diamond: function (r, Z, F) {
+        var out = [], sp = C.PIN_SPACING, hx = 96 + r() * 20, hy = 70 + r() * 16, cx = F.x, cy = Math.max(Z.y0 + hy, F.y - 70 - hy);
+        lineOut(out, cx, cy - hy, cx + hx, cy, sp); lineOut(out, cx + hx, cy, cx, cy + hy, sp, true);
+        lineOut(out, cx, cy + hy, cx - hx, cy, sp, true); lineOut(out, cx - hx, cy, cx, cy - hy, sp, true);
+        return out;
       },
-      // 弧線（笑臉／哭臉交替）
-      arcs: function (r, Z, n) {
-        var pts = [], pins = [];
-        var rows = Z.h > 360 ? 4 : 3, gy = Z.h / rows, sag = gy * (0.35 + 0.25 * r()), flip = r() < 0.5;
-        for (var k = 0; k < rows; k++) {
-          var up = (k % 2 === 0) !== flip, yBase = Z.y0 + (k + 0.5) * gy;
-          var px = 0, py = 0, len = 0, first = true;
-          for (var x = Z.x0; x <= Z.x1 + 0.01; x += 2) {
-            var u = (x - Z.cx) / (Z.w / 2);
-            var y = yBase + (up ? 1 : -1) * sag * (u * u - 0.5);
-            if (first) { pts.push({ x: x, y: y }); first = false; }
-            else { len += Math.sqrt((x - px) * (x - px) + (y - py) * (y - py)); if (len >= 40) { pts.push({ x: x, y: y }); len = 0; } }
-            px = x; py = y;
-          }
-          if (k + 1 < rows) pins.push({ x: Z.x0 + Z.w * (0.2 + 0.6 * r()), y: yBase + gy * 0.5 });
-        }
-        return { pts: pts, pins: pins };
-      },
-      // 群聚（幾團小蜂巢）
-      clusters: function (r, Z, n) {
-        var pts = [], pins = [];
-        var k = clamp(Math.round(n / 6.5), 3, 7);
-        var centers = poissonFill(r, { x0: Z.x0 + 38, x1: Z.x1 - 38, y0: Z.y0 + 36, y1: Z.y1 - 36 }, [], k, 112, null);
-        for (var i = 0; i < centers.length; i++) {
-          var c = centers[i], a0 = r() * TAU;
-          pts.push(c);
-          for (var j = 0; j < 6; j++) {
-            if (r() < 0.12) continue;
-            var a = a0 + j * Math.PI / 3;
-            pts.push({ x: c.x + 36 * Math.cos(a), y: c.y + 36 * Math.sin(a) });
-          }
-          for (var q = i + 1; q < centers.length; q++) {
-            var dx = centers[q].x - c.x, dy = centers[q].y - c.y;
-            if (dx * dx + dy * dy < 175 * 175) pins.push({ x: (c.x + centers[q].x) / 2, y: (c.y + centers[q].y) / 2 });
+      // 波浪：兩條波浪形的釘列
+      wave: function (r, Z, F) {
+        var out = [], sp = C.PIN_SPACING, A = 18 + r() * 12, ph = r() * TAU, k2 = 2 + r();
+        for (var k = 0; k < 2; k++) {
+          var base = Z.y0 + Z.h * (k ? 0.72 : 0.3), ph2 = ph + k * 1.7, px = Z.x0, py = base + A * Math.sin(ph2), acc = sp;
+          for (var x = Z.x0; x <= Z.x1 + 0.01; x += 1) {
+            var y = base + A * Math.sin(ph2 + (x - Z.x0) / Z.w * Math.PI * k2);
+            acc += Math.sqrt((x - px) * (x - px) + (y - py) * (y - py)); px = x; py = y;
+            if (acc >= sp) { out.push({ x: x, y: y }); acc = 0; }
           }
         }
-        return { pts: pts, pins: pins };
+        return out;
       },
-      // 波浪直排
-      columns: function (r, Z, n) {
-        var pts = [], pins = [];
-        var cols = clamp(Math.round(Z.w / 70), 4, 5), dx = Z.w / cols;
-        var rowsN = Math.max(3, Math.round(n / cols)), dy = Z.h / rowsN;
-        var wav = 8 + 10 * r(), ph = r() * TAU;
-        for (var c = 0; c < cols; c++) {
-          var x0 = Z.x0 + (c + 0.5) * dx;
-          for (var j = 0; j < rowsN; j++) {
-            var y = Z.y0 + (j + (c % 2 ? 0.75 : 0.25)) * dy;
-            pts.push({ x: x0 + wav * Math.sin(ph + j * 1.1 + c), y: y });
-          }
-          if (c > 0) for (var m = 0; m < rowsN; m += 2) pins.push({ x: Z.x0 + c * dx, y: Z.y0 + (m + (c % 2 ? 1 : 0.5)) * dy });
+      // 花：入賞口兩側上方各一朵六角花（中心＋6 根）
+      rosette: function (r, Z, F) {
+        var out = [], sp = C.PIN_SPACING, dx = 96 + r() * 20, dy = 70 + r() * 40, a0 = r() * Math.PI / 3;
+        for (var s = -1; s <= 1; s += 2) {
+          var cx = clamp(F.x + s * dx, Z.x0 + sp, Z.x1 - sp), cy = Math.max(Z.y0 + sp, F.y - dy);
+          out.push({ x: cx, y: cy });
+          for (var j = 0; j < 6; j++) out.push({ x: cx + sp * Math.cos(a0 + j * Math.PI / 3), y: cy + sp * Math.sin(a0 + j * Math.PI / 3) });
         }
-        return { pts: pts, pins: pins };
-      },
-      // 螺旋
-      spiral: function (r, Z, n) {
-        var pts = [], pins = [];
-        var maxR = Math.min(Z.w, Z.h) * 0.5 - 4, turns = 2.1 + 0.6 * r();
-        var b = (maxR - 30) / (turns * TAU), dir = r() < 0.5 ? 1 : -1, a0 = r() * TAU, th = 0;
-        for (var guard = 0; guard < 400; guard++) {
-          var rr = 30 + b * th;
-          if (rr > maxR) break;
-          pts.push({ x: Z.cx + rr * Math.cos(a0 + dir * th), y: Z.cy + rr * Math.sin(a0 + dir * th) });
-          th += 38 / Math.max(rr, 20);
-        }
-        pins.push({ x: Z.cx, y: Z.cy });
-        return { pts: pts, pins: pins };
-      },
-      // 散落
-      scatter: function (r, Z, n) {
-        return { pts: poissonFill(r, Z, [], n, 40, null), pins: [] };
+        return out;
       }
     };
-    var PATTERN_NAMES = ['stagger', 'rings', 'vee', 'diamond', 'arcs', 'clusters', 'columns', 'spiral', 'scatter'];
-
-    function weightedKind(r) {
-      var ks = C.PEG_KINDS, wsum = 0, i;
-      for (i = 0; i < ks.length; i++) wsum += C.PEG_WEIGHTS[ks[i]] || 0;
-      var u = r() * wsum;
-      for (i = 0; i < ks.length; i++) { u -= C.PEG_WEIGHTS[ks[i]] || 0; if (u < 0) return ks[i]; }
-      return ks[0];
-    }
+    var PATTERN_NAMES = ['grid', 'gate', 'vee', 'fan', 'arch', 'steps', 'diamond', 'wave', 'rosette'];
 
     function genBoard(forced) {
       var L = S.level;
       var r = mulberry32(mix(mix(seed ^ 0xA5A5A5, L.index), boardNo));
+      var ra = mulberry32(mix(mix(seed ^ 0xAB11E5, L.index), boardNo));   // 能力釘放哪裡（另一條亂數：盤面樣式不受能力釘數量影響）
       boardNo++;
       var Z = { x0: C.PEG_X_MIN, x1: C.PEG_X_MAX, y0: S.pachi.on ? C.PACHI_PEG_Y_MIN : C.PEG_Y_MIN, y1: zoneY1 };
       Z.w = Z.x1 - Z.x0; Z.h = Z.y1 - Z.y0; Z.cx = (Z.x0 + Z.x1) / 2; Z.cy = (Z.y0 + Z.y1) / 2;
-      var hs = Z.h / C.PEG_REF_H;
-      var n = Math.max(6, Math.round(C.PEG_COUNT * hs)) + M.pegPlus;
-      var names = [];
-      for (var i = 0; i < PATTERN_NAMES.length; i++) if (PATTERN_NAMES[i] !== lastPattern) names.push(PATTERN_NAMES[i]);
+      var names = [], i;
+      for (i = 0; i < PATTERN_NAMES.length; i++) if (PATTERN_NAMES[i] !== lastPattern) names.push(PATTERN_NAMES[i]);
       var name = forced && PATTERNS[forced] ? forced : names[Math.floor(r() * names.length)];
-      var res = PATTERNS[name](r, Z, n);
-      // 篩選：在區域內、彼此距離 ≥ PEG_MIN_DIST
-      var pts = [];
-      for (i = 0; i < res.pts.length; i++) {
-        var p = res.pts[i];
-        if (p.x < Z.x0 - 0.5 || p.x > Z.x1 + 0.5 || p.y < Z.y0 - 0.5 || p.y > Z.y1 + 0.5) continue;
-        if (farFrom(pts, p, C.PEG_MIN_DIST)) pts.push({ x: clamp(p.x, Z.x0, Z.x1), y: clamp(p.y, Z.y0, Z.y1) });
-      }
-      var hi = Math.round(n * 1.2), lo = Math.round(n * 0.85);
-      while (pts.length > hi) pts.splice(Math.floor(r() * pts.length), 1);
-      if (pts.length < lo) poissonFill(r, Z, pts, lo, C.PEG_MIN_DIST + 4, null);
-      // 小鋼珠：入賞口（自己一條亂數，關掉時盤面跟舊版完全一樣）；周圍清空、兩側放黃銅柱
+      // 小鋼珠：入賞口（自己一條亂數）；兩側放黃銅柱
       var pk = S.pachi.on ? placePocket(Z) : null, posts = [];
       S.pachi.pocket = pk;
-      if (pk) {
-        var keep = [];
-        for (i = 0; i < pts.length; i++) { var ddx = pts[i].x - pk.x, ddy = pts[i].y - pk.y; if (ddx * ddx + ddy * ddy >= C.POCKET_CLEAR * C.POCKET_CLEAR) keep.push(pts[i]); }
-        pts = keep;
-        posts.push({ x: round1(pk.x - pk.postDx), y: round1(pk.y - 2) }, { x: round1(pk.x + pk.postDx), y: round1(pk.y - 2) });
-      }
-      // 鐵片機關（feat/rails）：放在入賞口之後、固定釘之前；技能釘／固定釘都避開機關。
-      // 被機關擠掉的技能釘在別處補回（只補擠掉的數量，盤面不會變空，沒有機關時跟舊版一樣）
+      if (pk) posts.push({ x: round1(pk.x - pk.postDx), y: round1(pk.y - 2) }, { x: round1(pk.x + pk.postDx), y: round1(pk.y - 2) });
+      // 鐵片機關（feat/rails）：放在入賞口之後、鋼釘之前；鋼釘都避開機關（表面縫隙 ≥ MECH_GAP）
       placeMechs(Z, pk, posts);
-      if (S.mech.rails.length || S.mech.spinners.length) {
-        var nBefore = pts.length, keepM = [];
-        for (i = 0; i < pts.length; i++) if (mechClear(pts[i].x, pts[i].y, C.PEG_R) >= C.MECH_PEG_GAP) keepM.push(pts[i]);
-        pts = keepM;
-        for (var mt = 0; pts.length < nBefore && mt < 3000; mt++) {
-          var mp = { x: Z.x0 + r() * Z.w, y: Z.y0 + r() * Z.h };
-          if (!farFrom(pts, mp, C.PEG_MIN_DIST + 2)) continue;
-          if (pk && !farFrom([pk], mp, C.POCKET_CLEAR)) continue;
-          if (mechClear(mp.x, mp.y, C.PEG_R) < C.MECH_PEG_GAP) continue;
-          pts.push(mp);
-        }
-      }
-      // 種類：保底＋權重隨機
-      // 本關清盤獎勵用完後重排的盤面不再放補彈釘（長時間的魔王戰不會靠清盤無限補彈）
-      var kinds = [], g = C.PEG_GUARANTEE, noRefill = boardNo > 1 && boardBonusLeft <= 0;
-      for (i = 0; i < C.PEG_KINDS.length; i++) {
-        var kk = C.PEG_KINDS[i];
-        if (noRefill && kk === 'refill') continue;
-        for (var q = 0; q < (g[kk] || 0) && kinds.length < pts.length; q++) kinds.push(kk);
-      }
-      while (kinds.length < pts.length) { var wk = weightedKind(r); kinds.push(noRefill && wk === 'refill' ? 'attack' : wk); }
-      shuffle(kinds, r);
-      // 固定釘
-      var pins = [], PZ = { x0: C.PIN_X_MIN, x1: C.PIN_X_MAX, y0: Z.y0 + 8, y1: Z.y1 + 6 };
-      var pinN = Math.max(4, Math.round(C.PIN_COUNT * hs));
-      var okPin = function (p) {
-        return p.x >= PZ.x0 && p.x <= PZ.x1 && p.y >= PZ.y0 && p.y <= PZ.y1 &&
-          farFrom(pins, p, C.PIN_MIN_DIST) && farFrom(pts, p, C.PIN_SKILL_MIN) &&
-          (!pk || farFrom([pk], p, C.POCKET_CLEAR)) && farFrom(posts, p, C.PIN_R * 2 + C.MECH_GAP) &&   // 固定釘↔入賞口柱也要 ≥ MECH_GAP（巨大化鋼珠會卡在兩者之間）
-          mechClear(p.x, p.y, C.PIN_R) >= C.MECH_GAP;
+      // 鋼釘區：離牆 ≥ MECH_GAP（PIN_X_MIN／MAX）、上緣在液晶下方、下緣到怪物上方
+      var PZ = { x0: C.PIN_X_MIN, x1: C.PIN_X_MAX, y0: Z.y0 + 6, y1: Z.y1 + 6 };
+      PZ.w = PZ.x1 - PZ.x0; PZ.h = PZ.y1 - PZ.y0; PZ.cx = (PZ.x0 + PZ.x1) / 2;
+      var F = pk ? { x: pk.x, y: pk.y } : { x: PZ.cx, y: PZ.y0 + PZ.h * 0.6 };
+      var target = Math.max(16, Math.round(C.PIN_COUNT * PZ.h / C.PIN_REF_H));
+      var pins = [];
+      var okPin = function (p, top) {
+        return p.x >= PZ.x0 - 0.01 && p.x <= PZ.x1 + 0.01 && p.y >= (top ? C.PIN_TOP_Y : PZ.y0) - 0.01 && p.y <= PZ.y1 + 0.01 &&
+          farFrom(pins, p, C.PIN_MIN_DIST) &&
+          (!pk || farFrom([pk], p, C.POCKET_CLEAR)) && farFrom(posts, p, C.PIN_R * 2 + C.MECH_GAP) &&   // 鋼釘↔入賞口柱也要 ≥ MECH_GAP
+          mechClear(p.x, p.y, C.PIN_R) >= C.MECH_GAP + 0.1;   // 座標四捨五入到 0.1，留餘量
       };
-      var hints = res.pins || [];
-      for (i = 0; i < hints.length && pins.length < pinN; i++) if (okPin(hints[i])) pins.push(hints[i]);
-      for (var tries = 0; pins.length < pinN && tries < 2000; tries++) {
-        var pp = { x: PZ.x0 + r() * (PZ.x1 - PZ.x0), y: PZ.y0 + r() * (PZ.y1 - PZ.y0) };
-        if (okPin(pp)) pins.push(pp);
+      var add = function (p, tag) { if (pins.length >= target || !okPin(p, tag === 'kata')) return false; pins.push({ x: round1(p.x), y: round1(p.y), tag: tag || '' }); return true; };
+      // 共通：天釘（液晶正下方一排 4 根）、肩釘（液晶兩側，小鋼珠模式才有液晶）、命釘（入賞口正上方兩側；有凹槽平台時由凹槽負責導入）
+      var sp = C.PIN_SPACING;
+      for (i = 0; i < 4; i++) add({ x: PZ.cx + (i - 1.5) * sp, y: PZ.y0 }, 'ten');
+      if (S.pachi.on) for (i = 0; i < C.PIN_KATA.length; i++) add({ x: C.PIN_KATA[i][0], y: C.PIN_KATA[i][1] }, 'kata');
+      if (pk && !S.mech.stage) { add({ x: pk.x - C.MENKUGI_DX, y: pk.y - C.MENKUGI_DY }, 'life'); add({ x: pk.x + C.MENKUGI_DX, y: pk.y - C.MENKUGI_DY }, 'life'); }
+      var feat = PATTERNS[name](r, PZ, F);
+      for (i = 0; i < feat.length; i++) add(feat[i], 'road');
+      // 格子補滿：試幾個相位，挑放得最多的那個（特色釘、機關會擋掉一部分格子點）
+      var base = pins.slice(), best = null, bestN = -1;
+      for (var tl = 0; tl < 10; tl++) {
+        pins = base.slice();
+        var lat = latticePts(r, PZ, sp);
+        for (i = 0; i < lat.length && pins.length < target; i++) add(lat[i], '');
+        if (pins.length > bestN) { bestN = pins.length; best = pins; }
       }
+      pins = best;
+      for (var tries = 0; pins.length < target && tries < 4000; tries++) add({ x: PZ.x0 + r() * PZ.w, y: PZ.y0 + r() * PZ.h }, '');
       var pegs = [];
-      for (i = 0; i < pts.length; i++) pegs.push({ id: uid++, kind: kinds[i], x: round1(pts[i].x), y: round1(pts[i].y), r: C.PEG_R, alive: true, regrowT: 0 });
-      for (i = 0; i < pins.length; i++) pegs.push({ id: uid++, kind: 'pin', x: round1(pins[i].x), y: round1(pins[i].y), r: C.PIN_R, alive: true, regrowT: 0 });
-      for (i = 0; i < posts.length; i++) pegs.push({ id: uid++, kind: 'pin', post: true, x: posts[i].x, y: posts[i].y, r: C.PIN_R, alive: true, regrowT: 0 });
+      for (i = 0; i < pins.length; i++) pegs.push({ id: uid++, kind: 'pin', x: pins[i].x, y: pins[i].y, r: C.PIN_R, alive: true, flashT: 0, cdT: 0, hits: 0, tag: pins[i].tag });
+      for (i = 0; i < posts.length; i++) pegs.push({ id: uid++, kind: 'pin', post: true, x: posts[i].x, y: posts[i].y, r: C.PIN_R, alive: true, flashT: 0, cdT: 0, hits: 0, tag: 'post' });
       S.pegs = pegs;
       boardPattern = name; lastPattern = name;
+      placeAbilities(ra);
       buildGrid();
     }
+    // 換盤面：目前累積的全部能力釘由系統隨機挑普通鋼釘改造（剛新增的先放、標成 fresh）；
+    //   最多改造 ABILITY_MAX_FRAC 的鋼釘，超過的這一盤放不下（數量仍保留在 S.abilities）
+    function placeAbilities(r) {
+      var steel = [], i, k;
+      for (i = 0; i < S.pegs.length; i++) if (S.pegs[i].kind === 'pin' && !S.pegs[i].post) steel.push(S.pegs[i]);
+      shuffle(steel, r);
+      var left = {}, list = [], rest = [];
+      for (k in S.abilities) if (hasOwn.call(S.abilities, k)) left[k] = S.abilities[k] | 0;
+      for (i = 0; i < freshPins.length; i++) if (left[freshPins[i]] > 0) { left[freshPins[i]]--; list.push({ kind: freshPins[i], fresh: true }); }
+      var KS = C.ABILITY_KINDS;
+      for (i = 0; i < KS.length; i++) for (var n = 0; n < (left[KS[i]] || 0); n++) rest.push({ kind: KS[i], fresh: false });
+      list = list.concat(shuffle(rest, r));
+      var maxN = Math.floor(steel.length * C.ABILITY_MAX_FRAC), put = Math.min(maxN, list.length), B = S.board;
+      B.fresh = [];
+      for (i = 0; i < put; i++) {
+        steel[i].kind = list[i].kind;
+        if (list[i].fresh) { steel[i].fresh = true; B.fresh.push(steel[i].id); }
+      }
+      B.pins = S.pegs.length; B.steel = steel.length - put; B.abil = put; B.overflow = list.length - put; B.pattern = boardPattern;
+    }
+    // 新增能力釘（整局永久）。fresh＝下一次換盤面時標成「新」（用戶端特效）
+    function addAbility(kind, n, src, fresh) {
+      if (C.ABILITY_KINDS.indexOf(kind) < 0) return false;
+      n = Math.max(1, n | 0);
+      S.abilities[kind] = (S.abilities[kind] || 0) + n;
+      for (var i = 0; i < n; i++) { S.pinPicks.push({ kind: kind, src: src || 'pick' }); if (fresh) freshPins.push(kind); }
+      return true;
+    }
+    function randomAbility(rr) { var KS = C.ABILITY_KINDS; return KS[Math.floor(rr() * KS.length)]; }
 
     // 格子分區：每根釘子放進「它能碰到的彈珠中心」會落在的所有格子；查詢時只看彈珠中心所在的格子
     function buildGrid() {
@@ -9927,17 +9925,20 @@ root.MARBLE_ART =
     }
 
     // ---------------- 彈珠 ----------------
+    // 彈珠身上疊的能力（feat/pins，用戶端畫光環）：atk＝攻擊層數（dmg 已含）、mult＝暴擊倍率、fire／ice＝層數 0～3、
+    //   splits＝已分裂次數（分身＝SPLIT_PER_BALL，不能再分裂）、rec＝回收釘觸發次數。a＝分身繼承的來源
     function newBall(x, y, vx, vy, a) {
       return {
         id: uid++, x: x, y: y, vx: vx, vy: vy, r: M.ballR,
-        dmg: a ? a.dmg : M.baseDmg, mult: a ? a.mult : 1,
-        fire: a ? !!a.fire : false, ice: a ? !!a.ice : false, gold: a ? !!a.gold : false, fever: a ? !!a.fever : false,
+        dmg: a ? a.dmg : M.baseDmg, mult: a ? a.mult : 1, atk: a ? (a.atk | 0) : 0,
+        fire: a ? (a.fire | 0) : 0, ice: a ? (a.ice | 0) : 0, gold: a ? !!a.gold : false, fever: a ? !!a.fever : false,
+        splits: a ? C.SPLIT_PER_BALL : 0, rec: a ? C.RECYCLE_PER_BALL : 0,   // 分身不能再分裂、也不能觸發回收釘（避免分裂＋回收洗彈珠）
         redrops: a ? (a.redrops || 0) : 0, age: 0,
-        _life: 0, _cpT: 0, _cpY: y, _stuck: 0, _dead: false, _paid: false, _canSplit: !a
+        _life: 0, _cpT: 0, _cpY: y, _stuck: 0, _dead: false, _paid: false, _lp: 0, _lt: -9
       };
     }
     function snapshot(b) {
-      return b ? { id: b.id, dmg: b.dmg, mult: b.mult, fire: b.fire, ice: b.ice, gold: b.gold, fever: b.fever, redrops: b.redrops } : null;
+      return b ? { id: b.id, dmg: b.dmg, mult: b.mult, atk: b.atk, fire: b.fire, ice: b.ice, gold: b.gold, fever: b.fever, redrops: b.redrops } : null;
     }
 
     function doFire() {
@@ -9991,21 +9992,25 @@ root.MARBLE_ART =
         b.x = p.x + nx * R; b.y = p.y + ny * R;
         var vn = b.vx * nx + b.vy * ny;
         if (vn < 0) {
-          var e = p.kind === 'pin' ? C.REST_PIN : C.REST_PEG;
-          b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny;
+          b.vx -= (1 + C.REST_PIN) * vn * nx; b.vy -= (1 + C.REST_PIN) * vn * ny;   // 鋼釘、能力釘、入賞口柱一樣硬
           if (-vn > 20) { var j = (rng() * 2 - 1) * C.JITTER; b.vx += -ny * j; b.vy += nx * j; }   // 貼著不動時不亂抖（交給下面的最低速度保護往下推）
         }
+        // 最低速度保護（feat/rails）：停在釘子正上方幾乎不動（不穩定平衡點，靠亂數要晃很久）→ 往偏的那一邊推下去
+        //   （正上方反覆垂直彈跳也算：切線速度太小就補一下，彈跳時一次補 PIN_KICK、貼著時每秒 RAIL_PUSH）
+        var vt = b.vx * -ny + b.vy * nx;
+        if (ny < -0.6 && Math.abs(vt) < C.PIN_VMIN) {
+          var sg = nx > 0.02 ? 1 : nx < -0.02 ? -1 : (vt > 0 ? 1 : vt < 0 ? -1 : (rng() < 0.5 ? -1 : 1));
+          var kick = vn < -20 ? C.PIN_KICK : C.RAIL_PUSH * h;
+          b.vx += sg * kick * -ny; b.vy += sg * kick * nx;
+        }
         if (p.kind === 'pin') {
-          // 最低速度保護（feat/rails）：停在固定釘／入賞口柱正上方幾乎不動（不穩定平衡點，靠亂數要晃很久）→ 往偏的那一邊推下去
-          //   （正上方反覆垂直彈跳也算：切線速度太小就補一下，彈跳時一次補 PIN_KICK、貼著時每秒 RAIL_PUSH）
-          var vt = b.vx * -ny + b.vy * nx;
-          if (ny < -0.6 && Math.abs(vt) < C.PIN_VMIN) {
-            var sg = nx > 0.02 ? 1 : nx < -0.02 ? -1 : (vt > 0 ? 1 : vt < 0 ? -1 : (rng() < 0.5 ? -1 : 1));
-            var kick = vn < -20 ? C.PIN_KICK : C.RAIL_PUSH * h;
-            b.vx += sg * kick * -ny; b.vy += sg * kick * nx;
-          }
           if (-vn > C.PIN_EVENT_SPEED && pinCd <= 0) { pinCd = C.PIN_EVENT_GAP; emit({ t: 'pin', x: p.x, y: p.y, speed: Math.round(-vn) }); }
-        } else trigger(p, b, 'ball', null);
+        } else {
+          // 能力釘：每碰一次算一次（貼著滾不重複算：同一根要離開 TOUCH_CD 秒以上才算新的一次；換一根就是新的一次）
+          var fresh = p.id !== b._lp || b.age - b._lt > C.TOUCH_CD;
+          b._lp = p.id; b._lt = b.age;
+          if (fresh) trigger(p, b, 'ball', null);
+        }
         if (b._dead) return;
       }
     }
@@ -10076,38 +10081,51 @@ root.MARBLE_ART =
       spawnList.length = 0;
     }
 
-    // ---------------- 釘子效果 ----------------
+    // ---------------- 能力釘效果（feat/pins：釘子不會消失，每碰一次疊一層，每種都有上限） ----------------
+    //   攻擊 +1（最多 +ATTACK_MAX）、暴擊 ×2（最多 ×CRIT_MAX）、火焰／冰凍 最多 FIRE_MAX／ICE_MAX 層、
+    //   分裂 每顆發射的彈珠最多 SPLIT_PER_BALL 次（分出來的不再分裂）、炸彈 每根冷卻 BOMB_CD、回收 每根冷卻 RECYCLE_CD＋每顆彈珠 RECYCLE_PER_BALL 次。
+    //   via：'ball'（彈珠碰到）、'chain'（連鎖閃電）、'bomb'（被附近的炸彈引爆，只有炸彈釘會連鎖爆炸）
     function trigger(p, b, via, snap) {
       if (!p.alive || p.kind === 'pin') return;
-      p.alive = false;
-      p.regrowT = M.regrow && p.kind !== 'refill' ? C.REGROW_T : 0;   // 補彈釘不重生（否則彈珠無限）
+      var live = b && !b._dead ? b : null, k = p.kind, n = 0, capped = false, gain = 0;
+      if (via === 'bomb' && k !== 'bomb') { p.flashT = C.PEG_FLASH; return; }
+      p.flashT = C.PEG_FLASH; p.hits++;
       S.stats.pegs++;
-      var live = b && !b._dead ? b : null;
-      emit({ t: 'peg', kind: p.kind, x: p.x, y: p.y, ballId: live ? live.id : (snap ? snap.id : 0), via: via });
-      switch (p.kind) {
-        case 'attack': if (live) live.dmg += C.ATTACK_BONUS; break;
-        case 'crit': if (live) live.mult = Math.min(C.CRIT_MAX, live.mult * 2); break;
-        case 'fire': if (live) live.fire = true; break;
-        case 'ice': if (live) live.ice = true; break;
-        case 'split': doSplit(p, live, via, snap); break;
-        case 'bomb': explode(p, live, snap); break;
-        case 'refill': addMarbles(C.REFILL_PEG + M.supply, 'peg'); break;
+      S.stats.touch[k] = (S.stats.touch[k] || 0) + 1;
+      switch (k) {
+        case 'attack':
+          if (live) { if ((live.atk | 0) < C.ATTACK_MAX) { live.atk = (live.atk | 0) + 1; live.dmg += C.ATTACK_BONUS; } else capped = true; n = live.atk; }
+          break;
+        case 'crit':
+          if (live) { if (live.mult < C.CRIT_MAX) live.mult = Math.min(C.CRIT_MAX, live.mult * 2); else capped = true; n = live.mult; }
+          break;
+        case 'fire':
+          if (live) { if ((live.fire | 0) < C.FIRE_MAX) live.fire = (live.fire | 0) + 1; else capped = true; n = live.fire; }
+          break;
+        case 'ice':
+          if (live) { if ((live.ice | 0) < C.ICE_MAX) live.ice = (live.ice | 0) + 1; else capped = true; n = live.ice; }
+          break;
+        case 'split':   // 分裂釘也有冷卻（SPLIT_CD）：釘子很多時場上不會一直被免費的分身塞滿 50 顆
+          if (p.cdT > 0 || !doSplit(p, live, via)) capped = true; else { n = live ? live.splits : 0; if (C.SPLIT_CD > 0) p.cdT = p.cd = C.SPLIT_CD; }
+          break;
+        case 'bomb':
+          if (p.cdT > 0) capped = true;
+          else { p.cdT = p.cd = C.BOMB_CD * M.cdMul; explode(p, live, snap); }
+          break;
+        case 'recycle':
+          if (p.cdT > 0 || !live || (live.rec | 0) >= C.RECYCLE_PER_BALL) capped = true;
+          else {
+            p.cdT = p.cd = C.RECYCLE_CD * M.cdMul; live.rec = (live.rec | 0) + 1;
+            if (rng() < M.recycleP) { gain = addMarbles(1, 'recycle'); S.stats.recycled += gain; if (!gain) gain = -1; }
+          }
+          break;
       }
+      if (capped) S.stats.capped++;
+      emit({ t: 'peg', kind: k, x: p.x, y: p.y, pegId: p.id, ballId: live ? live.id : (snap ? snap.id : 0), via: via, n: n, capped: capped, gain: gain });
       if (via === 'ball' && M.chainN > 0) chainFrom(p, live);
-      if (boardClearT < 0 && !M.regrow) checkBoardClear();
     }
 
-    function checkBoardClear() {
-      var any = false;
-      for (var i = 0; i < S.pegs.length; i++) {
-        var p = S.pegs[i];
-        if (p.kind === 'pin') continue;
-        any = true;
-        if (p.alive || p.regrowT > 0) return;
-      }
-      if (any) boardClearT = C.BOARD_CLEAR_DELAY;
-    }
-
+    // 連鎖閃電：碰到能力釘時，閃電連到附近 chainN 根能力釘一起觸發（效果算在這顆彈珠上；不會再連鎖下去）
     function chainFrom(p, b) {
       var cand = [], R2 = C.CHAIN_R * C.CHAIN_R;
       for (var i = 0; i < S.pegs.length; i++) {
@@ -10119,29 +10137,30 @@ root.MARBLE_ART =
       cand.sort(function (a, c) { return a.d2 - c.d2 || a.q.id - c.q.id; });
       for (i = 0; i < cand.length && i < M.chainN; i++) {
         var t = cand[i].q;
-        if (!t.alive) continue;
         emit({ t: 'chain', x1: p.x, y1: p.y, x2: t.x, y2: t.y });
         trigger(t, b, 'chain', null);
       }
     }
 
-    // 每顆彈珠一生只分裂一次；分身（含排隊補出的）不會再分裂，避免免費彈珠無限增生
-    function doSplit(p, b, via, snap) {
-      if (!b || !b._canSplit) return;
-      b._canSplit = false;
-      var n = M.splitN, a = b, ox, oy, dirx = 0, diry = 1, spd = C.SPLIT_SPEED;
-      if (via === 'ball' && b) {
-        ox = b.x; oy = b.y;
-        var v = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
-        if (v > 1) { dirx = b.vx / v; diry = b.vy / v; }
-        spd = Math.max(C.SPLIT_SPEED, v);
-      } else { ox = p.x; oy = p.y; }
+    // 分裂：每顆發射的彈珠最多 SPLIT_PER_BALL 次；分出來的彈珠（含排隊補出的）不會再分裂，避免免費彈珠無限增生
+    function doSplit(p, b, via) {
+      if (!b || (b.splits | 0) >= C.SPLIT_PER_BALL) return false;
+      b.splits = (b.splits | 0) + 1;
+      S.stats.splits++;
+      var n = M.splitN, ox = b.x, oy = b.y, dirx = 0, diry = 1, spd = C.SPLIT_SPEED;
+      var v = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+      if (v > 1) { dirx = b.vx / v; diry = b.vy / v; }
+      spd = Math.max(C.SPLIT_SPEED, v);
+      if (via !== 'ball') { ox = p.x; oy = p.y; }
       emit({ t: 'split', x: ox, y: oy, n: n });
       var angs = n >= 5 ? C.SPLIT_ANG5 : C.SPLIT_ANG3;
       for (var i = 0; i < n - 1; i++) {
         var ang = (angs[i % angs.length] + (rng() * 2 - 1) * 6) * Math.PI / 180, ca = Math.cos(ang), sa = Math.sin(ang);
-        spawnList.push(newBall(ox, oy, (dirx * ca - diry * sa) * spd, (dirx * sa + diry * ca) * spd, a));
+        var kid = newBall(ox, oy, (dirx * ca - diry * sa) * spd, (dirx * sa + diry * ca) * spd, b);
+        kid._lp = p.id; kid._lt = 0;   // 剛分出來還貼著同一根釘子：不要立刻再算一次
+        spawnList.push(kid);
       }
+      return true;
     }
 
     function explode(p, b, snap) {
@@ -10178,12 +10197,13 @@ root.MARBLE_ART =
           o.vx += dx / dd * f; o.vy += dy / dd * f;
         }
       }
+      // 波及附近的釘子：炸彈釘（冷卻好的）連鎖爆炸，其他能力釘只閃一下
       var sn = snapshot(a);
       for (i = 0; i < S.pegs.length; i++) {
         var q = S.pegs[i];
         if (q === p || !q.alive || q.kind === 'pin') continue;
         var qx = q.x - p.x, qy = q.y - p.y;
-        if (qx * qx + qy * qy < R2) bombs.push({ t: C.BOMB_DELAY, peg: q, ball: b, snap: sn });
+        if (qx * qx + qy * qy < R2) { if (q.kind === 'bomb' && !(q.cdT > 0)) bombs.push({ t: C.BOMB_DELAY, peg: q, ball: b, snap: sn }); else q.flashT = C.PEG_FLASH; }
       }
     }
 
@@ -10287,8 +10307,8 @@ root.MARBLE_ART =
       var ms = nextMilestone(comboMs);
       if (S.combo.n >= ms) { comboMs++; emit({ t: 'combo', n: ms }); }
       if (m.hp > 0) {
-        if (b.fire) applyBurn(m, b.dmg * b.mult * C.BURN_FACTOR * (b.fever ? C.FEVER_DMG : 1), true);
-        if (b.ice) applyFreeze(m);
+        if (b.fire) applyBurn(m, b.dmg * b.mult * C.BURN_FACTOR * b.fire * (b.fever ? C.FEVER_DMG : 1), true);   // 火焰層數 ×
+        if (b.ice) applyFreeze(m, b.ice);
       }
       if (weak && b.redrops < C.WEAK_REDROP_MAX) weakBack(b);
       else b._dead = true;
@@ -10300,7 +10320,7 @@ root.MARBLE_ART =
       b.redrops++;
       b.x = clamp(b.x, C.AIM_MIN, C.AIM_MAX); b.y = C.SPAWN_Y;
       b.vx = (rng() * 2 - 1) * C.SPAWN_VX; b.vy = C.SPAWN_VY;
-      b.dmg = M.baseDmg; b.mult = 1; b.fire = false; b.ice = false;   // 只保留黃金與狂熱
+      b.dmg = M.baseDmg; b.mult = 1; b.atk = 0; b.fire = 0; b.ice = 0;   // 只保留黃金與狂熱（疊的能力重來；分裂／回收次數不重置）
       b.age = 0; b._life = 0; b._stuck = 0; b._cpT = 0; b._cpY = b.y; b._pk = false;
       emit({ t: 'weakBack', x: x1, y: y1, x2: b.x, y2: b.y, ballId: b.id });
     }
@@ -10319,8 +10339,8 @@ root.MARBLE_ART =
       if (right) applyBurn(right, dps, false);
     }
 
-    function applyFreeze(m) {
-      m.frozenT = Math.min(M.freezeMax, m.frozenT + M.freezeT);
+    function applyFreeze(m, layers) {
+      m.frozenT = Math.min(M.freezeMax, m.frozenT + M.freezeT * (1 + C.ICE_LAYER_K * (Math.max(1, layers | 0) - 1)));   // 冰凍層數：時間 ×(1+0.5×(層−1))
       // 文件寫「t」，但 t 已經是事件種類鍵，所以冰凍秒數放在 dur
       emit({ t: 'freeze', monsterId: m.id, x: m.x, y: m.y, dur: m.frozenT });
     }
@@ -10468,14 +10488,12 @@ root.MARBLE_ART =
       }
     }
 
+    // 能力釘：閃光與冷卻（炸彈釘、回收釘）倒數
     function updatePegs(dt) {
-      if (!M.regrow) return;
       for (var i = 0; i < S.pegs.length; i++) {
         var p = S.pegs[i];
-        if (!p.alive && p.regrowT > 0) {
-          p.regrowT -= dt;
-          if (p.regrowT <= 0) { p.regrowT = 0; p.alive = true; emit({ t: 'regrow', pegId: p.id, x: p.x, y: p.y }); }
-        }
+        if (p.flashT > 0) p.flashT = Math.max(0, p.flashT - dt);
+        if (p.cdT > 0) p.cdT = Math.max(0, p.cdT - dt);
       }
     }
 
@@ -10726,7 +10744,7 @@ root.MARBLE_ART =
       if (S.queue > 0 && queueCd <= 0 && S.balls.length < C.FIELD_MAX) {
         S.queue--; queueCd = C.QUEUE_GAP;
         var qb = newBall(clamp(S.aimX + (rng() * 2 - 1) * 6, C.AIM_MIN, C.AIM_MAX), C.SPAWN_Y, (rng() * 2 - 1) * 30, C.SPAWN_VY, null);
-        qb._canSplit = false;
+        qb.splits = C.SPLIT_PER_BALL;   // 排隊補出的分身不會再分裂
         S.balls.push(qb);
       }
       // 發射
@@ -10746,20 +10764,6 @@ root.MARBLE_ART =
 
       stepBalls(dt);
 
-      // 清盤
-      if (boardClearT >= 0) {
-        boardClearT -= dt;
-        if (boardClearT <= 0) {
-          boardClearT = -1;
-          var bonus = boardBonusLeft > 0 ? C.BOARD_BONUS : 0;
-          if (boardBonusLeft > 0) boardBonusLeft--;
-          genBoard();
-          S.stats.boards++;
-          emit({ t: 'boardClear', bonus: bonus });
-          if (bonus) addMarbles(bonus, 'board');
-        }
-      }
-
       if (allDead()) { levelClear(); return; }
       if (S.marbles <= 0 && S.balls.length === 0 && S.queue === 0) gameOver();
     }
@@ -10768,11 +10772,9 @@ root.MARBLE_ART =
       S.time += dt;
       updateMechs(dt);
       updateMonsters(dt);
+      updatePegs(dt);
       clearT -= dt;
-      if (clearT <= 0) {
-        var k = S.level.kind;
-        openOffer(k === 'boss' ? 'boss' : k === 'elite' ? 'elite' : 'level', 1);
-      }
+      if (clearT <= 0) openOffer('pin', 1);   // feat/pins：每關過關先「新增一根能力釘」三選一（精英／魔王之後再多一次玩家天賦）
     }
 
     function tick(dt) {
@@ -10780,7 +10782,8 @@ root.MARBLE_ART =
       else if (S.phase === 'clear') tickClear(dt);
     }
 
-    // ---------------- 天賦三選一 ----------------
+    // ---------------- 三選一：能力釘（每關）＋玩家天賦（精英／魔王／章節補償） ----------------
+    // source：'pin'（每關過關：新增一根能力釘，卡片 rarity:'p'、pin:true）、'elite'／'boss'（能力釘之後再一次玩家天賦）、'start'（章節補償金卡）
     function isFull(def) {
       if ((picksCount[def.id] || 0) >= def.max) return true;
       var v = S.talents[def.id] || 0;
@@ -10833,42 +10836,74 @@ root.MARBLE_ART =
       }
       return cards;
     }
+    // 能力釘卡片說明（config 的上限／冷卻／機率代入 data.js pegKinds.card）
+    function pinDesc(kind, tplKey) {
+      var pk = (D.pegKinds && D.pegKinds[kind]) || {}, tpl = pk[tplKey || 'card'] || pk.desc || '';
+      var mx = { attack: C.ATTACK_MAX, crit: C.CRIT_MAX, fire: C.FIRE_MAX, ice: C.ICE_MAX, split: C.SPLIT_PER_BALL }[kind];
+      var cd = kind === 'bomb' ? C.BOMB_CD * M.cdMul : kind === 'split' ? C.SPLIT_CD : C.RECYCLE_CD * M.cdMul;
+      return tpl.replace(/\{max\}/g, String(mx)).replace(/\{n\}/g, String(M.splitN)).replace(/\{cd\}/g, String(round1(cd)))
+        .replace(/\{p\}/g, String(Math.round(M.recycleP * 100)));
+    }
+    function makePinCard(kind) {
+      var owned = S.abilities[kind] || 0;
+      return { id: kind, pin: true, rarity: 'p', name: '新增 1 根' + pegName(kind), desc: pinDesc(kind), icon: 'pins.' + kind, owned: owned, kind: kind };
+    }
+    // 三種不同的能力釘（PIN_OFFER_W 權重）；avoid＝重抽時盡量換掉
+    function rollPinCards(avoid, rr) {
+      rr = rr || rng;
+      var pool = [], i, cards = [];
+      for (i = 0; i < C.ABILITY_KINDS.length; i++) { var k = C.ABILITY_KINDS[i], w = C.PIN_OFFER_W[k] == null ? 1 : C.PIN_OFFER_W[k]; if (w > 0) pool.push({ k: k, w: w }); }
+      if (avoid) { var p2 = []; for (i = 0; i < pool.length; i++) if (!avoid[pool[i].k]) p2.push(pool[i]); if (p2.length >= 3) pool = p2; }
+      while (cards.length < 3 && pool.length) {
+        var sum = 0; for (i = 0; i < pool.length; i++) sum += pool[i].w;
+        var u = rr() * sum;
+        for (i = 0; i < pool.length - 1; i++) { u -= pool[i].w; if (u < 0) break; }
+        cards.push(makePinCard(pool.splice(i, 1)[0].k));
+      }
+      return cards;
+    }
     function openOffer(source, remaining) {
-      var cards = rollCards(source, null);
+      var cards = source === 'pin' ? rollPinCards(null) : rollCards(source, null);
       if (!cards.length) { afterOffer(source, remaining); return; }
       S.phase = 'talent';
       S.offer = { cards: cards, source: source, remaining: remaining };
-      if (source === 'start') S.offer.auto = startAutoN;   // 章節補償：開局已自動補給幾張（用戶端顯示用）
+      if (source === 'start') { S.offer.auto = startAutoN; S.offer.autoPins = startAutoPinN; }   // 章節補償：開局已自動補給幾張天賦／幾根能力釘（用戶端顯示用）
       emit({ t: 'talentOffer', cards: cards, source: source, remaining: remaining });
     }
-    // 章節補償的自動補給：照一般玩家的偏好從三張裡挑一張（權重＝START_AUTO_PREF[id]×START_AUTO_RARITY[稀有度]）
-    var startAutoN = 0;
+    // 章節補償的自動補給：照一般玩家的偏好從三張裡挑一張（權重＝偏好[id]×稀有度權重）
+    var startAutoN = 0, startAutoPinN = 0;
     function autoPickIndex(cards) {
-      var pref = C.START_AUTO_PREF || {}, rp = C.START_AUTO_RARITY || {}, w = [], sum = 0, i;
-      for (i = 0; i < cards.length; i++) { var x = (pref[cards[i].id] || 1) * (rp[cards[i].rarity] || 1); w.push(x); sum += x; }
+      var pref = C.START_AUTO_PREF || {}, rp = C.START_AUTO_RARITY || {}, pp = C.START_AUTO_PIN_PREF || {}, w = [], sum = 0, i;
+      for (i = 0; i < cards.length; i++) { var x = cards[i].pin ? (pp[cards[i].id] || 1) : (pref[cards[i].id] || 1) * (rp[cards[i].rarity] || 1); w.push(x); sum += x; }
       var u = rng() * sum;
       for (i = 0; i < w.length - 1; i++) { u -= w[i]; if (u < 0) break; }
       return i;
     }
     function startAutoSupply(ch) {
-      var lv = startAutoLevels(ch, C), n = 0, ev0 = ev.length;
-      for (var i = 0; i < lv.length; i++) {
+      var ev0 = ev.length, i, n = 0, np = 0;
+      // ① 能力釘：前 N−1 章每關一次
+      var nPins = startAutoPinsFor(ch, C);
+      for (i = 0; i < nPins; i++) { var pc = rollPinCards(null); if (pc.length && addAbility(pc[autoPickIndex(pc)].id, 1, 'start', false)) np++; }
+      // ② 玩家天賦：每章精英（＋超過玩家自己挑次數的魔王金卡）
+      var lv = startAutoLevels(ch, C);
+      for (i = 0; i < lv.length; i++) {
         var st = lv[i] - Math.floor((lv[i] - 1) / 10) * 10;
-        var src = st === 10 ? 'boss' : st === 5 ? 'elite' : 'level';
-        var cards = rollCards(src, null, lv[i]);
+        var cards = rollCards(st === 10 ? 'boss' : 'elite', null, lv[i]);
         if (!cards.length) continue;
         var c = cards[autoPickIndex(cards)];
-        if (applyTalent(c.id, c.rarity)) n++;
+        if (applyTalent(c.id, c.rarity, true)) n++;
       }
       ev.length = ev0;                // 補給時的 income 事件不送出（開局一次補滿，不要一直跳數字）
+      startAutoPinN = np;
       return n;
     }
     function afterOffer(source, remaining) {
       if (source === 'start' && remaining > 1) openOffer('start', remaining - 1);
       else if (source === 'start') startLevel(startIndex);
+      else if (source === 'pin' && (S.level.kind === 'elite' || S.level.kind === 'boss')) openOffer(S.level.kind, 1);   // 精英／魔王：再一次玩家天賦
       else startLevel(S.level.index + 1);
     }
-    function applyTalent(id, rar) {
+    function applyTalent(id, rar, quiet) {
       var def = TAL[id];
       if (!def || !def.tiers[rar]) return false;
       var v = def.tiers[rar].v, nv = (S.talents[id] || 0) + v;
@@ -10878,6 +10913,10 @@ root.MARBLE_ART =
       S.picks.push({ id: id, rarity: rar });
       recomputeMods();
       if (id === 'ammo') { S.cap += v; addMarbles(v, 'ammo'); }
+      if (id === 'pegplus') {         // 釘子增生：立刻新增 v 根隨機能力釘（整局永久；下一盤標成新的）
+        var rp = mulberry32(mix(mix(seed, 0x9E6), S.picks.length));
+        for (var i = 0; i < v; i++) addAbility(randomAbility(rp), 1, 'talent', !quiet);
+      }
       return true;
     }
 
@@ -10907,8 +10946,9 @@ root.MARBLE_ART =
       if (!c) return false;
       var src = S.offer.source, rem = S.offer.remaining;
       S.offer = null;
-      emit({ t: 'talentPick', id: c.id, rarity: c.rarity, name: c.name });
-      applyTalent(c.id, c.rarity);
+      emit({ t: 'talentPick', id: c.id, rarity: c.rarity, name: c.name, pin: !!c.pin });
+      if (c.pin) addAbility(c.id, 1, 'pick', true);   // 能力釘：整局永久 +1 根（下一盤標成新的）
+      else applyTalent(c.id, c.rarity);
       afterOffer(src, rem);
       return true;
     }
@@ -10916,7 +10956,7 @@ root.MARBLE_ART =
       if (S.phase !== 'talent' || !S.offer || S.rerollLeft <= 0) return false;
       var avoid = {};
       for (var i = 0; i < S.offer.cards.length; i++) avoid[S.offer.cards[i].id] = true;
-      var cards = rollCards(S.offer.source, avoid);
+      var cards = S.offer.source === 'pin' ? rollPinCards(avoid) : rollCards(S.offer.source, avoid);
       if (!cards.length) return false;
       S.rerollLeft--;
       S.offer.cards = cards;
@@ -10951,13 +10991,31 @@ root.MARBLE_ART =
         if (ok && S.phase === 'play') { for (var i = 0; i < S.balls.length; i++) S.balls[i].r = M.ballR; buildGrid(); }
         return ok;
       },
+      // 能力釘（feat/pins）：addPin(kind, n, regen) 加 n 根（regen＝立刻換一盤，剛加的標成新的並發 pinNew）；pins() 目前狀態
+      addPin: function (kind, n, regen) {
+        if (!addAbility(kind, n || 1, 'debug', true)) return false;
+        if (regen && S.level && S.phase === 'play') { genBoard(); freshPins = []; emitFresh(); }
+        return true;
+      },
+      setPins: function (obj) {
+        S.abilities = {}; S.pinPicks = []; freshPins = [];
+        for (var k in obj || {}) if (hasOwn.call(obj, k)) addAbility(k, obj[k] | 0, 'debug', false);
+        if (S.level && S.phase === 'play') genBoard();
+        return copyObj(S.abilities);
+      },
+      pins: function () {
+        var on = {}, i;
+        for (i = 0; i < S.pegs.length; i++) { var p = S.pegs[i]; if (p.kind !== 'pin') on[p.kind] = (on[p.kind] || 0) + 1; }
+        return { owned: copyObj(S.abilities), onBoard: on, board: { pins: S.board.pins, steel: S.board.steel, abil: S.board.abil, overflow: S.board.overflow, pattern: S.board.pattern, fresh: S.board.fresh.slice() },
+                 fresh: freshPins.slice(), picks: S.pinPicks.length };
+      },
       setBoard: function (list) {
         var pegs = [];
         for (var i = 0; i < (list || []).length; i++) {
-          var q = list[i], pin = q.kind === 'pin';
-          pegs.push({ id: uid++, kind: q.kind, x: q.x, y: q.y, r: pin ? C.PIN_R : C.PEG_R, alive: true, regrowT: 0 });
+          var q = list[i];
+          pegs.push({ id: uid++, kind: q.kind, x: q.x, y: q.y, r: C.PIN_R, alive: true, flashT: 0, cdT: 0, hits: 0, tag: '' });
         }
-        S.pegs = pegs; boardClearT = -1; boardPattern = 'custom';
+        S.pegs = pegs; boardPattern = 'custom';
         S.pachi.pocket = null;          // 自訂盤面沒有入賞口（要入賞口用 newBoard）
         clearMechs();                   // 也沒有鐵片機關
         buildGrid();
@@ -11036,13 +11094,13 @@ root.MARBLE_ART =
       spawnBall: function (x, y, r, vx, vy) {
         if (S.phase !== 'play') return 0;
         var b = newBall(clamp(Number(x) || 180, 1, W - 1), Number(y) || C.SPAWN_Y, Number(vx) || 0, Number(vy) || 0, null);
-        b._canSplit = false; if (r > 0) b.r = Number(r);
+        b.splits = C.SPLIT_PER_BALL; if (r > 0) b.r = Number(r);
         S.balls.push(b); return b.id;
       },
       forceTraits: function (list, opt) { forcedTraits = list ? { list: [].concat(list), boss: !!(opt && opt.boss) } : null; return true; },
       info: function () {
         return { seed: seed, boardNo: boardNo, pattern: boardPattern, zoneY1: zoneY1, fireCd: fireCd, pendingShot: pendingShot,
-                 bombs: bombs.length, boardClearT: boardClearT, refillNext: refillNext, picksCount: copyObj(picksCount) };
+                 bombs: bombs.length, refillNext: refillNext, picksCount: copyObj(picksCount), pins: S.board.pins, abil: S.board.abil };
       },
       patterns: PATTERN_NAMES.slice()
     };
@@ -11056,6 +11114,7 @@ root.MARBLE_ART =
       S.marbles = S.cap;
       startAutoN = startAutoSupply(startChapter);
       S.cap = capFor(startIndex); S.marbles = S.cap;   // 自動補給拿到的彈藥箱也算進上限，並補滿
+      freshPins = [];
       var nPick = startPicksFor(startChapter, C);
       if (nPick > 0) openOffer('start', nPick); else startLevel(startIndex);
     } else {
@@ -11086,7 +11145,8 @@ root.MARBLE_ART =
     // 靜態輔助（用戶端可用）：關卡資訊與上限
     levelInfo: function (index) { return levelInfoFor(index, root.ML_DATA); },
     startPicks: function (chapter) { return startPicksFor(chapter, root.ML_CONFIG); },          // 章節補償：金卡三選一次數
-    startAuto: function (chapter) { return startAutoLevels(chapter, root.ML_CONFIG).length; }, // 章節補償：自動補給次數（上限，天賦全滿時會少一點）
+    startAuto: function (chapter) { return startAutoLevels(chapter, root.ML_CONFIG).length; }, // 章節補償：自動補給的玩家天賦張數（上限，天賦全滿時會少一點）
+    startAutoPins: function (chapter) { return startAutoPinsFor(chapter, root.ML_CONFIG); },    // 章節補償：自動補給的能力釘根數
     capFor: function (index) { return Math.max(1, Math.floor(index)) * ((root.ML_CONFIG && root.ML_CONFIG.CAP_PER_LEVEL) || 100); }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -11141,10 +11201,12 @@ root.MARBLE_ART =
     attack: ['#ffd6d6', '#ff7c7c', '#ec3a4c'], crit: ['#fff8c8', '#ffe24a', '#ffb81a'],
     split: ['#e2ffd2', '#8cf07c', '#3ecf5a'], fire: ['#fff6b0', '#ffb85a', '#ff7c22'],
     ice: ['#c4f8ff', '#5ee0f8', '#2ca6dc'], bomb: ['#fff6b0', '#ffb85a', '#a8a2c4'],
-    refill: ['#e2ecff', '#8cb4ff', '#4c7cff'], pin: ['#ffffff', '#e0e0ee', '#aeaec8']
+    recycle: ['#ffd4ea', '#ff73b9', '#c0307a'], pin: ['#ffffff', '#e0e0ee', '#aeaec8']
   };
-  var PEG_PATH = { attack: 'pegs.attack', crit: 'pegs.crit', split: 'pegs.split', fire: 'pegs.fire', ice: 'pegs.ice', refill: 'pegs.refill' };
-  var PEG_SFX = { attack: 'peg_attack', crit: 'peg_crit', split: 'peg_split', fire: 'peg_fire', ice: 'peg_ice', bomb: 'peg_bomb', refill: 'peg_refill' };
+  var PEG_PATH = { attack: 'pegs.attack', crit: 'pegs.crit', split: 'pegs.split', fire: 'pegs.fire', ice: 'pegs.ice' };
+  // feat/pins：能力釘不會消失、每顆彈珠會碰很多次 → 音效交給 audio 的節流；疊滿（capped）只出很小的火花、不出聲
+  var PEG_SFX = { attack: 'peg_attack', crit: 'peg_crit', split: 'peg_split', fire: 'peg_fire', ice: 'peg_ice', bomb: 'peg_bomb', recycle: 'recycle' };
+  var PIN_LABEL_ST = { attack: 'red', crit: 'crit', split: 'green', fire: 'burn', ice: 'ice', bomb: 'purple', recycle: 'c3' };
   var FX_PATH = { spark: 'fx.spark', star: 'fx.star', pop: 'fx.pop', boom: 'fx.boom' };
   var BALL_PATH = 'balls.normal';
   var CONFETTI = ['#ff7c7c', '#ffe24a', '#8cf07c', '#5ee0f8', '#c58cff', '#ffb85a', '#ffffff', '#ff8ec2'];
@@ -11583,21 +11645,44 @@ root.MARBLE_ART =
   };
   HANDLERS.empty = function () { S.sfx('empty'); };
 
+  // feat/pins：能力釘每碰一次都會發 peg（釘子不消失）。小火花＋小圈；疊加數字（+3、x4、火2…）每幀最多 3 個；
+  //   疊滿（capped）只有 1～2 顆灰火花、不出聲；回收釘退回彈珠時「+1」並飛向 HUD
   HANDLERS.peg = function (e) {
-    var kind = String(e.kind || 'attack'), x = num(e.x, 180), y = num(e.y, 300), via = e.via || 'ball';
+    var kind = String(e.kind || 'attack'), x = num(e.x, 180), y = num(e.y, 300), via = e.via || 'ball', n = num(e.n, 0) | 0;
     var col = pegColors(kind);
-    burst(x, y, budget(via === 'ball' ? 9 : 6), col, 50, 135, 260, 0.3, 0.55, [2, 2, 4], 0.25);
-    if (!fxAnim('pop', x, y, 2)) ring(0, x, y, 3, 15, 0.18, col[0], 2);
-    if (frameTexts < 3) {                             // 同一幀最多 3 個小字，連鎖／爆炸時不會糊成一片
-      frameTexts++;
-      if (kind === 'attack') infoNum(x, y - 12, '+1', 'red', 1.5, 0.55, -60);
-      else if (kind === 'crit') infoNum(x, y - 12, 'x2', 'crit', 1.5, 0.6, -60);
-      else if (kind === 'split') labelFx('分裂', 'green', 13, x, y - 14, 0.55, -45);
-      else if (kind === 'fire') labelFx('燃燒', 'burn', 13, x, y - 14, 0.55, -45);
-      else if (kind === 'ice') labelFx('冰凍', 'ice', 13, x, y - 14, 0.55, -45);
+    if (e.capped) {
+      P(K_SQ, x + rr(-2, 2), y - 3, rr(-30, 30), rr(-60, -20), 200, 2, 0.18, 2, col[0]);
+      return;
     }
-    if (kind === 'refill') { lastRefill.x = x; lastRefill.y = y; lastRefill.t = clock; }
-    S.sfx(PEG_SFX[kind] || 'peg_attack', { pitch: via === 'chain' ? 2 : via === 'bomb' ? -1 : 0, volume: via === 'ball' ? 1 : 0.8 });
+    burst(x, y, budget(via === 'ball' ? 4 : 3), col, 40, 110, 240, 0.22, 0.4, [2, 2, 4], 0.3);
+    ring(0, x, y, 4, 13, 0.16, col[0], 2);
+    if (frameTexts < 3 && kind !== 'bomb') {          // 同一幀最多 3 個小字，連鎖／爆炸時不會糊成一片
+      var str = null;
+      if (kind === 'attack' && n > 0) str = '+' + n;
+      else if (kind === 'crit' && n > 1) str = 'x' + n;
+      if (str) { frameTexts++; infoNum(x, y - 11, str, kind === 'attack' ? 'red' : 'crit', 1.5, 0.5, -60); }
+      else if ((kind === 'fire' || kind === 'ice') && n > 0) { frameTexts++; labelFx((kind === 'fire' ? '火' : '冰') + n, kind === 'fire' ? 'burn' : 'ice', 12, x, y - 13, 0.5, -45); }
+      else if (kind === 'split') { frameTexts++; labelFx('分裂', 'green', 12, x, y - 13, 0.5, -45); }
+    }
+    if (kind === 'recycle') {
+      if (e.gain > 0) { infoNum(x, y - 12, '+' + e.gain, 'blue', 2, 0.8, -60); flyers(x, y - 6, 1, true, 2); S.sfx('recycle'); }
+      else S.sfx('pin', { volume: 0.5, pitch: 3 });
+      return;
+    }
+    if (kind === 'bomb') return;                      // 炸彈的聲音在 explode
+    S.sfx(PEG_SFX[kind] || 'peg_attack', { pitch: via === 'chain' ? 2 : via === 'bomb' ? -1 : 0, volume: via === 'ball' ? 0.8 : 0.65 });
+  };
+  // feat/pins：新的一關，剛新增的那根能力釘標出來：三圈光環＋「＋火焰釘」浮字（用戶端等關卡橫幅退場才送進來）
+  HANDLERS.pinNew = function (e) {
+    var kind = String(e.kind || 'attack'), x = num(e.x, 180), y = num(e.y, 300), col = pegColors(kind), i;
+    for (i = 0; i < 3; i++) ring(0, x, y, 6, 30 + i * 8, 0.5, i === 1 ? '#ffffff' : col[0], 3, i * 0.22);
+    ring(1, x, y, 0, 12, 0.12, '#ffffff', 0);
+    for (i = 0; i < 12; i++) { var a = i / 12 * 6.283; P(K_STAR, x, y, Math.cos(a) * 90, Math.sin(a) * 90 - 30, 60, 1.5, rr(0.5, 0.8), 2, i & 1 ? '#fff6b0' : col[0], true); }
+    // 浮字：釘子太靠上（液晶／血條附近）時改放在釘子下面
+    var ty = y < 130 ? y + 26 : y - 22;
+    labelFx('＋' + String(e.name || '能力釘'), PIN_LABEL_ST[kind] || 'gold', 15, clamp(x, 52, W - 52), ty, 1.8, y < 130 ? 10 : -14, 1.5);
+    S.sfx('regrow', { volume: 1, pitch: 2 });
+    vib(12, 100);
   };
 
   HANDLERS.pin = function (e) {
@@ -11776,12 +11861,8 @@ root.MARBLE_ART =
     hudSparkle(src === 'timer' ? 10 : 3);
     if (src === 'timer') S.sfx('refill_timer');               // feat/ux：「+50」改由用戶端顯示在 HUD 裡（原本畫在世界 y≈26，會壓魔王血條／掉落點箭頭）
     else if (src === 'kill') later(0.42, 'income');             // 等飛回去的彈珠到 HUD 再叮
-    else if (src === 'board') S.sfx('income');
-    else if (src === 'peg') {
-      if (clock - lastRefill.t < 0.3) infoNum(lastRefill.x, lastRefill.y - 12, '+' + n, 'blue', 2, 0.8, -60);
-      S.sfx('income', { pitch: 2 });
-    } else if (src === 'refund') S.sfx('income', { volume: 0.5 });
-    // recycle（已播回收音）、boss（凱旋音裡）、ammo（選天賦當下，由用戶端出聲）：不另外出聲
+    else if (src === 'refund') S.sfx('income', { volume: 0.5 });
+    // recycle（回收天賦／回收釘：已播回收音）、boss（凱旋音裡）、ammo（選天賦當下，由用戶端出聲）：不另外出聲
   };
   HANDLERS.capped = function () {
     if (clock - lastCapped < 1.2) return;
@@ -11789,24 +11870,6 @@ root.MARBLE_ART =
     // feat/ux：「已滿」改由用戶端顯示在 HUD 裡（不在舞台頂端畫字）
   };
 
-  HANDLERS.regrow = function (e) {
-    var x = num(e.x, 180), y = num(e.y, 300);
-    ring(0, x, y, 2, 12, 0.25, '#e2ffd2', 2);
-    for (var i = 0; i < 3; i++) P(K_SPARK, x + rr(-6, 6), y + rr(-4, 4), rr(-20, 20), rr(-50, -20), 0, 2, rr(0.25, 0.4), 2, '#e2ffd2');
-    S.sfx('regrow');
-  };
-
-  HANDLERS.boardClear = function (e) {
-    var bonus = num(e.bonus, 10) | 0, i;
-    SCR.board = 1;
-    // feat/ux 分區：清盤大字放在盤面中下段（世界 y 340；避開液晶 61～96、字幕帶、聽牌 100～300、狂熱大字 205～295），
-    // 獎勵彈珠飛向 HUD（數字 +N 由用戶端在 HUD 顯示）
-    labelFx('清盤！', 'gold', 30, W / 2, 340, 1.3, -14, 1.6);
-    if (bonus > 0) flyers(W / 2, 340, Math.min(bonus, 8), true, 40);
-    for (i = 0; i < 26; i++) P(i & 1 ? K_SPARK : K_STAR, rr(24, W - 24), rr(70, 430), rr(-15, 15), rr(-30, -5), 0, 1, rr(0.5, 1.0), 2, '#fff6b0', true);
-    vib(15, 100);
-    S.sfx('board_clear');
-  };
 
   HANDLERS.combo = function (e) {
     var n = num(e.n, 10) | 0, tier = tierOf(n), i;
@@ -12414,7 +12477,7 @@ root.MARBLE_ART =
   // 統計：正式版外層會載 Umami（window.umami），測試版和本機沒有就什麼都不做
   var jpTracked = false;
   function mlTrack(name, data) { try { if (window.umami && typeof window.umami.track === 'function') window.umami.track('marble_' + name, data); } catch (e) { } }
-  var RAR_NAME = { w: '普通', b: '稀有', g: '傳說' };
+  var RAR_NAME = { w: '普通', b: '稀有', g: '傳說', p: '能力釘' };
   var RAR_RANK = { w: 0, b: 1, g: 2 };
   var ROMAN = ['', ' II', ' III', ' IV', ' V', ' VI', ' VII', ' VIII', ' IX', ' X'];
   var THEMES = {
@@ -12425,8 +12488,8 @@ root.MARBLE_ART =
     5: { name: '古堡', bgm: 'castle', ui: ['#c07bff', '#4a2a6e', '#1f1133'], sky: ['#17123a', '#352865', '#271d3e'], ground: '#5b5272' }
   };
   // 沒有美術時的退回配色
-  var PEG_COLOR = { attack: '#ff5d5d', crit: '#ffd23f', split: '#62d26f', fire: '#ff8a2a', ice: '#79dcff', bomb: '#5f6478', refill: '#ff73b9', pin: '#a7adbb' };
-  var PEG_MARK = { attack: '+', crit: '★', split: '∴', fire: '火', ice: '冰', bomb: '●', refill: '補' };
+  var PEG_COLOR = { attack: '#ff5d5d', crit: '#ffd23f', split: '#62d26f', fire: '#ff8a2a', ice: '#79dcff', bomb: '#5f6478', recycle: '#ff73b9', pin: '#d9a33a' };
+  var PEG_MARK = {};   // feat/pins：能力釘改成程式畫的像素圖（drawPegs）；這裡只剩入賞口柱的退回圖形
   var BALL_COLOR = { normal: '#e9f0ff', fire: '#ff8a3d', ice: '#9be8ff', crit: '#ffe14a', gold: '#ffc400' };
   var MON_COLOR = {
     c1_n1: '#6fdc6f', c1_n2: '#ff6b6b', c1_n3: '#ffc8e4', c1_elite: '#ffd23f', c1_boss: '#e3b6ff',
@@ -13113,7 +13176,7 @@ root.MARBLE_ART =
       var ev = evs[i];
       if (!ev) continue;
       if (ev.t === 'levelStart') Jz.call('reset');   // 換關先清空 Juice，再把 levelStart 交給它（精英／魔王登場音效）
-      Jz.call('onEvent', ev);
+      if (ev.t !== 'pinNew') Jz.call('onEvent', ev);   // feat/pins：新增能力釘的特效等關卡橫幅退場才出（pinFxTick）
       try { onEvent(ev); } catch (e) { errOnce('onEvent ' + ev.t, e); }
     }
   }
@@ -13135,13 +13198,33 @@ root.MARBLE_ART =
       case 'feverStart': if (JP.on) JP.feverPending = true; else feverShow(); break;
       case 'feverEnd': feverHide(); break;
       case 'talentOffer': talentSig = ''; break;
+      case 'pinNew': onPinNew(ev); break;
       case 'reroll': talentSig = ''; break;
       case 'gameOver': openOver(ev); break;
+    }
+  }
+  /* ================= 能力釘（feat/pins）：新的一關把剛新增的那根標出來 ================= */
+  var pinFxQ = [], pinFxLog = [];
+  function onPinNew(ev) {
+    freshUntil[ev.pegId] = animT + 6;                       // 發光到特效結束後一段時間（橫幅期間也在發光）
+    pinFxQ.push({ ev: ev, at: Math.max(animT + 0.4, bannerUntil + 0.1) });
+    tipAdd('pin_new', { delay: Math.max(0.5, bannerUntil - animT + 0.3) });
+  }
+  function pinFxTick() {
+    for (var i = 0; i < pinFxQ.length; i++) {
+      var q = pinFxQ[i];
+      if (animT < q.at) continue;
+      pinFxQ.splice(i--, 1);
+      freshUntil[q.ev.pegId] = Math.max(freshUntil[q.ev.pegId] || 0, animT + 3.5);
+      Jz.call('onEvent', q.ev);
+      pinFxLog.push({ kind: q.ev.kind, x: q.ev.x, y: q.ev.y, at: +animT.toFixed(2) });
+      if (pinFxLog.length > 20) pinFxLog.shift();
     }
   }
   function onLevelStart(ev) {
     var lv = ev.level || (sim && sim.state && sim.state.level);
     if (!lv) return;
+    pinFxQ.length = 0; freshUntil = {};
     var ch = lv.chapter | 0, idx = lv.index | 0, changed = false;
     if (ch > (save.unlocked | 0)) { save.unlocked = ch; changed = true; }
     if (idx > 0 && (!save.best || idx > (save.best.index | 0))) { save.best = { chapter: ch, stage: lv.stage | 0, index: idx }; changed = true; }
@@ -13519,10 +13602,37 @@ root.MARBLE_ART =
     blurActive();
     syncPhase();
   }
+  // 能力釘一行說明（data.js pegKinds.short，{n}／{cd}／{p} 代入 config 數值）
+  function pinShort(pk) {
+    var C = window.ML_CONFIG || {}, M = sim && sim.mods ? sim.mods : {};
+    var cd = pk && /炸彈/.test(pk.name || '') ? (C.BOMB_CD || 1.5) * (M.cdMul || 1) : pk && /分裂/.test(pk.name || '') ? (C.SPLIT_CD || 2) : (C.RECYCLE_CD || 0.8) * (M.cdMul || 1);
+    return ((pk && pk.short) || '').replace(/\{n\}/g, String(M.splitN || 3)).replace(/\{cd\}/g, String(Math.round(cd * 10) / 10))
+      .replace(/\{p\}/g, String(Math.round((M.recycleP || C.RECYCLE_P || 0.3) * 100)));
+  }
+  function renderPausePins() {
+    var box = $('pausePins'), st = sim && sim.state, ab = (st && st.abilities) || {}, any = false;
+    if (!box) return;
+    while (box.firstChild) box.removeChild(box.firstChild);
+    var PK = (window.ML_DATA && window.ML_DATA.pegKinds) || {};
+    for (var i = 0; i < PIN_KINDS.length; i++) {
+      var k = PIN_KINDS[i], n = ab[k] | 0;
+      if (!n) continue;
+      any = true;
+      var d = doc.createElement('div'); d.className = 'pp'; d.title = (PIN_NAME[k] || k) + '：' + pinShort(PK[k]);
+      var u = pinIconURL(k);
+      if (u) { var im = doc.createElement('img'); im.src = u; im.alt = ''; d.appendChild(im); }
+      var tx = doc.createElement('span'); tx.textContent = (PIN_NAME[k] || k).replace('釘', '') + ' ×' + n; d.appendChild(tx);
+      box.appendChild(d);
+    }
+    if (!any) { var n0 = doc.createElement('span'); n0.className = 'none'; n0.textContent = '還沒有能力釘，過關就能選一根'; box.appendChild(n0); }
+    var B = st && st.board, ov = $('pausePinsNote');
+    if (ov) ov.textContent = B && B.overflow > 0 ? ('這一盤放不下 ' + B.overflow + ' 根（下一盤再隨機改造）') : '每碰一次疊一層，每種都有上限';
+  }
   function renderPauseTalents() {
+    renderPausePins();
     var box = E.pauseTalents, st = sim && sim.state, picks = (st && st.picks) || [];
     while (box.firstChild) box.removeChild(box.firstChild);
-    if (!picks.length) { var n0 = doc.createElement('span'); n0.className = 'none'; n0.textContent = '還沒有天賦，過關就能三選一'; box.appendChild(n0); return; }
+    if (!picks.length) { var n0 = doc.createElement('span'); n0.className = 'none'; n0.textContent = '還沒有天賦，打倒精英／魔王就能三選一'; box.appendChild(n0); return; }
     var agg = {}, order = [];
     for (var i = 0; i < picks.length; i++) {
       var p = picks[i]; if (!p || !p.id) continue;
@@ -13572,16 +13682,19 @@ root.MARBLE_ART =
     if (src === 'start') {
       var rem = off.remaining | 0, total = Math.max(startTotal, rem, 1);
       title = '章節補償 金卡 ' + clamp(total - rem + 1, 1, total) + '/' + total;
-    } else if (src === 'elite') { title = '精英獎勵：稀有以上'; ribbon = 'blue'; }
+    } else if (src === 'elite') { title = '精英獎勵：再選一個天賦'; ribbon = 'blue'; }
     else if (src === 'boss') { title = '魔王獎勵：傳說天賦'; ribbon = 'red'; }
+    else if (src === 'pin') { title = (clearedLabel || (st.level && st.level.label) || '') + ' 過關！新增一根能力釘'; ribbon = 'green'; }
     else { title = (clearedLabel || (st.level && st.level.label) || '') + ' 過關！選擇一個天賦'; ribbon = 'green'; }
     E.talentTitle.textContent = title;
     E.talentTitle.className = 'ribbon ' + ribbon;
-    var sub = finePointer ? '按 1 / 2 / 3 選擇，R 重抽' : '點一張卡片拿走它', subTip = false;
-    if (src !== 'start' && !tipSeen('talent')) { sub = TIP_TEXT.talent; subTip = true; tipMark('talent'); }   // feat/ux：第一次三選一直接寫在選卡畫面
+    var sub = finePointer ? '按 1 / 2 / 3 選擇，R 重抽' : (src === 'pin' ? '點一張卡片：這根釘子整局都會在盤面上' : '點一張卡片拿走它'), subTip = false;
+    // feat/ux：第一次三選一直接寫在選卡畫面（能力釘、玩家天賦各講一次）
+    var tipId = src === 'pin' ? 'pins' : 'talent';
+    if (src !== 'start' && !tipSeen(tipId)) { sub = TIP_TEXT[tipId]; subTip = true; tipMark(tipId); }
     if (subTip) E.talentSub.classList.add('tip'); else E.talentSub.classList.remove('tip');
-    // 章節補償：前面章節的天賦已自動補給（sim 開局就加好了），這裡只提示張數
-    if (src === 'start' && off.auto > 0) sub = '已自動補上前 ' + Math.max(1, runChapter - 1) + ' 章的 ' + off.auto + ' 張天賦，' + (finePointer ? '金卡按 1/2/3 選' : '金卡由你挑');
+    // 章節補償：前面章節的能力釘與天賦已自動補給（sim 開局就加好了），這裡只提示數量
+    if (src === 'start' && (off.auto > 0 || off.autoPins > 0)) sub = '已自動補上前 ' + Math.max(1, runChapter - 1) + ' 章的 ' + (off.autoPins | 0) + ' 根能力釘、' + (off.auto | 0) + ' 張天賦，' + (finePointer ? '金卡按 1/2/3 選' : '金卡由你挑');
     E.talentSub.textContent = sub;
     E.talentPanel.classList.remove('closing'); talentClosing = false;
     var anyGold = false;
@@ -13611,9 +13724,9 @@ root.MARBLE_ART =
     dealTimers.push(setTimeout(function () { E.talentPanel.classList.remove('dealing'); }, 360));
   }
   function fillCard(el, card, st) {
-    var r = (card.rarity === 'g' || card.rarity === 'b') ? card.rarity : 'w';
+    var r = card.pin ? 'p' : (card.rarity === 'g' || card.rarity === 'b') ? card.rarity : 'w';
     el.className = 'card r-' + r;
-    var def = talentDef(card.id), name = card.name || (def && def.name) || card.id;
+    var def = card.pin ? null : talentDef(card.id), name = card.name || (def && def.name) || card.id;
     el.querySelector('.cName').textContent = name;
     el.querySelector('.cRar').textContent = RAR_NAME[r];
     var top = el.querySelector('.cTop'), uni = top.querySelector('.cUni');
@@ -13621,11 +13734,11 @@ root.MARBLE_ART =
     if (isUni && !uni) { uni = doc.createElement('em'); uni.className = 'cUni'; uni.textContent = '獨特'; top.appendChild(uni); }
     if (uni) uni.hidden = !isUni;
     el.querySelector('.cDesc').textContent = card.desc || (def && def.desc) || '';
-    var layers = countPicks(st.picks, card.id), own = el.querySelector('.cOwn');
-    own.textContent = layers > 0 ? ('已有 ' + layers + ' 層') : '新天賦！';
+    var layers = card.pin ? ((st.abilities && st.abilities[card.id]) | 0) : countPicks(st.picks, card.id), own = el.querySelector('.cOwn');
+    own.textContent = card.pin ? (layers > 0 ? ('已有 ' + layers + ' 根') : '第一根！') : (layers > 0 ? ('已有 ' + layers + ' 層') : '新天賦！');
     if (layers > 0) own.classList.remove('new'); else own.classList.add('new');
     var box = el.querySelector('.cIco'), img = box.querySelector('img');
-    var u = icoURL(card.icon || (def && def.icon) || ('icons.' + card.id), 3);
+    var u = card.pin ? pinIconURL(card.id) : icoURL(card.icon || (def && def.icon) || ('icons.' + card.id), 3);
     if (u) { if (img.getAttribute('src') !== u) img.src = u; box.classList.remove('noimg'); }
     else { box.classList.add('noimg'); box.querySelector('.cIcoF').textContent = name.charAt(0); }
     el.setAttribute('aria-label', name + '（' + RAR_NAME[r] + '）：' + (card.desc || ''));
@@ -13774,32 +13887,192 @@ root.MARBLE_ART =
   }
 
   /* ================= 繪製：遊戲物件 ================= */
-  var REGROW_T = 3;
   function drawBackground(t, v) {
     var bg = getBg(t, v);
     if (bg) ctx.drawImage(bg, 0, 0, W, H);
     else { ctx.fillStyle = (THEMES[t] || THEMES[1]).sky[1]; ctx.fillRect(0, 0, W, H); }
   }
+  // ---- 鋼釘／能力釘（feat/pins）：程式畫的小像素圖（1 美術像素＝2 世界單位，跟其他美術一樣），快取成小畫布 ----
+  //   普通鋼釘：6×6 銀色小釘；入賞口柱：黃銅（美術 pegs.pin）；能力釘：7×7 彩色釘頭＋中間 3×3 小圖示
+  var PIN_STEEL = ['.oooo.', 'ollmmo', 'olmmmo', 'ommmdo', 'ommddo', '.oooo.'];
+  var PIN_HEAD = ['.ooooo.', 'ollmmmo', 'olmmmmo', 'ommmmmo', 'ommmmdo', 'oddmddo', '.ooooo.'];
+  var PIN_GLYPH = {   // 3×3（g＝圖示主色、k＝圖示深色、y＝亮黃）
+    attack: ['.g.', 'ggg', '.g.'], crit: ['g.g', '.g.', 'g.g'], split: ['.g.', '...', 'g.g'], fire: ['.y.', 'gyg', 'ggg'],
+    ice: ['.g.', 'g.g', '.g.'], bomb: ['..y', 'kk.', 'kk.'], recycle: ['gg.', 'g.g', '.gg']
+  };
+  // [主色 m、亮 l、暗 d、圖示 g]
+  var PIN_PAL = {
+    attack: ['#ff5d5d', '#ffc2c2', '#b02440', '#ffffff'], crit: ['#ffc21a', '#fff3a6', '#c06a10', '#ffffff'],
+    split: ['#3ecf5a', '#c8ffbe', '#1a7a42', '#ffffff'], fire: ['#ff7c22', '#ffd0a0', '#b8401a', '#ffe14a'],
+    ice: ['#5ed0f8', '#e0fbff', '#2a7cc0', '#ffffff'], bomb: ['#8a80b0', '#d8d2f0', '#4a4468', '#ffd23f'],
+    recycle: ['#ff73b9', '#ffd4ea', '#c0307a', '#ffffff']
+  };
+  var PIN_KINDS = ['attack', 'crit', 'split', 'fire', 'ice', 'bomb', 'recycle'];
+  var PIN_NAME = { attack: '攻擊釘', crit: '暴擊釘', split: '分裂釘', fire: '火焰釘', ice: '冰凍釘', bomb: '炸彈釘', recycle: '回收釘' };
+  var pinCv = {};
+  // mode：0 一般、1 閃白（被碰到）、2 冷卻中（變暗）
+  function pinCanvas(kind, mode) {
+    var key = kind + mode, c = pinCv[key];
+    if (c) return c;
+    var steel = kind === 'pin', rows = steel ? PIN_STEEL : PIN_HEAD, n = rows.length;
+    var P = steel ? ['#e4ecf8', '#ffffff', '#8f9bb4', '#ffffff'] : (PIN_PAL[kind] || PIN_PAL.attack);
+    c = doc.createElement('canvas'); c.width = c.height = n;
+    var g = c.getContext('2d'), gl = steel ? null : PIN_GLYPH[kind];
+    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
+      var ch = rows[y].charAt(x), col = null;
+      if (gl && x >= 2 && x <= 4 && y >= 2 && y <= 4) { var gc = gl[y - 2].charAt(x - 2); if (gc === 'g') col = P[3]; else if (gc === 'k') col = INK; else if (gc === 'y') col = '#ffe14a'; }
+      if (!col) col = ch === 'o' ? INK : ch === 'l' ? P[1] : ch === 'm' ? P[0] : ch === 'd' ? P[2] : null;
+      if (!col) continue;
+      if (mode === 1 && ch !== 'o') col = '#ffffff';
+      else if (mode === 2 && ch !== 'o') col = mixHex(col, '#3a3450', 0.55);
+      g.fillStyle = col; g.fillRect(x, y, 1, 1);
+    }
+    pinCv[key] = c;
+    return c;
+  }
+  // 卡片／暫停畫面用的能力釘圖示（dataURL，放大 7 倍）
+  var pinIcoCache = {};
+  function pinIconURL(kind) {
+    if (pinIcoCache[kind] !== undefined) return pinIcoCache[kind];
+    var u = null;
+    try {
+      var src = pinCanvas(kind, 0), s = 7, c = doc.createElement('canvas');
+      c.width = c.height = src.width * s;
+      var g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(src, 0, 0, c.width, c.height);
+      u = c.toDataURL('image/png');
+    } catch (e) { u = null; }
+    pinIcoCache[kind] = u;
+    return u;
+  }
+  // 能力釘常駐色光（依種類主色），讓它在任何背景都跳出來
+  var pinHaloCv = {};
+  function pinHalo(kind) {
+    var c = pinHaloCv[kind];
+    if (c) return c;
+    var m = (PIN_PAL[kind] || PIN_PAL.attack)[0], r = parseInt(m.substr(1, 2), 16), g0 = parseInt(m.substr(3, 2), 16), b0 = parseInt(m.substr(5, 2), 16), col = r + ',' + g0 + ',' + b0;
+    c = doc.createElement('canvas'); c.width = c.height = 64;
+    var g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(' + col + ',0.95)'); gr.addColorStop(0.35, 'rgba(' + col + ',0.55)'); gr.addColorStop(1, 'rgba(' + col + ',0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    pinHaloCv[kind] = c;
+    return c;
+  }
+  // 能力釘被碰到時：跳出該種類的大圖示（火焰、雪花…），從釘子大小放大到 1.2 倍並淡出
+  var PIN_FX = {
+    fire: ['....#....', '...##....', '..###.#..', '..####...', '.##+###.#', '.#++++##.', '##+++++##', '.#+++++#.', '..#####..'],
+    ice: ['#...#...#', '.#..#..#.', '..#+#+#..', '...+++...', '####+####', '...+++...', '..#+#+#..', '.#..#..#.', '#...#...#'],
+    attack: ['....#....', '...#+#...', '...#+#...', '...#+#...', '...#+#...', '.#######.', '....#....', '...###...', '....#....'],
+    crit: ['....#....', '...#+#...', '#########', '.##+++##.', '..#+++#..', '..##.##..', '.##...##.', '.#.....#.', '.........'],
+    split: ['...###...', '...#+#...', '...###...', '.........', '###...###', '#+#...#+#', '###...###', '.........', '.........'],
+    bomb: ['.......+.', '......#..', '...###...', '..#+###..', '.#+#####.', '.#######.', '.#######.', '..#####..', '...###...'],
+    recycle: ['..####...', '.#....#..', '#....###.', '#.....#..', '#.......#', '..#.....#', '.###....#', '..#....#.', '...####..']
+  };
+  var pinFxCv = {}, pinHitAt = {}, pinLastFlash = {};
+  function pinFxCanvas(kind) {
+    var c = pinFxCv[kind];
+    if (c !== undefined) return c;
+    var rows = PIN_FX[kind];
+    if (!rows) { pinFxCv[kind] = null; return null; }
+    var P = PIN_PAL[kind] || PIN_PAL.attack, light = kind === 'fire' ? '#ffe14a' : kind === 'bomb' ? '#ffd23f' : P[1], n = rows.length, N = n + 2;
+    c = doc.createElement('canvas'); c.width = c.height = N;
+    var g = c.getContext('2d'), on = function (x, y) { return x >= 0 && y >= 0 && x < n && y < n && rows[y].charAt(x) !== '.'; };
+    for (var y = -1; y <= n; y++) for (var x = -1; x <= n; x++) {   // 深色外框
+      if (on(x, y)) continue;
+      if (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)) { g.fillStyle = INK; g.fillRect(x + 1, y + 1, 1, 1); }
+    }
+    for (y = 0; y < n; y++) for (x = 0; x < n; x++) {
+      var ch = rows[y].charAt(x);
+      if (ch === '.') continue;
+      g.fillStyle = ch === '+' ? light : P[0]; g.fillRect(x + 1, y + 1, 1, 1);
+    }
+    pinFxCv[kind] = c;
+    return c;
+  }
+  var PIN_FX_T = 0.38;
+  var freshUntil = {};   // 剛新增的能力釘：發光到這個時間（animT）
   function drawPegs(pegs, t) {
     if (!pegs) return;
     for (var i = 0; i < pegs.length; i++) {
       var p = pegs[i];
-      var regrow = !p.alive && p.regrowT > 0;
-      if (!p.alive && !regrow) continue;
-      var sc = 2, alpha = 1;
-      if (regrow) { var pr = 1 - clamp(p.regrowT / REGROW_T, 0, 1); sc = 2 * (0.25 + 0.75 * pr); alpha = 0.3 + 0.3 * pr; }
-      if (p.flash > 0) alpha = 1;
-      var e = sprEntry(PEG_PATH[p.kind] || PEG_PATH.pin);
-      var c = e ? sprCanvas(e, frameOf(e, t + (p.id * 0.173) % 1.7), 0, p.flash > 0 ? 'white' : null) : null;
-      if (c) {
-        var w = e.w * sc, h = e.h * sc;
-        if (alpha < 1) ctx.globalAlpha = alpha;
-        ctx.drawImage(c, p.x - w / 2, p.y - h / 2, w, h);
-        if (alpha < 1) ctx.globalAlpha = 1;
-      } else fbPeg(p, sc / 2, alpha);
+      if (!p.alive) continue;
+      if (p.post) {             // 入賞口柱：黃銅（美術 pegs.pin）
+        var e = sprEntry(PEG_PATH.pin);
+        var c0 = e ? sprCanvas(e, 0, 0, null) : null;
+        if (c0) ctx.drawImage(c0, p.x - e.w, p.y - e.h, e.w * 2, e.h * 2); else fbPeg(p, 1, 1);
+        continue;
+      }
+      var steel = p.kind === 'pin', fl = (p.flashT || 0) > 0.06 || (p.flash || 0) > 0;
+      if (!steel) {   // 偵測剛被碰到（flashT 往上跳）
+        var pf = p.flashT || 0;
+        if (pf > (pinLastFlash[p.id] || 0) + 0.01) pinHitAt[p.id] = t;
+        pinLastFlash[p.id] = pf;
+      }
+      var ha = steel ? 1 : (t - (pinHitAt[p.id] === undefined ? -9 : pinHitAt[p.id])) / PIN_FX_T;
+      var pop = ha >= 0 && ha < 1 ? 1 + 0.2 * Math.sin(Math.PI * ha) : 1;   // 釘子本身彈一下到 1.2 倍
+      var mode = fl ? 1 : (!steel && p.cdT > 0 ? 2 : 0);
+      var c = pinCanvas(steel ? 'pin' : p.kind, mode), s = c.width;
+      // 深色底影：亮背景（草原、冰原）上也看得清楚
+      ctx.globalAlpha = 0.45; ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(p.x + 1, p.y + 1.6, s + 0.8, 0, 6.2832); ctx.fill(); ctx.globalAlpha = 1;
+      if (!steel && mode !== 2) {   // 能力釘：常駐彩色光暈＋外圈亮環（慢慢呼吸）
+        var br = 0.75 + 0.25 * Math.sin(t * 3 + p.id * 1.7);
+        ctx.globalAlpha = 0.55 * br; ctx.drawImage(pinHalo(p.kind), p.x - 15, p.y - 15, 30, 30);
+        ctx.globalAlpha = 0.9; ctx.strokeStyle = (PIN_PAL[p.kind] || PIN_PAL.attack)[1]; ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.arc(p.x, p.y, s + 2.2, 0, 6.2832); ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      if (!steel) {
+        var fu = freshUntil[p.id];
+        if (fu > t) {           // 剛新增：金色光暈脈動
+          var k = 0.55 + 0.45 * Math.sin(t * 9);
+          ctx.globalAlpha = 0.5 + 0.4 * k; ctx.drawImage(glow('gold'), p.x - 16, p.y - 16, 32, 32); ctx.globalAlpha = 1;
+        } else if ((p.flashT || 0) > 0) {
+          ctx.globalAlpha = clamp(p.flashT / 0.16, 0, 1) * 0.7; ctx.drawImage(glow(p.kind === 'ice' ? 'ice' : p.kind === 'attack' || p.kind === 'fire' || p.kind === 'recycle' ? 'red' : 'gold'), p.x - 13, p.y - 13, 26, 26); ctx.globalAlpha = 1;
+        }
+      }
+      ctx.drawImage(c, p.x - s * pop, p.y - s * pop, s * 2 * pop, s * 2 * pop);
+      if (ha >= 0 && ha < 1) {   // 種類大圖示：從釘子外環大小放大到 1.2 倍、淡出
+        var fxc = pinFxCanvas(p.kind);
+        if (fxc) {
+          var e1 = 1 - (1 - ha) * (1 - ha), D = (s * 2 + 4) * (1 + 0.2 * e1);
+          ctx.globalAlpha = 0.95 * (1 - ha * ha);
+          ctx.drawImage(fxc, p.x - D / 2, p.y - D / 2 - 1, D, D);
+          ctx.globalAlpha = 1;
+        }
+      }
+      if (steel && !fl) {           // 鋼釘：偶爾閃一下金屬光，讓整盤釘子看得出來
+        var ph = (t * 0.6 + p.id * 0.137) % 1;
+        if (ph < 0.08) { var gk = 1 - Math.abs(ph - 0.04) / 0.04; ctx.globalAlpha = 0.85 * gk; ctx.fillStyle = '#ffffff'; ctx.fillRect(p.x - 3.5, p.y - 0.6, 7, 1.2); ctx.fillRect(p.x - 0.6, p.y - 3.5, 1.2, 7); ctx.globalAlpha = 1; }
+      }
+      if (mode === 2 && p.cd > 0) {   // 冷卻中：外圈充能弧
+        var u = 1 - clamp(p.cdT / p.cd, 0, 1);
+        ctx.strokeStyle = 'rgba(255,240,160,0.85)'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 8.2, -Math.PI / 2, -Math.PI / 2 + u * 6.2832); ctx.stroke();
+      }
     }
   }
   function ballType(b) { return b.gold ? 'gold' : (b.mult > 1 ? 'crit' : (b.fire ? 'fire' : (b.ice ? 'ice' : 'normal'))); }
+  // 彈珠身上疊的能力（feat/pins）：外圈依種類分段的彩色光環（越疊越粗、越亮），轉動；攻擊疊滿＝紅色小尾巴
+  var AURA = [['atk', '#ff5d5d', 6], ['crit', '#ffd23f', 3], ['fire', '#ff8a2a', 3], ['ice', '#79dcff', 3]];
+  function drawAura(b, r, t) {
+    var segs = 0, i;
+    var lv = [b.atk | 0, b.mult > 1 ? Math.round(Math.log(b.mult) / Math.LN2) : 0, b.fire | 0, b.ice | 0];
+    for (i = 0; i < 4; i++) if (lv[i] > 0) segs++;
+    if (!segs) return;
+    var a0 = t * 5 + (b.id || 0) * 0.7, span = 6.2832 / segs, k = 0;
+    ctx.lineCap = 'round';
+    for (i = 0; i < 4; i++) {
+      if (!(lv[i] > 0)) continue;
+      var f = clamp(lv[i] / AURA[i][2], 0, 1);
+      ctx.strokeStyle = AURA[i][1]; ctx.globalAlpha = 0.55 + 0.45 * f; ctx.lineWidth = 1.1 + 1.6 * f;
+      ctx.beginPath(); ctx.arc(b.x, b.y, r + 2.4, a0 + k * span + 0.25, a0 + (k + 1) * span - 0.25); ctx.stroke();
+      k++;
+    }
+    if ((b.atk | 0) >= 6 && !(b.vx === 0 && b.vy === 0)) {   // 攻擊疊滿：往速度反方向的小尾巴
+      var v = Math.sqrt(b.vx * b.vx + b.vy * b.vy) || 1, ux = b.vx / v, uy = b.vy / v;
+      ctx.globalAlpha = 0.5; ctx.strokeStyle = '#ff5d5d'; ctx.lineWidth = r * 0.9;
+      ctx.beginPath(); ctx.moveTo(b.x - ux * r, b.y - uy * r); ctx.lineTo(b.x - ux * (r + 9), b.y - uy * (r + 9)); ctx.stroke();
+    }
+    ctx.globalAlpha = 1; ctx.lineCap = 'butt';
+  }
   function drawBalls(balls, t) {
     if (!balls) return;
     for (var i = 0; i < balls.length; i++) {
@@ -13808,6 +14081,7 @@ root.MARBLE_ART =
       var type = ballType(b), r = b.r || 7, fade = b.a !== undefined && b.a < 1;
       if (fade) { if (b.a <= 0) continue; ctx.globalAlpha = b.a; }
       if (b.fever && !fade) drawFeverUnder(b, r, t);
+      if (!fade) drawAura(b, r, t);
       var e = sprEntry(BALL_PATH[type]) || sprEntry(BALL_PATH.normal);
       var c = e ? sprCanvas(e, frameOf(e, t + (b.id || 0) * 0.31), 0, null) : null;
       if (c) {
@@ -14708,15 +14982,15 @@ root.MARBLE_ART =
     for (var k = 0; k < TS.balls.length; k++) TS.balls[k].on = false;
     var h = y1 - y0;
     if (h < 34) return;
-    var kinds = ['attack', 'crit', 'split', 'fire', 'ice', 'bomb', 'refill'], id = 1;
+    var kinds = ['attack', 'crit', 'split', 'fire', 'ice', 'bomb', 'recycle'], id = 1;
     var rows = clamp(Math.floor(h / 48), 1, 5), gy = h / rows;
     for (var row = 0; row < rows; row++) {
       var y = y0 + gy * (row + 0.5) + 6;
       for (var col = 0; col < 7; col++) {
         var x = 36 + col * 48 + (row % 2) * 24;
         if (x > 336) continue;
-        var kind = ((row + col * 2) % 4 === 0) ? 'pin' : kinds[(row * 3 + col * 5) % 7];
-        TS.pegs.push({ id: id++, kind: kind, x: x, y: y, r: kind === 'pin' ? 5 : 10, alive: true, regrowT: 0, flash: 0 });
+        var kind = ((row + col * 2) % 3 !== 0) ? 'pin' : kinds[(row * 3 + col * 5) % 7];
+        TS.pegs.push({ id: id++, kind: kind, x: x, y: y, r: 5, alive: true, flash: 0 });
       }
     }
   }
@@ -14756,7 +15030,7 @@ root.MARBLE_ART =
         if (b.y > TS.y1) b.on = false;
       }
     }
-    for (var q = 0; q < TS.pegs.length; q++) if (TS.pegs[q].flash > 0) TS.pegs[q].flash -= dt;
+    for (var q = 0; q < TS.pegs.length; q++) if (TS.pegs[q].flash > 0) { TS.pegs[q].flash -= dt; TS.pegs[q].flashT = TS.pegs[q].flash; }
     // 怪物偶爾眨一下「被打」的表情（有 _hurt 圖時）
     if (titleRand() < dt * 0.6) { var mm = TS.mons[(titleRand() * 3) | 0]; hurtUntil[mm.id] = animT + 0.3; }
   }
@@ -14815,6 +15089,7 @@ root.MARBLE_ART =
     } else if (screen === 'title' || screen === 'chapters') {
       updateTitleScene(dt);
     }
+    if (screen === 'play' && !JP.on) pinFxTick();
     if (screen !== 'pause') { Jz.call('update', dt); updateCaptions(dt); }
     tipUpdate(dt);
     if (feverPendReach && !reachSoon() && sim && sim.state && sim.state.fever && sim.state.fever.active) feverShow();
@@ -14870,17 +15145,18 @@ root.MARBLE_ART =
     attacker: '大入賞口打開了！打進去換彈珠',
     kakuhen: '確變中：接下來幾次轉動超容易再中',
     energy: '打怪會集左邊的能量條，集滿送一顆必中',
-    board: '技能釘全打光＝清盤：重排一盤再送彈珠',
+    pin_new: '剛選的能力釘在發光的地方，下一關會換位置',
     refill: '彈珠變少了？上面倒數到 0 會補 50 顆',
     last: '彈珠用完了！場上的彈珠落完就結束',
     combo: '連擊！一直打中不中斷，能量集得更快',
-    peg_attack: '紅色劍釘：這顆彈珠傷害 +1',
-    peg_crit: '星星釘：傷害 ×2，可以一直疊',
-    peg_split: '分裂釘：一顆變三顆！',
-    peg_fire: '火焰釘：怪物著火會一直掉血',
+    peg_attack: '攻擊釘：每碰一次傷害 +1，最多 +6',
+    peg_crit: '暴擊釘：每碰一次傷害 ×2，最多 ×8',
+    peg_split: '分裂釘：一顆變三顆！（分出來的不再分裂）',
+    peg_fire: '火焰釘：碰越多次火越大，怪物會一直掉血',
     peg_ice: '冰凍釘：怪物和弱點都會停住',
-    peg_bomb: '炸彈釘：碰到就爆炸，附近一起炸',
-    peg_refill: '補彈釘：碰到就補彈珠',
+    peg_bomb: '炸彈釘：碰到就爆炸，炸完要等一下才能再炸',
+    peg_recycle: '回收釘：碰到有機會退回 1 顆彈珠',
+    aura: '彈珠外圈的光環＝身上疊的能力，打到怪物才算',
     trait_shield: '護盾要先打破，才傷得到牠',
     trait_guard: '閉殼：弱點會定時關起來，閃爍時快打',
     trait_dash: '衝刺：閃白光之後會衝到別處',
@@ -14892,10 +15168,11 @@ root.MARBLE_ART =
     mech_ramp: '黃銅跳板會把彈珠彈向入賞口',
     mech_stage: '凹槽：滾一滾就掉進正下方的入賞口',
     mech_spinner: '風車會把彈珠撥向轉動的方向',
-    talent: '新手提示：天賦整局有效，不滿意可以重抽 1 次'
+    talent: '新手提示：天賦是加在你身上的，整局有效',
+    pins: '新手提示：能力釘整局有效，不滿意可以重抽 1 次'
   };
   // 優先順序（大的先講）與排隊最久等幾秒（過期就丟掉、不算看過，下次再發生時再講）
-  function tipPri(id) { return /^trait_/.test(id) ? 5 : /^(reach|jackpot|attacker|kakuhen|last|marbles|weak|pocket)$/.test(id) ? 4 : /^(hold|energy|refill)$/.test(id) ? 3 : /^(board|mech_)/.test(id) ? 2 : 1; }
+  function tipPri(id) { return /^trait_/.test(id) ? 5 : /^(reach|jackpot|attacker|kakuhen|last|marbles|weak|pocket)$/.test(id) ? 4 : /^(hold|energy|refill|pin_new)$/.test(id) ? 3 : /^(aura|mech_)/.test(id) ? 2 : 1; }
   function tipTtl(id) { return /^(peg_|combo$)/.test(id) ? 5 : /^(trait_|jackpot$)/.test(id) ? 30 : 12; }
   var TIP = { seen: null, q: [], cur: null, gap: 0, shown: false, log: [], firstLv: true };
   function tipLoad() {
@@ -14990,7 +15267,11 @@ root.MARBLE_ART =
   function uxEvent(ev) {
     var st = sim && sim.state;
     switch (ev.t) {
-      case 'peg': if (ev.kind && ev.kind !== 'pin') tipAdd('peg_' + ev.kind); break;
+      case 'peg':
+        if (ev.kind && ev.kind !== 'pin') tipAdd('peg_' + ev.kind);
+        if (ev.n >= 2 && (ev.kind === 'attack' || ev.kind === 'crit')) tipAdd('aura');
+        if (ev.gain > 0) hudGain('+' + ev.gain);
+        break;
       case 'hit': case 'shieldHit':
         if (ev.weak && ev.t === 'hit') tipAdd('weak');
         else if (st && st.fever && !st.fever.active && st.fever.energy >= 0.3) tipAdd('energy');
@@ -15003,7 +15284,6 @@ root.MARBLE_ART =
       case 'attackerOpen': tipAdd('attacker'); break;
       case 'kakuhenStart': tipAdd('kakuhen'); break;
       case 'combo': tipAdd('combo'); break;
-      case 'boardClear': tipAdd('board'); if ((ev.bonus | 0) > 0) hudGain('+' + (ev.bonus | 0)); break;
       case 'income': if (ev.src === 'timer') { tipAdd('refill'); if (ev.n > 0) hudGain('+' + ev.n); } break;
       case 'capped': if (animT - gainLast > 1.2) { gainLast = animT; hudGain('已滿', true); } break;
       case 'fire':
@@ -15499,20 +15779,23 @@ root.MARBLE_ART =
       tips: function () { return tipInfo(); },
       tipAdd: function (id) { var r = tipAdd(String(id)); return r; },
       tipReset: function () { tipResetAll(); return true; },
-      zones: function () { return JSON.parse(JSON.stringify(ZONE)); }
+      zones: function () { return JSON.parse(JSON.stringify(ZONE)); },
+      // feat/pins：能力釘 pins()＝sim 狀態＋用戶端特效紀錄；addPin(kind, n, regen)；setPins({attack:2,…})
+      pins: function () { var o = sim && sim.debug && sim.debug.pins ? sim.debug.pins() : null; if (o) { o.fxLog = pinFxLog.slice(); o.fxQueue = pinFxQ.length; o.glowing = Object.keys(freshUntil).filter(function (k) { return freshUntil[k] > animT; }).map(Number); } return o; },
+      addPin: function (kind, n, regen) { return pachiDbg('addPin', kind, n, regen); },
+      setPins: function (obj) { return pachiDbg('setPins', obj); }
     }
   };
-  function pachiDbg(name, a, b) {
+  function pachiDbg(name, a, b, c) {
     if (!sim || !sim.debug || typeof sim.debug[name] !== 'function') return false;
     var r = false;
-    try { r = sim.debug[name](a, b); } catch (e) { errOnce('debug.' + name, e); }
+    try { r = sim.debug[name](a, b, c); } catch (e) { errOnce('debug.' + name, e); }
     pumpEvents();
     return r;
   }
   shareHooks(window.__ML__.debug);   // 分享圖測試掛鉤：shareImage() shareInfo() sharePreview() shareClose()
 
   /* ================= 啟動 ================= */
-  REGROW_T = cfgNum(['REGROW_TIME', 'REGROW_T', 'regrowTime', 'PEG_REGROW'], 3);
   Jz.call('init', { art: window.MarbleArt || null, audio: window.MarbleAudio || null });
   applyIcons();
   applySettings();
