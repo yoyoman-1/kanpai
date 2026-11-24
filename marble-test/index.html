@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2a1f3d">
 <link rel="icon" href="data:,">
-<meta name="ml-build" content="20261124-084531">
+<meta name="ml-build" content="20261124-172121">
 <title>彈珠傳說</title>
 </head>
 <body>
@@ -468,6 +468,14 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
 .dName{max-width:100%;font-size:10px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
 .dcell.unk .dName{color:#8d84a3}
 .dCnt{font-style:normal;font-size:10px;line-height:1.1;color:#6a5a85;font-variant-numeric:tabular-nums;min-height:11px}
+.skRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.skCell{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;padding:5px 2px;background:#fff;box-shadow:0 0 0 2px #2a184044}
+.skCell.rare{box-shadow:0 0 0 2px #e8b33a;background:#fff8dc}
+.skCell.unk{background:#ebe6f1}
+.skDg{font-size:16px;letter-spacing:.06em;color:#8d84a3;font-variant-numeric:tabular-nums;text-shadow:0 1px 0 #2a184055}
+.skName{font-size:11px;color:var(--ink);white-space:nowrap}
+.skCell.unk .skName{color:#8d84a3}
+.skTip{font-style:normal;font-size:9px;line-height:1.2;color:#6a5a85;text-align:center;min-height:22px}
 @keyframes coinBumpA{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
 @keyframes coinBumpB{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
 @keyframes shopCan{from{filter:brightness(1)}to{filter:brightness(1.25) drop-shadow(0 0 5px #fff6a0)}}
@@ -495,7 +503,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
     <div id="tip" aria-live="polite"><div class="tipIn"><b class="tipIco">!</b><span class="tipTx"></span></div></div>
     <div id="coreMsg" hidden></div>
     <div id="feverGlow" aria-hidden="true"></div>
-    <div id="feverText" aria-hidden="true">狂熱！<small>傷害 ×2・連發加速</small></div>
+    <div id="feverText" aria-hidden="true">狂熱！<small>連發加速</small></div>
   </main>
   <footer id="controls" hidden>
     <div id="aimBar" role="slider" aria-label="按住發射，左右拖曳移動掉落點" aria-valuemin="14" aria-valuemax="346" aria-valuenow="180">
@@ -635,7 +643,7 @@ img.allowsave{-webkit-user-select:auto;user-select:auto}
     </div>
   </section>
 </div>
-<script>window.ML_BUILD="20261124-084531";</script>
+<script>window.ML_BUILD="20261124-172121";</script>
 <script>/* art/sprites.js */
 /* 彈珠傳說 像素美術資料 window.MARBLE_ART（由 art/gen/build.js 產生，請改產生器後重新產生，不要手改）
    格式：sprite = { w, h, palette, frames:[ [字串列...] ... ], fps?, loop?, weak? }，字元對照 palettes[palette]，"." 透明。
@@ -10328,6 +10336,30 @@ root.MARBLE_ART =
     //   （autoplay：每顆 5～8 顆時一般玩家中位 12 分、2 成打到第 3～4 章）→ 定案每顆 2 顆（淨 +1），一次大當最多 +16
     ATTACKER_GIVE_MIN: 2, ATTACKER_GIVE_CAP: 0,
 
+    // ---------- 大當數字技能（feat/skills）：111～999 各對應一個技能（規格 docs/SKILLS_PLAN.md） ----------
+    // SKILLS:false＝關掉（回到「大當＝狂熱傷害 ×2」）。開啟時大當狂熱只剩連發加快（傷害 ×1），傷害改由技能提供。
+    SKILLS: true,
+    SKILL_777_P: 0.05,           // 大當數字是 7 的機率；其他 8 個數字平均分剩下的
+    SKILL_FORCE: 0,              // 測試用：>0＝每次大當都是這個數字（skills_power.mjs 量強度）
+    SKILL_MAX: 2,                // 同時最多幾個技能（第 3 個進來擠掉剩餘時間最短的；同一個技能再中＝延長）
+    // 連莊獎勵（chain＝第幾連）：時間 +min(CHAIN_T_MAX, CHAIN_T×(chain−1))；金幣 第 2～4 連 5×(chain−1)、第 5 連起每次 CHAIN_COIN_TOP
+    CHAIN_T: 0.5, CHAIN_T_MAX: 2, CHAIN_COIN: 3, CHAIN_COIN_TOP: 12,
+    // 「參考傷害」＝最近彈珠命中本體的平均傷害（EMA，不含技能自己造成的），技能傷害都以它為基準，所以會跟著天賦／能力釘成長
+    SKILL_REF_EMA: 0.04,
+    // 各技能：dur 秒數＋各自參數（強度用 autoplay 對齊，見 docs/SKILLS_PLAN.md）
+    SK: {
+      rain:    { dur: 5, every: 0.085, vy: 120, dmg: 1.6 },                         // 111 流星雨：每 every 秒從頂端掉一顆免費彈珠（基礎傷害 ×dmg），左右來回掃
+      laser:   { dur: 5, dps: 5.5, weak: 3, shield: 2, w: 9 },             // 222 激光：dps×參考傷害／秒；弱點 ×3、護盾 ×2；不發彈珠
+      allies:  { dur: 6, n: 4, dmg: 0.85, cd: 0.35, spd: 210, r: 14 },    // 333 小怪援軍：n 隻落地後橫衝，撞到怪 dmg×參考傷害（每隻對同一怪冷卻 cd）
+      hole:    { dur: 5, pull: 150, ballPull: 1100, r: 120, boom: 24 },    // 444 黑洞：怪物往中間拉（px/s）、彈珠被吸；結束爆炸 boom×參考傷害（r 內）
+      lock:    { dur: 5, scale: 2, steer: 380 },                         // 555 弱點鎖定：弱點 ×scale 大、彈珠水平導向最近弱點（px/s²）
+      inferno: { dur: 5, dps: 2.2, big: 1.8, fire: 2 },                            // 666 地獄火：每隻怪持續燒 dps×參考傷害／秒（精英／魔王 ×big；打護盾）＋發射的彈珠帶 fire 層火
+      meteor:  { dur: 5, dmg: 20, capBig: 0.3, fall: 1.1, dmgMul: 3, coin: 3, killCoin: 2 },  // 777 黃金隕石：fall 秒後砸下；之後黃金彈珠 ×dmgMul、進大入賞口每顆 +coin 金、擊倒金幣 ×killCoin
+      party:   { dur: 6, frac: 0.3 },                                    // 888 釘子狂歡：frac 比例的普通鋼釘暫時變隨機能力釘
+      tornado: { dur: 6, w: 52, spd: 70, lift: 1000, hits: 8, dps: 4 }    // 999 龍捲風：寬 w 左右移動；經過的怪每秒 dps×參考傷害（風刃）；捲入的彈珠被抬升打轉，打到怪後最多再彈 hits 次
+    },
+    SKILL_IDS: [null, 'rain', 'laser', 'allies', 'hole', 'lock', 'inferno', 'meteor', 'party', 'tornado'],   // 數字 → 技能
+
     // ---------- 鐵片機關（feat/rails）：弧形導軌 rail、凹槽平台 stage、風車 spinner、斜鐵片跳板 ramp ----------
     // 每次重排盤面（genBoard）依章節挑 1～3 種；MECH:false＝完全關掉（autoplay 對照用）。造型原創。
     MECH: true,
@@ -10554,6 +10586,19 @@ root.MARBLE_ART =
       desc: '打倒怪物得到的金幣 +{v}%', label: '金幣', short: '+{v}%', about: '打倒怪物多拿金幣' }
   ];
 
+  // ---------- 大當數字技能（feat/skills）：數字 → 技能（數值在 config.js SK）；jp＝大當演出日文大字、tip＝第一次出現的一行說明 ----------
+  var skills = {
+    rain: { digit: 1, name: '流星雨', jp: '流星雨', color: '#8fd3ff', tip: '流星雨：天上自動掉彈珠，不用花彈珠！', short: '自動掉免費彈珠', good: '群體' },
+    laser: { digit: 2, name: '激光', jp: 'レーザー', color: '#ff5ad0', tip: '激光：按住橫條射激光，左右拖曳掃射怪物！', short: '按住射激光（不花彈珠）', good: '護盾' },
+    allies: { digit: 3, name: '小怪援軍', jp: '援軍', color: '#9df07a', tip: '小怪援軍：小怪物下場幫你撞敵人！', short: '小怪物下場幫忙撞', good: '全部' },
+    hole: { digit: 4, name: '黑洞', jp: 'ブラックホール', color: '#a98bff', tip: '黑洞：怪物被吸到中間，結束時大爆炸！', short: '把怪吸在一起再爆炸', good: '分身、群體、會跑的怪' },
+    lock: { digit: 5, name: '弱點鎖定', jp: 'ロックオン', color: '#ff5d5d', tip: '弱點鎖定：弱點變超大，彈珠自己飛過去！', short: '弱點變大＋彈珠追蹤', good: '魔王、精英' },
+    inferno: { digit: 6, name: '地獄火', jp: '地獄火', color: '#ff8a2a', tip: '地獄火：底下整片火海，怪物一直被燒！', short: '火海燒全部怪＋彈珠帶火', good: '血厚的怪' },
+    meteor: { digit: 7, name: '黃金隕石', jp: '黄金隕石', color: '#ffd23f', tip: '黃金隕石：之後的黃金彈珠打進大入賞口會送金幣！', short: '巨大隕石＋黃金彈珠送金幣', good: '全部', rare: true },
+    party: { digit: 8, name: '釘子狂歡', jp: 'フィーバー釘', color: '#62d26f', tip: '釘子狂歡：一堆鋼釘暫時變成能力釘！', short: '鋼釘暫時變能力釘', good: '能力釘組合' },
+    tornado: { digit: 9, name: '龍捲風', jp: '竜巻', color: '#c9f2ff', tip: '龍捲風：彈珠被捲進去，在怪物身上連打！', short: '捲起彈珠連打', good: '群體、分身' }
+  };
+
   root.ML_DATA = {
     VERSION: 1,
     talents: talents,
@@ -10569,7 +10614,8 @@ root.MARBLE_ART =
     traitPlan: traitPlan,
     traitLoopSwarm: traitLoopSwarm,
     heroes: heroes,
-    upgrades: upgrades
+    upgrades: upgrades,
+    skills: skills
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -10765,11 +10811,13 @@ root.MARBLE_ART =
       //   kinds：本盤有哪幾種；rails：線段類 { id, kind:'rail'|'stage'|'ramp', pts:[[x,y],…] 折線, r 粗細, dir 出口方向 ±1, side, flashT, fx, fy }
       //   spinners：風車 { id, x, y, L, br, hub, a（角度 rad）, w（角速度 rad/s）, flashT }；stage：凹槽洞口 { x, y, hw } 或 null
       mech: { on: !!C.MECH, kinds: [], rails: [], spinners: [], stage: null },
+      skills: [],                     // 大當數字技能（feat/skills）：進行中的技能，用戶端唯讀
       over: null
     };
     S.stats.entries = 0; S.stats.spins = 0; S.stats.reaches = 0; S.stats.jackpots = 0; S.stats.kakuhens = 0;
     S.stats.maxChain = 0; S.stats.sures = 0; S.stats.attackerBalls = 0;
     S.stats.railHits = 0; S.stats.spinHits = 0; S.stats.stageOut = 0;
+    S.stats.skills = {}; S.stats.skillDmg = {}; S.stats.skillCoins = 0; S.stats.rainBalls = 0; S.stats.chainCoins = 0;
     var M = {};                       // 天賦加成（sim.mods）
     M.meta = MT;                      // 局外強化換算結果（sim.mods.meta；null＝沒有）
     var prepN = MT ? Math.max(0, MT.pins | 0) : 0;   // 局外「開局能力釘」：開局先挑幾根（offer source 'prep'）
@@ -10827,6 +10875,7 @@ root.MARBLE_ART =
       M.blastR = 1 + 0.4 * (T.blast || 0);
       M.blastDmg = Math.pow(2, T.blast || 0);
       M.golden = !!T.golden;
+      if (!(M.hitRef > 0)) M.hitRef = M.baseDmg;
       M.refillInterval = Math.max(C.REFILL_INTERVAL_MIN, C.REFILL_INTERVAL - (T.hourglass || 0) - (MT ? MT.refill : 0));   // 局外「補彈加速」和時光沙漏相加，下限照舊
       M.lootMult = 1 + (T.loot || 0) / 100;
       M.feverMul = MT ? MT.feverMul : 1;     // 角色被動（星糖）：狂熱能量獲得倍率
@@ -10996,7 +11045,7 @@ root.MARBLE_ART =
 
     function updateWeak(m) {
       var wk = SPEC[m.species].weak, sc = m.scale || 1;
-      m.weak.r = wk.r * Math.max(0.75, sc) * M.weakScale;
+      m.weak.r = wk.r * Math.max(0.75, sc) * M.weakScale * lockScale();
       if (wk.arc) {
         var th = Math.PI / 2 + wk.arc * Math.sin(m._ph);
         m.weak.x = m.x + Math.cos(th) * m.rx * wk.k;
@@ -11063,6 +11112,7 @@ root.MARBLE_ART =
       if (C.REFUND_PAID_ONLY) { for (var i = 0; i < S.balls.length; i++) if (S.balls[i]._paid) n++; } else n = S.balls.length + S.queue;
       S.balls = []; S.queue = 0; bombs = []; spawnList = [];
       pendingShot = false;
+      for (var si = 0; si < S.skills.length; si++) if (S.skills[si].id === 'laser') S.skills[si].on = false;
       var e = emit({ t: 'levelClear', level: copyObj(S.level), refund: 0 });
       e.refund = addMarbles(n, 'refund');
       S.stats.levelsCleared++;
@@ -11242,6 +11292,7 @@ root.MARBLE_ART =
       S.pegs = pegs;
       boardPattern = name; lastPattern = name;
       placeAbilities(ra);
+      if (SKON && skillOf('party')) partyApply();   // 釘子狂歡進行中換盤面：新盤面也套用
       buildGrid();
     }
     // 換盤面：目前累積的全部能力釘由系統隨機挑普通鋼釘改造（剛新增的先放、標成 fresh）；
@@ -11624,13 +11675,14 @@ root.MARBLE_ART =
         id: uid++, x: x, y: y, vx: vx, vy: vy, r: M.ballR,
         dmg: a ? a.dmg : M.baseDmg, mult: a ? a.mult : 1, atk: a ? (a.atk | 0) : 0,
         fire: a ? (a.fire | 0) : 0, ice: a ? (a.ice | 0) : 0, gold: a ? !!a.gold : false, fever: a ? !!a.fever : false,
+        cb: a ? !!a.cb : false, free: a ? (a.free || null) : null, tw: 0,
         splits: a ? C.SPLIT_PER_BALL : 0, rec: a ? C.RECYCLE_PER_BALL : 0,   // 分身不能再分裂、也不能觸發回收釘（避免分裂＋回收洗彈珠）
         redrops: a ? (a.redrops || 0) : 0, age: 0,
         _life: 0, _cpT: 0, _cpY: y, _stuck: 0, _dead: false, _paid: false, _lp: 0, _lt: -9
       };
     }
     function snapshot(b) {
-      return b ? { id: b.id, dmg: b.dmg, mult: b.mult, atk: b.atk, fire: b.fire, ice: b.ice, gold: b.gold, fever: b.fever, redrops: b.redrops } : null;
+      return b ? { id: b.id, dmg: b.dmg, mult: b.mult, atk: b.atk, fire: b.fire, ice: b.ice, gold: b.gold, fever: b.fever, cb: !!b.cb, redrops: b.redrops } : null;
     }
 
     function doFire() {
@@ -11643,6 +11695,10 @@ root.MARBLE_ART =
         var b = newBall(x, C.SPAWN_Y, (rng() * 2 - 1) * C.SPAWN_VX + off * 3, C.SPAWN_VY, null);
         b.gold = M.golden && firedBalls % C.GOLDEN_EVERY === 0;
         b.fever = S.fever.active;     // 狂熱期間發射的彈珠（分裂分身會繼承）
+        if (SKON && S.skills.length) {   // 技能：地獄火帶火、黃金隕石之後的黃金彈珠
+          if (skillOf('inferno')) b.fire = Math.max(b.fire, SK.inferno.fire);
+          if (meteorGold()) b.cb = true;
+        }
         b._paid = i === 0;            // 只有真正扣了彈珠的那顆能被「回收」退回（分身、雙重射擊第 2 顆不算）
         S.balls.push(b);
       }
@@ -11751,6 +11807,7 @@ root.MARBLE_ART =
         var sub = move > C.MAX_MOVE ? Math.ceil(move / C.MAX_MOVE) : 1, h = dt / sub;
         for (var s = 0; s < sub; s++) {
           var py = b.y;
+          if (SKON && S.skills.length) skillBall(b, h);
           b.x += b.vx * h; b.y += b.vy * h;
           collideWalls(b);
           collidePegs(b, h);
@@ -11859,7 +11916,7 @@ root.MARBLE_ART =
       var R = C.BOMB_R * M.blastR, i;
       emit({ t: 'explode', x: p.x, y: p.y, r: R });
       var a = b || snap;
-      var basePow = a ? a.dmg * a.mult * (a.gold ? C.GOLD_MULT : 1) * (a.fever ? C.FEVER_DMG : 1) : M.baseDmg;
+      var basePow = a ? a.dmg * a.mult * (a.gold ? C.GOLD_MULT : 1) * (a.fever ? feverDmg() : 1) * (a.cb ? SK.meteor.dmgMul : 1) : M.baseDmg;
       for (i = 0; i < S.monsters.length; i++) {
         var m = S.monsters[i];
         if (!m.alive || m.invT > 0) continue;
@@ -11930,7 +11987,7 @@ root.MARBLE_ART =
       var crit = M.critChance > 0 && rng() < M.critChance;
       var w = m.weak, wx = b.x - w.x, wy = b.y - w.y, wr = w.r + b.r + 4;
       var atWeak = wx * wx + wy * wy < wr * wr;      // 打在弱點正上方的護盾：傷害照弱點倍率（但不回收）
-      var d = b.dmg * b.mult * (crit ? 2 : 1) * (b.gold ? C.GOLD_MULT : 1) * (atWeak ? M.weakDmg : 1) * (b.fever ? C.FEVER_DMG : 1);
+      var d = b.dmg * b.mult * (crit ? 2 : 1) * (b.gold ? C.GOLD_MULT : 1) * (atWeak ? M.weakDmg : 1) * (b.fever ? feverDmg() : 1) * (b.cb ? SK.meteor.dmgMul : 1);
       d = Math.max(1, Math.round(d));
       S.combo.n++; S.combo.t = C.COMBO_WINDOW;
       if (S.combo.n > S.combo.best) S.combo.best = S.combo.n;
@@ -11985,7 +12042,9 @@ root.MARBLE_ART =
       if (weak) d *= M.weakDmg;
       if (frozen) d *= 1 + M.frostDmg;
       if (b.gold) d *= C.GOLD_MULT;
-      if (b.fever) d *= C.FEVER_DMG;      // 狂熱 ×2，和黃金 ×5 相乘
+      if (b.fever) d *= feverDmg();      // 狂熱 ×2，和黃金 ×5 相乘（技能開啟時 ×1）
+      if (b.cb) d *= SK.meteor.dmgMul;   // 黃金隕石之後的黃金彈珠
+      if (!b.free) noteHitRef(b.dmg * b.mult * (b.gold ? C.GOLD_MULT : 1) * (b.cb ? SK.meteor.dmgMul : 1));
       d = Math.max(1, Math.round(d));
       S.combo.n++; S.combo.t = C.COMBO_WINDOW;
       if (S.combo.n > S.combo.best) S.combo.best = S.combo.n;
@@ -11999,10 +12058,12 @@ root.MARBLE_ART =
       var ms = nextMilestone(comboMs);
       if (S.combo.n >= ms) { comboMs++; emit({ t: 'combo', n: ms }); }
       if (m.hp > 0) {
-        if (b.fire) applyBurn(m, b.dmg * b.mult * C.BURN_FACTOR * b.fire * (b.fever ? C.FEVER_DMG : 1), true);   // 火焰層數 ×
+        if (b.fire) applyBurn(m, b.dmg * b.mult * C.BURN_FACTOR * b.fire * (b.fever ? feverDmg() : 1), true);   // 火焰層數 ×
         if (b.ice) applyFreeze(m, b.ice);
       }
+      var tws = SKON && (b.tw | 0) < (SK.tornado ? SK.tornado.hits : 0) ? inTornado(b) : null;
       if (weak && b.redrops < C.WEAK_REDROP_MAX) weakBack(b);
+      else if (tws) { b.tw = (b.tw | 0) + 1; b.vy = -240 - rng() * 80; b.vx = (rng() * 2 - 1) * 90; b.y = Math.min(b.y, m.y - m.ry - b.r - 2); emit({ t: 'twirl', x: b.x, y: b.y }); }   // 龍捲風：捲起來再打
       else b._dead = true;
       if (m.hp <= 0) kill(m);
     }
@@ -12061,6 +12122,7 @@ root.MARBLE_ART =
       m.shield = 0; m.stunT = 0; m.tele = 0; m.moving = false; m.weakShut = false; m.shutWarn = false;
       S.stats.kills++;
       var coins = coinFor(m), dex = S.stats.dex;
+      if (SKON && coins > 0 && meteorGold()) { S.stats.skillCoins += coins * (SK.meteor.killCoin - 1); coins *= SK.meteor.killCoin; }
       S.coins += coins; S.stats.coins = S.coins;
       dex[m.species] = (dex[m.species] || 0) + 1;
       var e = emit({ t: 'kill', monsterId: m.id, species: m.species, kind: m.kind, x: m.x, y: m.y, drop: 0, mini: !!(m.mini || m.child), coins: coins });
@@ -12099,10 +12161,23 @@ root.MARBLE_ART =
         if (m.invT > 0) m.invT = Math.max(0, m.invT - dt);
         if (m.shieldFlashT > 0) m.shieldFlashT = Math.max(0, m.shieldFlashT - dt);
         if (m.moving && m.move === 'hop') stepHop(m, dt);          // 跳到一半被冰凍也會先落地
+        var hs = SKON && S.skills.length ? skillOf('hole') : null;
+        if (hs && !(m.moving && m.move === 'hop')) {               // 黑洞：往中間拉（取消衝刺／預兆），結束後慢慢走回跑道
+          if (m.moving) endMove(m);
+          m.tele = 0; m.teleMax = 0;
+          var hdx = hs.x - m.x, hst = SK.hole.pull * dt * (m.kind === 'boss' ? 0.5 : 1);
+          m.x += Math.abs(hdx) <= hst ? hdx : (hdx > 0 ? hst : -hst);
+          m._ret = true;
+        }
         if (m.frozenT > 0) m.frozenT = Math.max(0, m.frozenT - dt);
         else if (m.stunT > 0) m.stunT = Math.max(0, m.stunT - dt);  // 破盾暈眩：停住
         else {
-          if (m.moving) stepMove(m, dt);
+          if (hs) { /* 黑洞拉住：不巡邏 */ }
+          else if (m._ret) {                                       // 黑洞結束：走回自己的跑道
+            var rx = clamp(m.x, m._lo, m._hi), rdx = rx - m.x, rst = 140 * dt;
+            if (Math.abs(rdx) <= rst) { m.x = rx; m._ret = false; } else m.x += rdx > 0 ? rst : -rst;
+          }
+          else if (m.moving) stepMove(m, dt);
           else if (m.tele > 0) { m.tele -= dt; if (m.tele <= 0) startMove(m); }
           else {
             m.x += m.dir * m._spd * dt;
@@ -12266,10 +12341,13 @@ root.MARBLE_ART =
     }
     function rndDigit(not) { var d; do { d = 1 + Math.floor(prng() * 9); } while (not && not.indexOf(d) >= 0); return d; }
     function winDigit() {
+      if (SKON) { if (C.SKILL_FORCE) return C.SKILL_FORCE; if (prng() < C.SKILL_777_P) return 7; var o = [1, 2, 3, 4, 5, 6, 8, 9]; return o[Math.floor(prng() * o.length)]; }
       var K = C.PACHI_KAKUHEN_DIGITS;
       if (prng() < C.PACHI_KAKUHEN_RATE) return K[Math.floor(prng() * K.length)];
       return rndDigit(K);
     }
+    // 確變：技能開啟時跟數字脫鉤（中獎時另抽 PACHI_KAKUHEN_RATE）；關閉時照舊＝中 3／7
+    function kakFor(d) { return SKON ? prng() < C.PACHI_KAKUHEN_RATE : C.PACHI_KAKUHEN_DIGITS.indexOf(d) >= 0; }
     function wrap9(d) { return ((d - 1) % 9 + 9) % 9 + 1; }
     // 抽一次：回傳保留（含結果）。sure＝金色必中（能量條）
     function draw(sure) {
@@ -12279,11 +12357,12 @@ root.MARBLE_ART =
       var win = sure || (pachiForce === 'win') || (!noWin && prng() < p);
       var reach = win || pachiForce === 'reach' || (pachiForce !== 'lose' && pachiForce !== 'lock' && prng() < C.PACHI_REACH_LOSE);
       var a, fin, col;
-      if (win) { a = winDigit(); fin = [a, a, a]; col = sure ? 3 : pickW(C.PACHI_COLOR_WIN); }
+      var kw = false;
+      if (win) { a = winDigit(); fin = [a, a, a]; col = sure ? 3 : pickW(C.PACHI_COLOR_WIN); kw = kakFor(a); }
       else if (reach) { a = rndDigit(); fin = [a, a, wrap9(a + (prng() < 0.5 ? 1 : -1) * (prng() < 0.75 ? 1 : 2))]; col = pickW(C.PACHI_COLOR_REACH); }
       else { a = rndDigit(); var b2 = rndDigit([a]); fin = [a, b2, rndDigit()]; col = pickW(C.PACHI_COLOR_LOSE); }
       if (kak && !win) col = Math.max(col, 1);   // 確變中保留至少綠色（高機率感）
-      return { win: win, reach: reach, final: fin, color: COLORS[col], ci: col, sure: !!sure, kak: kak, endK: kak && !sure && PA.kakuhenLeft === 0,
+      return { win: win, reach: reach, final: fin, color: COLORS[col], ci: col, sure: !!sure, kak: kak, kw: kw, endK: kak && !sure && PA.kakuhenLeft === 0,
                prank: reach && prng() < C.PACHI_PRANK, shown: 0, upT: sure ? 0 : C.PACHI_HOLD_UP[0] + prng() * (C.PACHI_HOLD_UP[1] - C.PACHI_HOLD_UP[0]) };
     }
     function pubHold(h) { return { color: COLORS[h.shown], sure: h.sure, _h: h }; }
@@ -12329,7 +12408,7 @@ root.MARBLE_ART =
       if (reach) S.stats.reaches++;
       PA.spin = { t: 0, dur: dur, stops: stops, final: h.final.slice(), reach: reach, prank: !!(reach && h.prank), fake: fake, pushT: pushT, pushDur: C.PACHI_PUSH_DUR,
                   win: h.win, color: COLORS[Math.max(h.ci, h.shown)], hot: reach && (h.ci >= 2 || h.kak), sure: h.sure, kakuhen: h.kak,
-                  stopped: 0, reachOn: false, pushed: false, endK: h.endK };
+                  stopped: 0, reachOn: false, pushed: false, endK: h.endK, kw: h.kw };
       emit({ t: 'spinStart', color: PA.spin.color, sure: h.sure, kakuhen: h.kak });
     }
     function finishSpin() {
@@ -12337,19 +12416,21 @@ root.MARBLE_ART =
       PA.spin = null; PA.gap = C.PACHI_GAP;
       PA.last = sp.final.slice();
       emit({ t: 'spinEnd', win: sp.win, final: sp.final.slice(), reach: sp.reach });
-      if (sp.win) jackpot(sp.final[0], sp.sure);
+      if (sp.win) jackpot(sp.final[0], sp.sure, sp.kw);
       else if (sp.endK && PA.kakuhen && PA.kakuhenLeft <= 0) { PA.kakuhen = false; emit({ t: 'kakuhenEnd', chain: PA.chain }); }
     }
-    function jackpot(digit, sure) {
+    function jackpot(digit, sure, kw) {
       var kakNow = PA.kakuhen;
       PA.chain = kakNow ? PA.chain + 1 : 1;
       if (PA.chain > PA.maxChain) PA.maxChain = PA.chain;
       if (PA.chain > S.stats.maxChain) S.stats.maxChain = PA.chain;
       S.stats.jackpots++;
-      var kak = C.PACHI_KAKUHEN_DIGITS.indexOf(digit) >= 0;
+      var kak = kw == null ? kakFor(digit) : !!kw;
       if (kak) { PA.kakuhen = true; PA.kakuhenLeft = C.PACHI_KAKUHEN_SPINS; S.stats.kakuhens++; }
       else { PA.kakuhen = false; PA.kakuhenLeft = 0; }
-      emit({ t: 'jackpot', digit: digit, kakuhen: kak, chain: PA.chain, n: S.stats.jackpots, sure: !!sure, renew: kakNow });
+      var skid = SKON ? C.SKILL_IDS[digit] : null;
+      emit({ t: 'jackpot', digit: digit, kakuhen: kak, chain: PA.chain, n: S.stats.jackpots, sure: !!sure, renew: kakNow, skill: skid });
+      if (SKON) { var cbn = chainBonus(PA.chain); startSkill(digit, cbn.t); }
       // 狂熱（沿用現有：傷害 ×2、連發加速）；已經在狂熱就重新計時
       var F = S.fever;
       if (F.active) { F.t = F.dur = C.FEVER_DUR; F.count++; S.stats.fevers++; emit({ t: 'feverStart', dur: F.dur, n: F.count, x: S.aimX, y: C.SPAWN_Y, src: 'jackpot', renew: true }); }
@@ -12384,7 +12465,7 @@ root.MARBLE_ART =
     }
     // 彈珠穿過入賞口／大入賞口那條線（py＝這一子步之前的 y）→ 收走
     function pachiCatch(b, py) {
-      if (!PA.on) return false;
+      if (!PA.on || b.free) return false;   // 流星雨的免費彈珠不入賞、不進大入賞口
       var pk = PA.pocket;
       if (pk && !b._pk && py < pk.y && b.y >= pk.y && b.vy > 0 && Math.abs(b.x - pk.x) < pk.hw) { pocketIn(b); if (b._dead) return true; }
       var A = PA.attacker;
@@ -12392,6 +12473,7 @@ root.MARBLE_ART =
         b._dead = true; A.count++; S.stats.attackerBalls++;
         var e = emit({ t: 'attackerIn', x: b.x, y: A.y, give: 0, count: A.count, max: A.max });
         e.give = addMarbles(A.give, 'attacker');
+        if (b.cb) coinBall(b);
         if (A.count >= A.max) closeAttacker();
         return true;
       }
@@ -12424,6 +12506,271 @@ root.MARBLE_ART =
       if (PA.holds.length) { var nx = PA.holds.shift(); startSpin(nx._h); }
     }
 
+    // ---------------- 大當數字技能（feat/skills）：見 docs/SKILLS_PLAN.md ----------------
+    // S.skills：進行中的技能 [{ id, digit, t, dur, …各自的演出欄位 }]（最多 SKILL_MAX 個，只在 play 倒數）
+    // 技能傷害都以 M.hitRef（最近彈珠命中本體的平均傷害，EMA）為基準 → 跟著天賦／能力釘一起成長
+    var SKON = !!C.SKILLS, SK = C.SK || {};
+    function feverDmg() { return SKON && PA.on ? 1 : C.FEVER_DMG; }
+    function skillOf(id) { for (var i = 0; i < S.skills.length; i++) if (S.skills[i].id === id) return S.skills[i]; return null; }
+    function skillRef() { return Math.max(M.baseDmg, M.hitRef || 0); }
+    function noteHitRef(v) { if (v > 0) M.hitRef = (M.hitRef || M.baseDmg) + (v - (M.hitRef || M.baseDmg)) * C.SKILL_REF_EMA; }
+    // 技能造成的傷害（先打護盾；kill 照常）。src＝技能 id（用戶端畫不同火花）
+    function skillHit(m, d, x, y, src, weak) {
+      if (!m.alive || m.invT > 0) return 0;
+      d = Math.max(1, Math.round(d));
+      S.stats.skillDmg[src] = (S.stats.skillDmg[src] || 0) + d;
+      if (m.shield > 0) { shieldDamage(m, d, x, y, false, false, false, !!weak, false); return d; }
+      damageMonster(m, d);
+      emit({ t: 'hit', monsterId: m.id, x: x, y: y, dmg: d, crit: false, weak: !!weak, gold: src === 'meteor', frozen: m.frozenT > 0,
+             combo: S.combo.n, kind: m.kind, skill: src });
+      if (m.hp <= 0) kill(m);
+      return d;
+    }
+    function startSkill(digit, bonusT) {
+      var id = C.SKILL_IDS[digit], P = SK[id];
+      if (!id || !P) return null;
+      S.stats.skills[id] = (S.stats.skills[id] || 0) + 1;
+      var dur = P.dur + (bonusT || 0), s = skillOf(id);
+      if (s) {                        // 同一個技能再中：延長（最多累積到 2 倍時間）
+        s.t = Math.min(s.t + dur, dur * 2); s.dur = Math.max(s.dur, s.t);
+        if (id === 'meteor') meteorDrop(s);
+        emit({ t: 'skillStart', id: id, digit: digit, dur: s.t, renew: true });
+        return s;
+      }
+      while (S.skills.length >= C.SKILL_MAX) {
+        var lo = 0;
+        for (var i = 1; i < S.skills.length; i++) if (S.skills[i].t < S.skills[lo].t) lo = i;
+        endSkill(S.skills[lo], true);
+      }
+      s = { id: id, digit: digit, t: dur, dur: dur };
+      S.skills.push(s);
+      skillInit(s);
+      emit({ t: 'skillStart', id: id, digit: digit, dur: dur, renew: false });
+      return s;
+    }
+    function endSkill(s, pushed) {
+      var i = S.skills.indexOf(s);
+      if (i < 0) return;
+      S.skills.splice(i, 1);
+      if (s.id === 'hole') holeBoom(s);
+      else if (s.id === 'party') partyRevert();
+      else if (s.id === 'meteor' && !s.hit) meteorImpact(s);
+      else if (s.id === 'lock') refreshWeak();
+      emit({ t: 'skillEnd', id: s.id, pushed: !!pushed });
+    }
+    function skillInit(s) {
+      var P = SK[s.id];
+      switch (s.id) {
+        case 'rain': s.x = rng() < 0.5 ? C.AIM_MIN : C.AIM_MAX; s.dir = s.x < W / 2 ? 1 : -1; s.acc = 0; break;
+        case 'laser': s.on = false; s.x = S.aimX; s.acc = 0; s.w = P.w; break;
+        case 'allies': {
+          var ch = D.chapters[((S.level ? S.level.theme : 1) - 1)] || D.chapters[0];
+          s.list = [];
+          for (var i = 0; i < P.n; i++) {
+            var x = W * (i + 0.5) / P.n + (rng() * 2 - 1) * 12;
+            s.list.push({ x: x, y: (S.pachi.lcd ? S.pachi.lcd.y + 20 : 80) - i * 18, vx: 0, vy: 40 + rng() * 60, land: false, face: i % 2 ? -1 : 1,
+                          sp: ch.normals[i % ch.normals.length], r: P.r, hitT: 0, cds: {} });
+          }
+          break;
+        }
+        case 'hole': s.x = W / 2; s.y = FLOOR_Y - 34; s.r = P.r; break;
+        case 'lock': refreshWeak(); break;
+        case 'inferno': s.acc = 0; break;
+        case 'meteor': meteorDrop(s); break;
+        case 'party': partyApply(); break;
+        case 'tornado': s.x = rng() < 0.5 ? 60 : W - 60; s.dir = s.x < W / 2 ? 1 : -1; s.w = P.w; break;
+      }
+    }
+    function clearSkills() {
+      if (!S.skills.length) return;
+      var hadParty = !!skillOf('party');
+      S.skills.length = 0;
+      if (hadParty) partyRevert();
+      for (var i = 0; i < S.monsters.length; i++) S.monsters[i]._ret = false;
+      refreshWeak();
+    }
+    function refreshWeak() { for (var i = 0; i < S.monsters.length; i++) updateWeak(S.monsters[i]); }
+    function lockScale() { return SKON && skillOf('lock') ? SK.lock.scale : 1; }
+
+    // 777 黃金隕石：fall 秒後砸下（掉落期間不算技能時間）；之後黃金彈珠
+    function meteorDrop(s) { s.hit = false; s.fallT = SK.meteor.fall; emit({ t: 'meteorFall', dur: s.fallT }); }
+    function meteorImpact(s) {
+      s.hit = true; s.fallT = 0;
+      var P = SK.meteor, base = P.dmg * skillRef(), n = 0;
+      for (var i = 0; i < S.monsters.length; i++) {
+        var m = S.monsters[i];
+        if (!m.alive) continue;
+        var d = base;
+        if (m.kind === 'boss' || m.kind === 'elite') d = Math.min(d, m.maxHp * P.capBig);
+        if (m.shield > 0) breakShield(m);
+        m.invT = 0;
+        skillHit(m, d, m.x, m.y - m.h * 0.3, 'meteor', false);
+        n++;
+      }
+      emit({ t: 'meteorHit', n: n, x: W / 2, y: FLOOR_Y });
+    }
+
+    // 888 釘子狂歡：frac 比例的普通鋼釘暫時變能力釘（不含回收釘，避免洗彈珠）；換盤面時重新套用
+    var PARTY_KINDS = ['attack', 'crit', 'fire', 'ice', 'bomb', 'split'];
+    function partyApply() {
+      var list = [], i;
+      for (i = 0; i < S.pegs.length; i++) { var p = S.pegs[i]; if (p.alive && p.kind === 'pin' && !p.post && !p.party) list.push(p); }
+      shuffle(list, rng);
+      var n = Math.round(list.length * SK.party.frac), ids = [];
+      for (i = 0; i < n; i++) {
+        var q = list[i];
+        q.party = true; q.kind = PARTY_KINDS[Math.floor(rng() * PARTY_KINDS.length)]; q.flashT = C.PEG_FLASH; q.cdT = 0;
+        ids.push({ id: q.id, kind: q.kind, x: q.x, y: q.y });
+      }
+      emit({ t: 'party', on: true, pegs: ids });
+    }
+    function partyRevert() {
+      for (var i = 0; i < S.pegs.length; i++) { var p = S.pegs[i]; if (p.party) { p.party = false; p.kind = 'pin'; p.cdT = 0; } }
+      emit({ t: 'party', on: false, pegs: [] });
+    }
+
+    // 444 黑洞：結束時爆炸
+    function holeBoom(s) {
+      var P = SK.hole, d = P.boom * skillRef(), n = 0;
+      for (var i = 0; i < S.monsters.length; i++) {
+        var m = S.monsters[i];
+        if (!m.alive) continue;
+        if (Math.abs(m.x - s.x) > P.r + m.rx) continue;
+        skillHit(m, m.kind === 'boss' ? d * 0.6 : d, m.x, m.y - m.h * 0.2, 'hole', false); n++;
+      }
+      emit({ t: 'holeBoom', x: s.x, y: s.y, r: P.r, n: n });
+    }
+
+    function inTornado(b) { var s = skillOf('tornado'); return s && Math.abs(b.x - s.x) < s.w * 1.4 && b.y > zoneY1 - 60 ? s : null; }
+
+    // 每一步：技能倒數與效果（只在 play）
+    function skillTick(dt) {
+      if (!S.skills.length) return;
+      var ref = skillRef(), i, j, m;
+      for (var k = S.skills.length - 1; k >= 0; k--) {
+        var s = S.skills[k], P = SK[s.id];
+        if (!s) continue;
+        if (s.id === 'meteor' && !s.hit) { s.fallT -= dt; if (s.fallT <= 0) meteorImpact(s); continue; }   // 掉落中不倒數
+        s.t -= dt;
+        switch (s.id) {
+          case 'rain':
+            s.x += s.dir * 260 * dt;
+            if (s.x < C.AIM_MIN) { s.x = C.AIM_MIN; s.dir = 1; } else if (s.x > C.AIM_MAX) { s.x = C.AIM_MAX; s.dir = -1; }
+            s.acc += dt;
+            while (s.acc >= P.every) {
+              s.acc -= P.every;
+              if (S.balls.length >= C.FIELD_MAX) continue;
+              var rb = newBall(s.x + (rng() * 2 - 1) * 8, C.SPAWN_Y, (rng() * 2 - 1) * 20, P.vy, null);
+              rb.free = 'rain'; rb.splits = C.SPLIT_PER_BALL; rb.rec = C.RECYCLE_PER_BALL; rb._paid = false;
+              rb.dmg = M.baseDmg * (P.dmg || 1);
+              if (skillOf('inferno')) rb.fire = Math.max(rb.fire, SK.inferno.fire);
+              S.balls.push(rb); S.stats.rainBalls++;
+            }
+            break;
+          case 'laser':
+            s.on = !!S.firing; s.x = S.aimX;
+            if (!s.on) { s.acc = 0; break; }
+            s.acc += dt;
+            if (s.acc >= 0.1) {
+              var tk = s.acc; s.acc = 0;
+              for (i = 0; i < S.monsters.length; i++) {
+                m = S.monsters[i];
+                if (!m.alive || m.invT > 0 || Math.abs(m.x - s.x) > m.rx + s.w / 2) continue;
+                var wk = !m.weakShut && !(m.shield > 0) && Math.abs(m.weak.x - s.x) < m.weak.r + s.w / 2;
+                var ld = P.dps * ref * tk * (wk ? P.weak : 1) * (m.shield > 0 ? P.shield : 1);
+                skillHit(m, ld, s.x, wk ? m.weak.y : m.y - m.h * 0.2, 'laser', wk);
+              }
+            }
+            break;
+          case 'allies':
+            for (i = 0; i < s.list.length; i++) {
+              var a = s.list[i];
+              if (a.hitT > 0) a.hitT -= dt;
+              if (!a.land) {
+                a.vy += C.GRAVITY * dt; a.y += a.vy * dt;
+                if (a.y >= FLOOR_Y - a.r) { a.y = FLOOR_Y - a.r; a.land = true; a.vy = 0; a.vx = a.face * P.spd; emit({ t: 'allyLand', x: a.x, y: FLOOR_Y }); }
+                continue;
+              }
+              if (a.vy !== 0 || a.y < FLOOR_Y - a.r) { a.vy += C.GRAVITY * dt; a.y += a.vy * dt; if (a.y >= FLOOR_Y - a.r) { a.y = FLOOR_Y - a.r; a.vy = 0; } }
+              a.x += a.vx * dt;
+              if (a.x < a.r) { a.x = a.r; a.vx = Math.abs(a.vx); } else if (a.x > W - a.r) { a.x = W - a.r; a.vx = -Math.abs(a.vx); }
+              a.face = a.vx >= 0 ? 1 : -1;
+              for (j = 0; j < S.monsters.length; j++) {
+                m = S.monsters[j];
+                if (!m.alive || m.invT > 0 || m.air > a.r * 2) continue;
+                if (Math.abs(a.x - m.x) > m.rx + a.r) continue;
+                if ((a.cds[m.id] || 0) > S.time) continue;
+                a.cds[m.id] = S.time + P.cd;
+                skillHit(m, P.dmg * ref, a.x, m.y, 'allies', false);
+                a.vx = (a.x < m.x ? -1 : 1) * P.spd; a.vy = -220; a.y -= 1; a.hitT = 0.2;
+                emit({ t: 'allyHit', x: a.x, y: a.y, monsterId: m.id });
+                break;
+              }
+            }
+            break;
+          case 'inferno':
+            s.acc += dt;
+            if (s.acc >= 0.5) {
+              s.acc -= 0.5;
+              for (i = 0; i < S.monsters.length; i++) { m = S.monsters[i]; if (m.alive) skillHit(m, P.dps * ref * 0.5 * (m.kind === 'normal' ? 1 : (P.big || 1)), m.x, m.y - m.h * 0.1, 'inferno', false); }
+            }
+            break;
+          case 'tornado':
+            s.x += s.dir * P.spd * dt;
+            if (s.x < 40) { s.x = 40; s.dir = 1; } else if (s.x > W - 40) { s.x = W - 40; s.dir = -1; }
+            s.acc = (s.acc || 0) + dt;
+            if (s.acc >= 0.25) {         // 風刃：龍捲風經過的怪
+              var tk2 = s.acc; s.acc = 0;
+              for (i = 0; i < S.monsters.length; i++) { m = S.monsters[i]; if (m.alive && Math.abs(m.x - s.x) < m.rx + s.w * 0.6) skillHit(m, (P.dps || 0) * ref * tk2, s.x, m.y - m.h * 0.2, 'tornado', false); }
+            }
+            break;
+        }
+        if (s.t <= 0 && S.skills.indexOf(s) >= 0) endSkill(s, false);
+      }
+    }
+    // 彈珠受技能影響（每個子步）：黑洞吸、龍捲風捲、弱點鎖定導向
+    function skillBall(b, h) {
+      if (b.y < C.SPAWN_Y + 10) return;
+      var s;
+      if ((s = skillOf('hole'))) {
+        var dx = s.x - b.x, dy = s.y - b.y, d = Math.sqrt(dx * dx + dy * dy), R = SK.hole.r * 1.6;
+        if (d < R && d > 4) { var f = SK.hole.ballPull * (1 - d / R) * h; b.vx += dx / d * f; b.vy += dy / d * f * 0.5; }
+      }
+      if ((s = skillOf('tornado'))) {
+        var tx = s.x - b.x;
+        if (Math.abs(tx) < s.w * 3 && b.y > zoneY1 - 60) {
+          b.vx += tx * 6 * h;
+          if (Math.abs(tx) < s.w && b.y > FLOOR_Y - 170) { b.vy -= SK.tornado.lift * h; if (b.vy < -220) b.vy = -220; b.vx += s.dir * 40 * h + Math.sin(b.age * 14) * 400 * h; }   // 只在怪物那一層捲：彈珠在怪物上方打轉
+        }
+      }
+      if (skillOf('lock') && b.y > zoneY1 - 200) {
+        var best = null, bd = 1e9;
+        for (var i = 0; i < S.monsters.length; i++) {
+          var m = S.monsters[i];
+          if (!m.alive || m.weakShut) continue;
+          var dd = Math.abs(m.weak.x - b.x);
+          if (dd < bd) { bd = dd; best = m; }
+        }
+        if (best) { var sg = best.weak.x > b.x ? 1 : -1; b.vx += sg * SK.lock.steer * h; if (Math.abs(b.vx) > 240) b.vx = b.vx > 0 ? 240 : -240; }
+      }
+    }
+    // 777 之後的黃金彈珠進大入賞口：送金幣
+    function coinBall(b) {
+      var c = SK.meteor.coin;
+      S.coins += c; S.stats.coins = S.coins; S.stats.skillCoins += c;
+      emit({ t: 'coinBonus', x: b.x, y: b.y, coins: c, src: 'meteor' });
+    }
+    function meteorGold() { var s = skillOf('meteor'); return !!(s && s.hit); }
+    // 連莊獎勵：chain＝第幾連（1＝一般大當）
+    function chainBonus(chain) {
+      if (!SKON || chain < 2) return { t: 0, coins: 0 };
+      var t = Math.min(C.CHAIN_T_MAX, C.CHAIN_T * (chain - 1));
+      var coins = chain >= 5 ? C.CHAIN_COIN_TOP : C.CHAIN_COIN * (chain - 1);
+      S.coins += coins; S.stats.coins = S.coins; S.stats.chainCoins += coins;
+      emit({ t: 'chainBonus', chain: chain, time: t, coins: coins });
+      return { t: t, coins: coins };
+    }
+
     // ---------------- 每一步 ----------------
     function tickPlay(dt) {
       S.time += dt;
@@ -12438,6 +12785,7 @@ root.MARBLE_ART =
       if (S.combo.n > 0) { S.combo.t -= dt; if (S.combo.t <= 0) { S.combo.n = 0; S.combo.t = 0; comboMs = 0; } }
       feverTick(dt);
       pachiTick(dt);
+      if (SKON) skillTick(dt);
       updateMechs(dt);
 
       updateMonsters(dt);
@@ -12454,7 +12802,7 @@ root.MARBLE_ART =
       }
       // 發射
       fireCd -= dt;
-      var want = S.firing || pendingShot;
+      var want = (S.firing || pendingShot) && !(SKON && skillOf('laser'));   // 激光期間按住＝射激光，不發彈珠
       if (!want) { if (fireCd < 0) fireCd = 0; }
       else if (fireCd <= 0) {
         if (S.marbles <= 0) {
@@ -12470,7 +12818,7 @@ root.MARBLE_ART =
       stepBalls(dt);
 
       if (allDead()) { levelClear(); return; }
-      if (S.marbles <= 0 && S.balls.length === 0 && S.queue === 0) gameOver();
+      if (S.marbles <= 0 && S.balls.length === 0 && S.queue === 0 && !S.skills.length) gameOver();
     }
 
     function tickClear(dt) {
@@ -12691,6 +13039,7 @@ root.MARBLE_ART =
         stage = clamp(Math.floor(Number(stage) || 1), 1, 10);
         var idx = (chapter - 1) * 10 + stage;
         S.over = null; S.offer = null; refillNext = false;
+        clearSkills();                  // 換關測試：進行中的技能直接清掉（不觸發結束效果）
         S.cap = capFor(idx); S.marbles = S.cap;
         startLevel(idx);
         S.marbles = S.cap;
@@ -12751,11 +13100,13 @@ root.MARBLE_ART =
       // 'lock'＝不中也不聽牌，而且能量條集滿照舊直接狂熱（給計時型的舊測試用，不會跳出大當演出）
       lottery: function (mode) { pachiForce = mode === 'win' || mode === 'lose' || mode === 'reach' || mode === 'lock' ? mode : null; return pachiForce; },
       // jackpot(digit, instant)：instant＝直接大當（跳過轉動）；否則立刻開始一輪必中（含聽牌）的轉動。digit 省略＝隨機
-      jackpot: function (digit, instant) {
+      // kak：要不要確變（省略＝沿用舊規則：數字 3／7 確變，給舊測試用；'auto'＝照正式規則抽；技能關閉時本來就是 3／7）
+      jackpot: function (digit, instant, kak) {
         if (!PA.on || S.phase !== 'play') return false;
         var d = digit >= 1 && digit <= 9 ? Math.floor(digit) : winDigit();
-        if (instant) { PA.spin = null; PA.last = [d, d, d]; jackpot(d, false); return true; }
-        var h = draw(true); h.final = [d, d, d]; h.prank = false; h.ci = 2; h.shown = 2; h.sure = false;
+        var kw = kak === 'auto' ? kakFor(d) : kak == null ? C.PACHI_KAKUHEN_DIGITS.indexOf(d) >= 0 : !!kak;   // 'auto'＝照正式規則抽
+        if (instant) { PA.spin = null; PA.last = [d, d, d]; jackpot(d, false, kw); return true; }
+        var h = draw(true); h.final = [d, d, d]; h.prank = false; h.ci = 2; h.shown = 2; h.sure = false; h.kw = kw;
         PA.spin = null; startSpin(h); return true;
       },
       // reach(win, prank)：立刻開始一輪聽牌（win＝中不中，prank＝小怪物推數字）
@@ -12785,6 +13136,10 @@ root.MARBLE_ART =
         pocketIn(b); return true;
       },
       attacker: function () { if (!PA.on || S.phase !== 'play') return false; openAttacker(); return true; },
+      // 大當技能：skill(digit, bonusT) 直接啟動某數字的技能（不經過抽獎）；skills() 目前進行中的技能
+      skill: function (digit, bonusT) { if (!SKON || S.phase !== 'play') return false; var sk = startSkill(Math.floor(digit), Number(bonusT) || 0); return sk ? sk.id : false; },
+      clearSkills: function () { clearSkills(); return true; },
+      skillsInfo: function () { return { on: SKON, list: S.skills.map(function (q) { return { id: q.id, t: q.t, dur: q.dur }; }), hitRef: M.hitRef, stats: { skills: copyObj(S.stats.skills), dmg: copyObj(S.stats.skillDmg), coins: S.stats.skillCoins, chainCoins: S.stats.chainCoins } }; },
       kakuhen: function (on) { PA.kakuhen = !!on; PA.kakuhenLeft = on ? C.PACHI_KAKUHEN_SPINS : 0; return PA.kakuhen; },
       pachi: function () {
         return { on: PA.on, pocket: PA.pocket && copyObj(PA.pocket), spin: PA.spin && { t: PA.spin.t, dur: PA.spin.dur, reach: PA.spin.reach, win: PA.spin.win, final: PA.spin.final.slice(), prank: PA.spin.prank },
@@ -13535,6 +13890,85 @@ root.MARBLE_ART =
   /* ---------------- 事件 → 特效＋音效＋震動 ---------------- */
   var HANDLERS = {};
 
+  // ---- 大當數字技能（feat/skills）：技能造成的命中走輕量特效（不頓幀、數字有節流），大招（隕石、黑洞爆炸）才震 ----
+  var SK_COL = { rain: '#8fd3ff', laser: '#ff5ad0', allies: '#9df07a', hole: '#a98bff', lock: '#ff5d5d', inferno: '#ff8a2a', meteor: '#ffd23f', party: '#62d26f', tornado: '#c9f2ff' };
+  var skNumT = {};                                   // 每隻怪的技能傷害數字節流（同一隻 0.25 秒內合併）
+  var skNumAcc = {};
+  var skSfxT = 0;
+  function skillHitFx(e) {
+    var x = num(e.x, 180), y = num(e.y, 520), dmg = Math.max(0, num(e.dmg, 1)), col = SK_COL[e.skill] || '#ffffff', mid = e.monsterId, i;
+    var big = e.skill === 'meteor' || e.skill === 'hole';
+    var key = mid + ':' + e.skill;
+    skNumAcc[key] = (skNumAcc[key] || 0) + dmg;
+    if (big || !(skNumT[key] > clock - 0.25)) {
+      skNumT[key] = clock;
+      var tot = skNumAcc[key]; skNumAcc[key] = 0;
+      if (frameNums < 12) { frameNums++; hitNum(mid, x + rr(-6, 6), y - 6, tot, big ? 'gold' : (e.weak ? 'weak' : 'normal'), big ? 4 : 1, false, !!e.weak, big, false); }
+    }
+    var n = budget(big ? 14 : 2);
+    for (i = 0; i < n; i++) {
+      var a = -Math.PI / 2 + rr(-1.3, 1.3), v = rr(60, big ? 260 : 140);
+      P(K_SPARK, x + rr(-6, 6), y + rr(-6, 6), Math.cos(a) * v, Math.sin(a) * v, 260, 2, rr(0.2, 0.4), 2, i & 1 ? '#ffffff' : col);
+    }
+    if (e.skill === 'laser' && clock - skSfxT > 0.12) { skSfxT = clock; S.sfx('hit', { volume: 0.35, pitch: e.weak ? 5 : 2 }); }
+    else if (e.skill === 'allies') { S.sfx('hit', { pitch: 3 }); addShake(0.06, 0.2); }
+    else if (e.skill === 'inferno' && clock - skSfxT > 0.4) { skSfxT = clock; S.sfx('burn', { volume: 0.4 }); }
+  }
+  HANDLERS.skillStart = function (e) {
+    var col = SK_COL[e.id] || '#ffffff', i;
+    for (i = 0; i < 24; i++) P(K_STAR, rr(30, W - 30), rr(70, 200), rr(-40, 40), rr(-60, 20), 90, 1, rr(0.5, 0.9), 2, i & 1 ? '#ffffff' : col, true);
+    ring(0, W / 2, 200, 10, 170, 0.4, col, 4);
+    SCR.edge = Math.max(SCR.edge, 0.8); SCR.edgeCol = col;
+    S.sfx('fever_start', { volume: 0.6 });
+  };
+  HANDLERS.skillEnd = function (e) { if (!e.pushed) S.sfx('fever_end', { volume: 0.5 }); };
+  HANDLERS.chainBonus = function (e) {
+    var c = num(e.coins, 0);
+    labelFx('連莊 ×' + num(e.chain, 2) + (c > 0 ? '  +' + c + ' 金' : ''), 'gold', 15, W / 2, 140, 1.4, -24, 1.4);
+    if (c > 0) spawnCoins(W / 2, 110, 'elite', false, c, 1);
+    S.sfx('coin');
+  };
+  HANDLERS.coinBonus = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 480), c = num(e.coins, 3);
+    labelFx('+' + c + ' 金', 'gold', 13, x, y - 16, 0.8, -50, 1.2);
+    spawnCoins(x, y, 'normal', false, c, 1);
+    S.sfx('coin', { pitch: 4 });
+  };
+  HANDLERS.meteorFall = function () { S.sfx('reach_hot', { volume: 0.7 }); };
+  HANDLERS.meteorHit = function () {
+    var i, y = FLOOR_Y - 20;
+    hitStop(0.16, 0.1, 0.16, true, false, 'meteor');
+    SCR.flash = 1; SCR.flashCol = '#fff6c8'; SCR.flashDecay = 1.4;
+    trauma = 0; addShake(1, 1);
+    for (i = 0; i < 90; i++) {
+      var a = -Math.PI / 2 + rr(-1.5, 1.5), v = rr(200, 620);
+      P(i % 3 ? K_SPARK : K_STAR, rr(20, W - 20), y, Math.cos(a) * v, Math.sin(a) * v, 520, 1.2, rr(0.6, 1.3), pick([2, 4, 4]), pick(['#ffe24a', '#fff6b0', '#ffb822', '#ffffff']), true);
+    }
+    for (i = 0; i < 10; i++) { var p = P(K_SMOKE, rr(20, W - 20), y + rr(-10, 10), rr(-40, 40), rr(-70, -20), -10, 1.4, rr(0.8, 1.3), 6, pick(SMOKE_COL), true); if (p) p.s2 = 18; }
+    ring(0, W / 2, y, 20, 320, 0.6, '#ffe24a', 6);
+    ring(0, W / 2, y, 0, 220, 0.4, '#ffffff', 4);
+    vib(120, 60);
+    S.sfx('kill_boss'); later(0.08, 'heavy', 1, -4);
+  };
+  HANDLERS.holeBoom = function (e) {
+    var x = num(e.x, 180), y = num(e.y, 540), r = num(e.r, 120), i;
+    ring(0, x, y, 6, r * 1.3, 0.45, '#a98bff', 6);
+    ring(1, x, y, 0, r * 0.6, 0.12, '#ffffff', 0);
+    for (i = 0; i < budget(40); i++) { var a = rr(0, 6.283), v = rr(120, 380); P(K_SPARK, x, y, Math.cos(a) * v, Math.sin(a) * v - 60, 300, 1.4, rr(0.4, 0.8), pick([2, 4]), pick(['#a98bff', '#e0d4ff', '#5a3cbf', '#ffffff']), true); }
+    SCR.flash = Math.max(SCR.flash, 0.5); SCR.flashCol = '#e6dcff'; SCR.flashDecay = 2.4;
+    addShake(0.7, 0.9); vib(50, 80);
+    S.sfx('peg_bomb', { pitch: -4 });
+  };
+  HANDLERS.allyLand = function (e) { var x = num(e.x, 180), y = num(e.y, 586); burst(x, y - 2, budget(6), ['#d8d0e8', '#ffffff'], 30, 90, 200, 0.2, 0.4, [2, 2, 4], 0.9, K_SQ); S.sfx('land', { pitch: 4 }); };
+  HANDLERS.allyHit = function (e) { var x = num(e.x, 180), y = num(e.y, 560); P(K_STAR, x, y - 8, rr(-30, 30), -90, 200, 2, 0.4, 2, '#9df07a'); };
+  HANDLERS.twirl = function (e) { var x = num(e.x, 180), y = num(e.y, 520); for (var i = 0; i < budget(3); i++) P(K_SPARK, x, y, rr(-80, 80), rr(-120, -40), 200, 2, rr(0.2, 0.35), 2, '#c9f2ff'); };
+  HANDLERS.party = function (e) {
+    if (!e.on) return;
+    var ps = e.pegs || [], n = Math.min(ps.length, budget(40));
+    for (var i = 0; i < n; i++) P(K_STAR, num(ps[i].x, 180), num(ps[i].y, 300), rr(-30, 30), rr(-60, -20), 60, 2, rr(0.4, 0.7), 2, pick(['#62d26f', '#ffd23f', '#ff5d5d', '#79dcff', '#8a7cff']));
+    S.sfx('regrow');
+  };
+
   HANDLERS.fire = function (e) {
     var x = num(e.x, 180), y = num(e.y, 14);
     ring(2, x, y + 2, 0, 7, 0.07, '#ffffff', 2);
@@ -13649,6 +14083,7 @@ root.MARBLE_ART =
     return true;
   }
   HANDLERS.hit = function (e) {
+    if (e.skill) { skillHitFx(e); return; }   // feat/skills：技能命中走輕量特效
     var x = num(e.x, 180), y = num(e.y, 520), dmg = Math.max(0, num(e.dmg, 1));
     var crit = !!e.crit, weak = !!e.weak, gold = !!e.gold, frozen = !!e.frozen, bomb = !!e.bomb, kind = e.kind || 'normal';
     var score = hitScore(e), tier = hitTier(e, score);
@@ -15046,7 +15481,7 @@ root.MARBLE_ART =
   function defaults() {
     var h = {}, H = HE();
     for (var i = 0; i < H.length; i++) if (!(H[i].price > 0)) h[H[i].id] = true;
-    return { v: 1, coins: 0, earned: 0, upg: {}, hero: firstHero(), heroes: h, dex: {}, runs: 0, pending: null };
+    return { v: 1, coins: 0, earned: 0, upg: {}, hero: firstHero(), heroes: h, dex: {}, skills: {}, runs: 0, pending: null };
   }
   function cleanDex(src) {
     var out = {};
@@ -15068,6 +15503,8 @@ root.MARBLE_ART =
     if (o.heroes && typeof o.heroes === 'object') for (i = 0; i < H.length; i++) if (o.heroes[H[i].id] === true) s.heroes[H[i].id] = true;
     if (typeof o.hero === 'string' && s.heroes[o.hero]) s.hero = o.hero;
     s.dex = cleanDex(o.dex);
+    var SKD = (Dt() && Dt().skills) || {};   // feat/skills：見過的大當技能 { id: 次數 }
+    if (o.skills && typeof o.skills === 'object') for (var sk in SKD) if (hasOwn.call(SKD, sk)) { var sn = int0(o.skills[sk]); if (sn > 0) s.skills[sk] = sn; }
     s.pending = cleanPending(o.pending);
     return s;
   }
@@ -15411,6 +15848,29 @@ root.MARBLE_ART =
       sec.appendChild(row);
       L.appendChild(sec);
     }
+    renderSkillDex(L);
+  }
+  // feat/skills：大當技能圖鑑（數字、名稱、說明；沒見過＝？？？）
+  function renderSkillDex(L) {
+    var SKD = (Dt() && Dt().skills) || {}, ids = [], k;
+    for (k in SKD) if (hasOwn.call(SKD, k)) ids.push(k);
+    if (!ids.length) return;
+    ids.sort(function (a, b) { return SKD[a].digit - SKD[b].digit; });
+    var seen = 0; for (k = 0; k < ids.length; k++) if (S.skills[ids[k]]) seen++;
+    var sec = el('div', 'dexCh dexSk');
+    sec.appendChild(el('h4', '', '大當技能 · ' + seen + ' / ' + ids.length));
+    var row = el('div', 'skRow');
+    for (k = 0; k < ids.length; k++) {
+      var d = SKD[ids[k]], n = S.skills[ids[k]] | 0, cell = el('div', 'skCell' + (n ? '' : ' unk') + (d.rare ? ' rare' : ''));
+      cell.setAttribute('data-sk', ids[k]);
+      var dg = el('b', 'skDg', String(d.digit) + d.digit + d.digit); if (n) dg.style.color = d.color; cell.appendChild(dg);
+      cell.appendChild(el('b', 'skName', n ? d.name : '？？？'));
+      cell.appendChild(el('i', 'skTip', n ? d.short : (d.rare ? '稀有大獎' : '還沒中過')));
+      cell.title = n ? (d.name + '：' + d.short + '（中過 ' + n + ' 次）') : '還沒中過';
+      row.appendChild(cell);
+    }
+    sec.appendChild(row);
+    L.appendChild(sec);
   }
   function flashRow(sel) {
     var U = ui(); if (!U) return;
@@ -15497,6 +15957,9 @@ root.MARBLE_ART =
     buyHero: buyHero,
     selectHero: selectHero,
     onChange: function (fn) { if (typeof fn === 'function') listeners.push(fn); },
+    // feat/skills：記錄中過的大當技能（第一次＝回傳 true，用戶端可以秀「新技能」）
+    noteSkill: function (id) { var SKD = (Dt() && Dt().skills) || {}; if (!hasOwn.call(SKD, id)) return false; fresh(); var first = !S.skills[id]; S.skills[id] = (S.skills[id] | 0) + 1; save(); if (isOpen) render(); return first; },
+    skillsSeen: function () { return copy(S.skills); },
     // 畫面
     openShop: open,
     closeShop: close,
@@ -15537,7 +16000,7 @@ root.MARBLE_ART =
   var FONT = '"Microsoft JhengHei","PingFang TC","Noto Sans TC","Heiti TC",sans-serif';
   var SAVE_KEY = 'marble_legend_v1';
   // 統計：正式版外層會載 Umami（window.umami），測試版和本機沒有就什麼都不做
-  var jpTracked = false;
+  var jpTracked = false, meteorTracked = false;
   function mlTrack(name, data) { try { if (window.umami && typeof window.umami.track === 'function') window.umami.track('marble_' + name, data); } catch (e) { } }
   var RAR_NAME = { w: '普通', b: '稀有', g: '傳說', p: '能力釘' };
   var RAR_RANK = { w: 0, b: 1, g: 2 };
@@ -16216,7 +16679,7 @@ root.MARBLE_ART =
     clearDealTimers();
     sim = s2; runChapter = ch; runSeed = seed;
     metaRunStart(s2.state, ch);   // feat/meta：本局 pending、主角
-    jpTracked = false; mlTrack('start', { ch: ch });
+    jpTracked = false; meteorTracked = false; mlTrack('start', { ch: ch });
     // 章節補償總次數：直接讀 sim 開出的第一組 offer（次數公式在 sim.js startPicksFor，平衡會調）
     startTotal = s2.state.offer && s2.state.offer.source === 'start' ? (s2.state.offer.remaining | 0) : 0;
     if (s2.state.offer && s2.state.offer.source === 'prep') startTotal = ch > 1 && MS.startPicks ? (MS.startPicks(ch) | 0) : 0;   // feat/meta：開局準備先挑，章節補償金卡在後面
@@ -16272,7 +16735,9 @@ root.MARBLE_ART =
         showBanner('clear', '過關！', ev.refund > 0 ? ('場上彈珠退回 +' + ev.refund) : '');
         break;
       case 'feverStart': if (JP.on) JP.feverPending = true; else feverShow(); break;
-      case 'feverEnd': feverHide(); break;
+      case 'feverEnd': if (!skList(sim && sim.state)) feverHide(); break;
+      case 'skillStart': onSkillStart(ev); break;
+      case 'skillEnd': if (!skList(sim && sim.state) && !(sim && sim.state.fever && sim.state.fever.active)) feverHide(); break;
       case 'talentOffer': talentSig = ''; break;
       case 'pinNew': onPinNew(ev); break;
       case 'reroll': talentSig = ''; break;
@@ -16396,7 +16861,9 @@ root.MARBLE_ART =
   }
   function updateFever(st) {
     var F = st.fever;
-    var on = !!(F && F.active) && (screen === 'play' || screen === 'pause'), e = F ? clamp(F.energy || 0, 0, 1) : 0;
+    var skl = skList(st), skT = 0;
+    if (skl) for (var ski = 0; ski < skl.length; ski++) skT = Math.max(skT, skl[ski].t);
+    var on = (!!(F && F.active) || !!skl) && (screen === 'play' || screen === 'pause'), e = F ? clamp(F.energy || 0, 0, 1) : 0;
     if (on !== fvc.on) {
       fvc.on = on;
       if (on) E.app.classList.add('fever'); else E.app.classList.remove('fever');
@@ -16408,12 +16875,12 @@ root.MARBLE_ART =
     var fe = Math.round(e * 100) / 100;
     if (fe !== fvc.fe && FVE.ring) { fvc.fe = fe; FVE.ring.style.setProperty('--fe', String(fe)); }
     if (on && FVE.timer) {
-      var t10 = Math.max(0, Math.ceil((F.t || 0) * 10));
+      var t10 = Math.max(0, Math.ceil((skl ? skT : (F.t || 0)) * 10));
       if (t10 !== fvc.sec) {
         var prevS = Math.ceil(fvc.sec / 10), curS = Math.ceil(t10 / 10);
         if (fvc.sec >= 0 && curS < prevS && curS >= 1 && curS <= 3 && screen === 'play') Au.sfx('fever_tick', { pitch: (3 - curS) * 2 });
         fvc.sec = t10;
-        FVE.timer.textContent = '狂熱 ×2 ' + (t10 / 10).toFixed(1) + '秒';
+        FVE.timer.textContent = skl ? skHudText(st) : '狂熱 ' + (t10 / 10).toFixed(1) + '秒';
         var hurry = t10 <= 15;
         if (hurry !== fvc.hurry) { fvc.hurry = hurry; if (hurry) FVE.timer.classList.add('hurry'); else FVE.timer.classList.remove('hurry'); }
       }
@@ -17128,7 +17595,7 @@ root.MARBLE_ART =
       }
     }
   }
-  function ballType(b) { return b.gold ? 'gold' : (b.mult > 1 ? 'crit' : (b.fire ? 'fire' : (b.ice ? 'ice' : 'normal'))); }
+  function ballType(b) { return (b.gold || b.cb) ? 'gold' : (b.mult > 1 ? 'crit' : (b.fire ? 'fire' : (b.ice ? 'ice' : 'normal'))); }
   // 彈珠身上疊的能力（feat/pins）：外圈依種類分段的彩色光環（越疊越粗、越亮），轉動；攻擊疊滿＝紅色小尾巴
   var AURA = [['atk', '#ff5d5d', 6], ['crit', '#ffd23f', 3], ['fire', '#ff8a2a', 3], ['ice', '#79dcff', 3]];
   function drawAura(b, r, t) {
@@ -17686,6 +18153,7 @@ root.MARBLE_ART =
     drawPocket(st, animT);
     drawAttacker(st, animT);
     drawMoveMarks(st.monsters, animT, st.FLOOR_Y || FLOOR_DEF);
+    drawSkillsUnder(st, animT);   // feat/skills
     if (st.fever) drawFeverGauge(st, animT);
     drawMonsters(st.monsters, animT, va, st.FLOOR_Y || FLOOR_DEF);
     drawWeakMarks(st.monsters, animT);
@@ -17696,6 +18164,7 @@ root.MARBLE_ART =
     drawBigBars(st.monsters, animT);
     drawReachDim(st);
     drawBalls(st.balls, animT);
+    drawSkillsOver(st, animT);    // feat/skills
     drawReachView(st, animT);
     ctx.save(); Jz.call('drawWorld', ctx); ctx.restore(); resetCtx(); worldXf(sx, sy);
     drawCaptions();
@@ -17704,6 +18173,187 @@ root.MARBLE_ART =
     var f = cv.width / L.cssW;
     ctx.setTransform(f, 0, 0, f, 0, 0);
     ctx.save(); Jz.call('drawScreen', ctx, L.cssW, L.cssH); ctx.restore(); resetCtx();
+  }
+
+  /* ================= 大當數字技能（feat/skills）：技能的世界演出（規則在 sim.js、數值在 config.js SK、名稱在 data.js skills） ================= */
+  function skDefs() { return (window.ML_DATA && window.ML_DATA.skills) || {}; }
+  function skCfg(id) { var C = window.ML_CONFIG; return (C && C.SK && C.SK[id]) || {}; }
+  function skList(st) { return st && st.skills && st.skills.length ? st.skills : null; }
+  function skFade(s) { return clamp(Math.min(s.t / 0.35, (s.dur - s.t) / 0.25 + 0.2), 0, 1); }
+  // 盤面底下（怪物之前）：地獄火、黑洞、龍捲風、流星雨的雲
+  function drawSkillsUnder(st, t) {
+    var list = skList(st); if (!list) return;
+    var fy = st.FLOOR_Y || FLOOR_DEF;
+    for (var i = 0; i < list.length; i++) {
+      var s = list[i], a = skFade(s);
+      if (a <= 0) continue;
+      ctx.globalAlpha = a;
+      if (s.id === 'inferno') skInferno(fy, t);
+      else if (s.id === 'tornado') skTornado(s, t, fy);
+      else if (s.id === 'rain') skCloud(s, t);
+      ctx.globalAlpha = 1;
+    }
+  }
+  // 盤面上面（彈珠之後）：弱點準星、激光、援軍、黃金隕石
+  function drawSkillsOver(st, t) {
+    var list = skList(st); if (!list) return;
+    var fy = st.FLOOR_Y || FLOOR_DEF;
+    for (var i = 0; i < list.length; i++) {
+      var s = list[i];
+      if (s.id === 'lock') skLock(st.monsters, t, skFade(s));
+      else if (s.id === 'hole') { ctx.globalAlpha = skFade(s) * 0.9; skHole(s, t); ctx.globalAlpha = 1; }   // 黑洞畫在怪物前面（看得到怪被吸進去）
+      else if (s.id === 'laser') skLaser(s, st, t, fy);
+      else if (s.id === 'allies') skAllies(s, t, fy, skFade(s));
+      else if (s.id === 'meteor') skMeteor(s, t, fy);
+    }
+  }
+  function skInferno(fy, t) {
+    for (var x = 0; x < W; x += 6) {
+      var h = 12 + 11 * Math.abs(Math.sin(t * 7 + x * 0.13)) + 5 * Math.sin(t * 13 + x * 0.41);
+      ctx.fillStyle = '#d8501e'; ctx.fillRect(x, fy - h, 6, h);
+      ctx.fillStyle = '#ff8a2a'; ctx.fillRect(x + 1, fy - h * 0.7, 4, h * 0.7);
+      ctx.fillStyle = '#fff0a0'; ctx.fillRect(x + 2, fy - h * 0.35, 2, h * 0.35);
+    }
+    ctx.globalAlpha *= 0.25; ctx.fillStyle = '#ff6a2a'; ctx.fillRect(0, fy - 60, W, 60);
+  }
+  function skHole(s, t) {
+    var x = s.x, y = s.y, r0 = 20 + 3 * Math.sin(t * 6), k, i, ga = ctx.globalAlpha;
+    ctx.globalAlpha = ga * 0.22; ctx.strokeStyle = '#a98bff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, s.r, 0, 6.2832); ctx.stroke();
+    ctx.globalAlpha = ga;
+    for (k = 0; k < 3; k++) for (i = 0; i < 12; i++) {
+      var an = t * 5 + k * 2.094 + i * 0.5, rr = r0 * 2.2 * (1 - i / 13);
+      ctx.fillStyle = i < 4 ? '#e0d4ff' : i < 8 ? '#a98bff' : '#5a3cbf';
+      var sz = i < 6 ? 4 : 3;
+      ctx.fillRect(Math.round(x + Math.cos(an) * rr - sz / 2), Math.round(y + Math.sin(an) * rr * 0.6 - sz / 2), sz, sz);
+    }
+    ctx.fillStyle = '#120820'; ctx.beginPath(); ctx.ellipse(x, y, r0 * 0.8, r0 * 0.55, 0, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = '#c9b6ff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(x, y, r0 * 0.8, r0 * 0.55, 0, 0, 6.2832); ctx.stroke();
+  }
+  function skTornado(s, t, fy) {
+    var x = s.x, ga = ctx.globalAlpha, n = 15, off = (t * 70) % 15;
+    for (var i = 0; i < n; i++) {
+      var y = fy - 6 - i * 15 + off, wd = 8 + i * 2.6, ox = Math.sin(t * 4 + i * 0.6) * 6;
+      if (y < fy - 230) continue;
+      ctx.globalAlpha = ga * (0.35 + 0.35 * ((i + Math.floor(t * 10)) % 2));
+      ctx.strokeStyle = i % 3 ? '#e6f8ff' : '#9ad8f0'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(x + ox, y, wd, 4 + i * 0.25, 0, 0, 6.2832); ctx.stroke();
+    }
+    ctx.globalAlpha = ga * 0.8; ctx.fillStyle = '#ffffff';
+    for (var j = 0; j < 8; j++) { var an = t * 6 + j * 0.8, yy = fy - 20 - ((t * 90 + j * 27) % 200); ctx.fillRect(Math.round(x + Math.cos(an) * (10 + (fy - yy) * 0.15)), Math.round(yy), 3, 3); }
+    ctx.globalAlpha = ga;
+  }
+  function skCloud(s, t) {
+    var x = s.x, y = 12;
+    ctx.fillStyle = '#5a7fc0'; ctx.beginPath(); ctx.arc(x - 12, y + 2, 9, 0, 6.2832); ctx.arc(x + 12, y + 2, 9, 0, 6.2832); ctx.arc(x, y - 3, 12, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = '#dff1ff'; ctx.beginPath(); ctx.arc(x - 12, y, 7, 0, 6.2832); ctx.arc(x + 12, y, 7, 0, 6.2832); ctx.arc(x, y - 5, 10, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = '#8fd3ff';
+    for (var i = 0; i < 4; i++) { var dy = (t * 160 + i * 9) % 26; ctx.fillRect(Math.round(x - 12 + i * 8), Math.round(y + 10 + dy), 2, 5); }
+  }
+  function skLock(mons, t, a) {
+    if (!mons) return;
+    ctx.globalAlpha = a; ctx.strokeStyle = '#ff5d5d'; ctx.lineWidth = 2;
+    for (var i = 0; i < mons.length; i++) {
+      var m = mons[i];
+      if (!m.alive || !m.weak || m.weakShut) continue;
+      var R = m.weak.r + 5 + Math.sin(t * 8) * 1.5, x = m.weak.x, y = m.weak.y, L2 = R * 0.45;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(t * 1.8);
+      for (var k = 0; k < 4; k++) {
+        ctx.rotate(Math.PI / 2);
+        ctx.beginPath(); ctx.moveTo(R - L2, -R); ctx.lineTo(R, -R); ctx.lineTo(R, -R + L2); ctx.stroke();
+      }
+      ctx.restore();
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3);
+    }
+    ctx.globalAlpha = 1;
+  }
+  function skLaser(s, st, t, fy) {
+    var x = s.x, w = s.w || 9, top = 16, a = skFade(s);
+    if (!s.on) {                                   // 沒按住：細細的瞄準線＋提示會在發射口閃
+      ctx.globalAlpha = a * (0.25 + 0.2 * Math.abs(Math.sin(t * 6)));
+      ctx.fillStyle = '#ff5ad0';
+      for (var yy = top; yy < fy; yy += 10) ctx.fillRect(Math.round(x) - 1, yy, 2, 5);
+      ctx.globalAlpha = 1;
+      return;
+    }
+    var fl = 0.85 + 0.15 * Math.sin(t * 50);
+    ctx.globalAlpha = a * 0.3; ctx.fillStyle = '#ff5ad0'; ctx.fillRect(x - w * 1.5, top, w * 3, fy - top);
+    ctx.globalAlpha = a * 0.85; ctx.fillStyle = '#ff7ae0'; ctx.fillRect(x - w / 2 * fl, top, w * fl, fy - top);
+    ctx.globalAlpha = a; ctx.fillStyle = '#ffffff'; ctx.fillRect(x - w * 0.18, top, w * 0.36, fy - top);
+    ctx.globalAlpha = a * 0.5; ctx.fillStyle = '#ffffff';
+    var off = (t * 300) % 12;
+    for (var y = top + off; y < fy; y += 12) ctx.fillRect(x - w * 1.2, y, w * 2.4, 1);
+    ctx.globalAlpha = a; ctx.fillStyle = '#ffe0f6'; ctx.beginPath(); ctx.arc(x, top, w * (0.9 + 0.2 * Math.sin(t * 30)), 0, 6.2832); ctx.fill();
+    var mons = st.monsters || [];
+    for (var i = 0; i < mons.length; i++) {
+      var m = mons[i];
+      if (!m.alive || Math.abs(m.x - x) > m.rx + w / 2) continue;
+      var hy = m.y - m.ry * 0.9;
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x, hy, w * (1 + 0.4 * Math.sin(t * 40 + i)), 0, 6.2832); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function skAllies(s, t, fy, a) {
+    var list = s.list || [];
+    ctx.globalAlpha = a;
+    for (var i = 0; i < list.length; i++) {
+      var q = list[i], e = sprEntry(monPath(q.sp, false)), r = q.r || 11, H2 = r * 2.6;
+      ctx.fillStyle = 'rgba(157,240,122,0.5)'; ctx.beginPath(); ctx.ellipse(q.x, fy - 1, r * 1.1, 3, 0, 0, 6.2832); ctx.fill();
+      var sq = q.hitT > 0 ? 0.82 : 1, c = e ? sprCanvas(e, frameOf(e, t * 1.6 + i * 0.3), 0, null) : null;
+      if (c) {
+        var sc = H2 / e.h, w = e.w * sc, h = e.h * sc * sq, footY = q.y + r;
+        ctx.save(); ctx.translate(q.x, footY); if (q.face < 0) ctx.scale(-1, 1);
+        ctx.drawImage(c, -w / 2, -h, w, h); ctx.restore();
+      } else { ctx.fillStyle = '#9df07a'; ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, 6.2832); ctx.fill(); }
+      // 頭上的綠色小旗＝我方
+      var hx = Math.round(q.x), hy = Math.round(q.y - r * 1.9);
+      ctx.fillStyle = INK; ctx.fillRect(hx - 1, hy - 2, 2, 9); ctx.fillRect(hx, hy - 3, 8, 6);
+      ctx.fillStyle = '#9df07a'; ctx.fillRect(hx + 1, hy - 2, 6, 4);
+    }
+    ctx.globalAlpha = 1;
+  }
+  // 777：佔滿螢幕寬的黃金隕石從上面砸下來（掉落中 hit=false；fallT 從 SK.meteor.fall 倒數到 0）
+  function skMeteor(s, t, fy) {
+    if (s.hit) return;
+    var fall = skCfg('meteor').fall || 1.1, u = clamp(1 - (s.fallT || 0) / fall, 0, 1), R = W * 0.5;
+    var cy = -R * 1.1 + (fy - R * 0.35 + R * 1.1) * u * u, cx = W / 2 + Math.sin(t * 40) * 2 * u;
+    ctx.globalAlpha = 0.35 * u; ctx.fillStyle = '#1a0a00'; ctx.fillRect(0, 0, W, fy + 20); ctx.globalAlpha = 1;
+    ctx.globalAlpha = 0.3 + 0.4 * u; ctx.fillStyle = '#2a1840'; ctx.beginPath(); ctx.ellipse(W / 2, fy, R * (0.4 + 0.6 * u), 6 + 8 * u, 0, 0, 6.2832); ctx.fill(); ctx.globalAlpha = 1;
+    for (var k = 0; k < 18; k++) {                 // 火焰尾巴
+      var fx = cx + (k / 17 - 0.5) * R * 1.7, fh = R * (0.8 + 0.6 * Math.abs(Math.sin(t * 9 + k * 1.3)));
+      ctx.fillStyle = k % 3 === 0 ? '#ff7c22' : k % 3 === 1 ? '#ffb822' : '#fff0a0';
+      ctx.globalAlpha = 0.75; ctx.fillRect(Math.round(fx - 6), Math.round(cy - R * 0.5 - fh), 12, fh);
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(cx, cy, R + 4, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = '#c07a10'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = '#ffd23f'; ctx.beginPath(); ctx.arc(cx - R * 0.06, cy - R * 0.06, R * 0.88, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = '#ffe98a'; ctx.beginPath(); ctx.arc(cx - R * 0.22, cy - R * 0.22, R * 0.55, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = '#fffbe0'; ctx.beginPath(); ctx.arc(cx - R * 0.38, cy - R * 0.4, R * 0.18, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(cx - R * 0.5), Math.round(cy - R * 0.55), 10, 10);
+    var big = pxText('777', 30, GOLD_BANDS, { font: FONT, ring: '#ffffff' });
+    if (big) { var k2 = 3; ctx.drawImage(big, Math.round(cx - big.width * k2 / 2), Math.round(cy - big.height * k2 / 2 + R * 0.1), big.width * k2, big.height * k2); }
+  }
+  // HUD 文字：進行中的技能（取代狂熱 ×2）
+  function skHudText(st) {
+    var list = skList(st), D = skDefs(), out = [];
+    if (!list) return '';
+    for (var i = 0; i < list.length; i++) {
+      var s = list[i], d = D[s.id], tt = s.id === 'meteor' && !s.hit ? s.t : s.t;
+      out.push((d ? d.name : s.id) + ' ' + Math.max(0, tt).toFixed(1));
+    }
+    return out.join('・');
+  }
+  function onSkillStart(ev) {
+    var d = skDefs()[ev.id];
+    if (!d) return;
+    if (FVE.text) FVE.text.innerHTML = '';
+    if (FVE.text) { FVE.text.appendChild(doc.createTextNode(d.name + '！')); var sm = doc.createElement('small'); sm.textContent = d.short; FVE.text.appendChild(sm); FVE.text.style.color = d.color; }
+    if (!JP.on) feverShow();
+    tipAdd('skill_' + ev.id);
+    if (ev.id === 'meteor' && !meteorTracked) { meteorTracked = true; mlTrack('meteor', { lv: (sim && sim.state && sim.state.level && sim.state.level.label) || '' }); }   // 每局第一次 777
+    var MM = window.MarbleMeta;
+    if (MM && typeof MM.noteSkill === 'function') { try { MM.noteSkill(ev.id); } catch (e) { warnOnce('noteSkill', e); } }
   }
 
   /* ================= 小鋼珠（feat/pachinko）：機台外框、液晶、入賞口、大入賞口、聽牌／大當演出 ================= */
@@ -18121,7 +18771,7 @@ root.MARBLE_ART =
   function startShow(ev) {
     if (!jpLayer || !jctx) return;
     releaseInputs();
-    JP.on = true; JP.t = 0; JP.dur = PCFG('PACHI_SHOW', 1.8); JP.digit = ev.digit | 0 || 7; JP.kak = !!ev.kakuhen; JP.chain = ev.chain | 0 || 1; JP.sure = !!ev.sure;
+    JP.on = true; JP.t = 0; JP.dur = PCFG('PACHI_SHOW', 1.8); JP.digit = ev.digit | 0 || 7; JP.skill = ev.skill || null; JP.kak = !!ev.kakuhen; JP.chain = ev.chain | 0 || 1; JP.sure = !!ev.sure;
     jpLayer.hidden = false;
     var r = E.app.getBoundingClientRect(), d = clamp(window.devicePixelRatio || 1, 1, 2);
     JP.w = Math.max(1, Math.round(r.width)); JP.h = Math.max(1, Math.round(r.height)); JP.d = d;
@@ -18192,7 +18842,8 @@ root.MARBLE_ART =
     var k = Math.max(1, Math.floor(Math.min(w * 0.86 / big.width, h * 0.16 / big.height)));
     var pop = t < 0.25 ? 1.35 - 0.35 * (t / 0.25) : 1, bw = big.width * k * pop, bh = big.height * k * pop, by2 = Math.round(h * 0.56 - bh / 2);
     g.drawImage(big, Math.round(cx - bw / 2), by2, Math.round(bw), Math.round(bh));
-    var sub = pxText('中大獎了！', 14, '#ffffff', { font: FONT }), ks = Math.max(1, Math.floor(Math.min(3, w * 0.6 / sub.width)));
+    var skd = JP.skill ? skDefs()[JP.skill] : null;
+    var sub = skd ? pxText(skd.name + '！', skd.rare ? 18 : 15, skd.rare ? GOLD_BANDS : skd.color, { font: FONT, ring: '#ffffff' }) : pxText('中大獎了！', 14, '#ffffff', { font: FONT }), ks = Math.max(1, Math.floor(Math.min(3, w * 0.6 / sub.width)));
     g.drawImage(sub, Math.round(cx - sub.width * ks / 2), Math.round(by2 + bh + 6), sub.width * ks, sub.height * ks);
     var yN = by2 + bh + 6 + sub.height * ks + 12;
     if (JP.chain >= 2) {
@@ -18694,7 +19345,7 @@ root.MARBLE_ART =
     pocket: '打進中間的入賞口就會轉數字，三個一樣＝大當',
     hold: '轉動中再進珠會存成保留燈，最多 4 顆',
     reach: '聽牌！最後一格也對上就中大獎',
-    jackpot: '大當＝狂熱：傷害 ×2、連發變快，猛打！',
+    jackpot: '大當！每個數字的技能都不一樣，777 最稀有',
     attacker: '大入賞口打開了！打進去換彈珠',
     kakuhen: '確變中：接下來幾次轉動超容易再中',
     energy: '打怪會集左邊的能量條，集滿送一顆必中',
@@ -18725,8 +19376,9 @@ root.MARBLE_ART =
     pins: '新手提示：能力釘整局有效，不滿意可以重抽 1 次'
   };
   // 優先順序（大的先講）與排隊最久等幾秒（過期就丟掉、不算看過，下次再發生時再講）
-  function tipPri(id) { return /^trait_/.test(id) ? 5 : /^(reach|jackpot|attacker|kakuhen|last|marbles|weak|pocket)$/.test(id) ? 4 : /^(hold|energy|refill|pin_new)$/.test(id) ? 3 : /^(aura|mech_)/.test(id) ? 2 : 1; }
-  function tipTtl(id) { return /^(peg_|combo$)/.test(id) ? 5 : /^(trait_|jackpot$)/.test(id) ? 30 : 12; }
+  function tipPri(id) { return /^(trait_|skill_)/.test(id) ? 5 : /^(reach|jackpot|attacker|kakuhen|last|marbles|weak|pocket)$/.test(id) ? 4 : /^(hold|energy|refill|pin_new)$/.test(id) ? 3 : /^(aura|mech_)/.test(id) ? 2 : 1; }
+  function tipTtl(id) { return /^(peg_|combo$)/.test(id) ? 5 : /^(trait_|skill_|jackpot$)/.test(id) ? 30 : 12; }
+  (function () { var D = (window.ML_DATA && window.ML_DATA.skills) || {}; for (var k in D) if (D[k] && D[k].tip) TIP_TEXT['skill_' + k] = D[k].tip; })();   // feat/skills：每個技能第一次出現的說明
   var TIP = { seen: null, q: [], cur: null, gap: 0, shown: false, log: [], firstLv: true };
   function tipLoad() {
     if (TIP.seen) return TIP.seen;
@@ -19308,7 +19960,9 @@ root.MARBLE_ART =
       // 小鋼珠（feat/pachinko）：jackpot(digit, instant) 強制大當（instant＝跳過轉動直接演出）、reach(win, prank) 強制聽牌、
       // setHold(['blue','green','red','gold']) 設保留、lottery('win'|'lose'|'reach'|'lock'|null) 之後每次抽獎的結果、entry() 模擬入賞、
       // attacker() 開大入賞口、kakuhen(on)、pachinko(on) 整個開關、pachi() 狀態、show() 演出狀態、skipShow()、captions()、glyphCheck(text)、frameInfo()
-      jackpot: function (d, instant) { return pachiDbg('jackpot', d, instant); },
+      jackpot: function (d, instant, kak) { return pachiDbg('jackpot', d, instant, kak); },
+      skill: function (d, bonusT) { return pachiDbg('skill', d, bonusT); },   // feat/skills：直接啟動某數字的技能
+      skillsInfo: function () { return sim && sim.debug && sim.debug.skillsInfo ? sim.debug.skillsInfo() : null; },
       reach: function (win, prank) { return pachiDbg('reach', win, prank); },
       setHold: function (list) { return pachiDbg('setHold', list); },
       lottery: function (mode) { return pachiDbg('lottery', mode); },
